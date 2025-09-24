@@ -5,6 +5,7 @@ import greencity.service.HabitService;
 import greencity.service.TagsService;
 import greencity.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -49,5 +50,7 @@ public class HabitControllerTest {
                         new UserArgumentResolver(userService, modelMapper))
                 .build();
     }
+
+    @Test
 
 }
