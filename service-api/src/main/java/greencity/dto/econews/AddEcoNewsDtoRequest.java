@@ -1,5 +1,6 @@
 package greencity.dto.econews;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
@@ -24,7 +25,9 @@ public class AddEcoNewsDtoRequest {
 
     private String source;
 
+    @Schema(hidden = true)
     private String image;
 
+    @Schema(hidden = true)
     private String shortInfo;
 }
