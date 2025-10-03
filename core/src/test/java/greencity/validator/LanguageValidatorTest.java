@@ -51,6 +51,6 @@ class LanguageValidatorTest {
     @Test
     void isValid_ThrowsException_WhenLocaleIsNull() {
         assertThrows(NullPointerException.class,
-                () -> languageValidator.isValid(null, null));
+            () -> languageValidator.isValid(null, null));
     }
 }

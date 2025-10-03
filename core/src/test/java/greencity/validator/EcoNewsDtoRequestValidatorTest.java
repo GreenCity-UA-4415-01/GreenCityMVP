@@ -52,7 +52,7 @@ class EcoNewsDtoRequestValidatorTest {
         request.setSource("https://eco-lavca.ua/");
 
         assertTrue(validator.isValid(request, context),
-                "The validator should return true if the DTO is valid and the Source exists.");
+            "The validator should return true if the DTO is valid and the Source exists.");
     }
 
     @Test
@@ -61,7 +61,7 @@ class EcoNewsDtoRequestValidatorTest {
         request.setSource(null);
 
         assertTrue(validator.isValid(request, context),
-                "The validator should return true if Source is missing.");
+            "The validator should return true if Source is missing.");
     }
 
     @Test
@@ -70,21 +70,21 @@ class EcoNewsDtoRequestValidatorTest {
         request.setSource("");
 
         assertTrue(validator.isValid(request, context),
-                "The validator should return true if the Source is empty.");
+            "The validator should return true if the Source is empty.");
     }
 
     @Test
     void isValidTrueTest_MaxAmountOfTags() {
         List<String> maxTags = IntStream.range(0, TEST_MAX_TAGS)
-                .mapToObj(i -> "Tag" + i)
-                .collect(Collectors.toList());
+            .mapToObj(i -> "Tag" + i)
+            .collect(Collectors.toList());
 
         AddEcoNewsDtoRequest request = new AddEcoNewsDtoRequest();
         request.setSource(null);
         request.setTags(maxTags);
 
         assertTrue(validator.isValid(request, context),
-                "The validator should return true for the maximum number of tags.");
+            "The validator should return true for the maximum number of tags.");
     }
 
     @Test
@@ -94,23 +94,23 @@ class EcoNewsDtoRequestValidatorTest {
         request.setTags(Collections.emptyList());
 
         assertThrows(WrongCountOfTagsException.class,
-                () -> validator.isValid(request, context),
-                "A WrongCountOfTagsException should be thrown when the tag list is empty.");
+            () -> validator.isValid(request, context),
+            "A WrongCountOfTagsException should be thrown when the tag list is empty.");
     }
 
     @Test
     void isValid_ShouldThrowException_WhenTagsListExceedsMaxSize() {
         List<String> tooManyTags = IntStream.range(0, TEST_MAX_TAGS + 1)
-                .mapToObj(i -> "Tag" + i)
-                .collect(Collectors.toList());
+            .mapToObj(i -> "Tag" + i)
+            .collect(Collectors.toList());
 
         AddEcoNewsDtoRequest request = new AddEcoNewsDtoRequest();
         request.setSource("http://any.url");
         request.setTags(tooManyTags);
 
         assertThrows(WrongCountOfTagsException.class,
-                () -> validator.isValid(request, context),
-                "A WrongCountOfTagsException should be thrown when the tag list exceeds the limit.");
+            () -> validator.isValid(request, context),
+            "A WrongCountOfTagsException should be thrown when the tag list exceeds the limit.");
     }
 
 }
