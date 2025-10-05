@@ -61,49 +61,48 @@ class SearchControllerTest {
     SearchNewsDto news2;
     SearchResponseDto searchResponse;
 
-
     @BeforeEach
     void setup() {
         this.mockMvc = MockMvcBuilders.standaloneSetup(searchController)
-                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
-                        new UserArgumentResolver(userService, modelMapper))
-                .setValidator(mockValidator)
-                .build();
+            .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
+                new UserArgumentResolver(userService, modelMapper))
+            .setValidator(mockValidator)
+            .build();
 
         user = UserVO.builder()
-                .id(1L)
-                .name("Іван Петренко")
-                .email("test@example.com")
-                .role(Role.ROLE_USER)
-                .userCredo("Жити екологічно!")
-                .userStatus(UserStatus.ACTIVATED)
-                .rating(4.5)
-                .dateOfRegistration(LocalDateTime.now().minusMonths(2))
-                .lastActivityTime(LocalDateTime.now())
-                .firstName("Іван")
-                .city("Київ")
-                .build();
+            .id(1L)
+            .name("Іван Петренко")
+            .email("test@example.com")
+            .role(Role.ROLE_USER)
+            .userCredo("Жити екологічно!")
+            .userStatus(UserStatus.ACTIVATED)
+            .rating(4.5)
+            .dateOfRegistration(LocalDateTime.now().minusMonths(2))
+            .lastActivityTime(LocalDateTime.now())
+            .firstName("Іван")
+            .city("Київ")
+            .build();
 
         news1 = SearchNewsDto.builder()
-                .id(1L)
-                .title("Новина про екологію")
-                .author(new EcoNewsAuthorDto(1L, "Іван"))
-                .creationDate(ZonedDateTime.now().minusDays(3))
-                .tags(List.of("екологія", "довкілля"))
-                .build();
+            .id(1L)
+            .title("Новина про екологію")
+            .author(new EcoNewsAuthorDto(1L, "Іван"))
+            .creationDate(ZonedDateTime.now().minusDays(3))
+            .tags(List.of("екологія", "довкілля"))
+            .build();
 
         news2 = SearchNewsDto.builder()
-                .id(2L)
-                .title("Сортування сміття")
-                .author(new EcoNewsAuthorDto(2L, "Олена"))
-                .creationDate(ZonedDateTime.now().minusDays(5))
-                .tags(List.of("переробка", "поради"))
-                .build();
+            .id(2L)
+            .title("Сортування сміття")
+            .author(new EcoNewsAuthorDto(2L, "Олена"))
+            .creationDate(ZonedDateTime.now().minusDays(5))
+            .tags(List.of("переробка", "поради"))
+            .build();
 
         searchResponse = SearchResponseDto.builder()
-                .ecoNews(List.of(news1, news2))
-                .countOfResults(2L)
-                .build();
+            .ecoNews(List.of(news1, news2))
+            .countOfResults(2L)
+            .build();
     }
 
     @Test
@@ -112,28 +111,28 @@ class SearchControllerTest {
         String searchQuery = "eco";
 
         when(searchService.search(searchQuery, language))
-                .thenReturn(searchResponse);
+            .thenReturn(searchResponse);
 
         mockMvc.perform(get("/search?searchQuery=" + searchQuery)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header("Accept-Language", language))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.countOfResults").value(searchResponse.getCountOfResults()))
-                .andExpect(jsonPath("$.ecoNews.length()").value(searchResponse.getEcoNews().size()))
+            .accept(MediaType.APPLICATION_JSON)
+            .header("Accept-Language", language))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.countOfResults").value(searchResponse.getCountOfResults()))
+            .andExpect(jsonPath("$.ecoNews.length()").value(searchResponse.getEcoNews().size()))
 
-                .andExpect(jsonPath("$.ecoNews[0].id").value(news1.getId()))
-                .andExpect(jsonPath("$.ecoNews[0].title").value(news1.getTitle()))
-                .andExpect(jsonPath("$.ecoNews[0].author.id").value(news1.getAuthor().getId()))
-                .andExpect(jsonPath("$.ecoNews[0].author.name").value(news1.getAuthor().getName()))
-                .andExpect(jsonPath("$.ecoNews[0].tags[0]").value(news1.getTags().get(0)))
-                .andExpect(jsonPath("$.ecoNews[0].tags[1]").value(news1.getTags().get(1)))
+            .andExpect(jsonPath("$.ecoNews[0].id").value(news1.getId()))
+            .andExpect(jsonPath("$.ecoNews[0].title").value(news1.getTitle()))
+            .andExpect(jsonPath("$.ecoNews[0].author.id").value(news1.getAuthor().getId()))
+            .andExpect(jsonPath("$.ecoNews[0].author.name").value(news1.getAuthor().getName()))
+            .andExpect(jsonPath("$.ecoNews[0].tags[0]").value(news1.getTags().get(0)))
+            .andExpect(jsonPath("$.ecoNews[0].tags[1]").value(news1.getTags().get(1)))
 
-                .andExpect(jsonPath("$.ecoNews[1].id").value(news2.getId()))
-                .andExpect(jsonPath("$.ecoNews[1].title").value(news2.getTitle()))
-                .andExpect(jsonPath("$.ecoNews[1].author.id").value(news2.getAuthor().getId()))
-                .andExpect(jsonPath("$.ecoNews[1].author.name").value(news2.getAuthor().getName()))
-                .andExpect(jsonPath("$.ecoNews[1].tags[0]").value(news2.getTags().get(0)))
-                .andExpect(jsonPath("$.ecoNews[1].tags[1]").value(news2.getTags().get(1)));
+            .andExpect(jsonPath("$.ecoNews[1].id").value(news2.getId()))
+            .andExpect(jsonPath("$.ecoNews[1].title").value(news2.getTitle()))
+            .andExpect(jsonPath("$.ecoNews[1].author.id").value(news2.getAuthor().getId()))
+            .andExpect(jsonPath("$.ecoNews[1].author.name").value(news2.getAuthor().getName()))
+            .andExpect(jsonPath("$.ecoNews[1].tags[0]").value(news2.getTags().get(0)))
+            .andExpect(jsonPath("$.ecoNews[1].tags[1]").value(news2.getTags().get(1)));
     }
 
     @Test
@@ -141,10 +140,10 @@ class SearchControllerTest {
         String language = "ua";
         String searchQuery = "invalid-query";
 
-        mockMvc.perform(get("/search?"+searchQuery)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header("Accept-Language", language))
-                .andExpect(status().isBadRequest());
+        mockMvc.perform(get("/search?" + searchQuery)
+            .accept(MediaType.APPLICATION_JSON)
+            .header("Accept-Language", language))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -152,9 +151,9 @@ class SearchControllerTest {
         String language = "ua";
 
         mockMvc.perform(get("/search")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header("Accept-Language", language))
-                .andExpect(status().isBadRequest());
+            .accept(MediaType.APPLICATION_JSON)
+            .header("Accept-Language", language))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -164,32 +163,30 @@ class SearchControllerTest {
         Pageable pageable = PageRequest.of(0, 5);
         PageableDto<SearchNewsDto> pageableDto = new PageableDto<>(List.of(news1, news2), 0, 1, 2);
 
-
         when(searchService.searchAllNews(pageable, searchQuery, language))
-                .thenReturn(pageableDto);
+            .thenReturn(pageableDto);
 
         mockMvc.perform(get("/search/econews?searchQuery=eco&page=0&size=5")
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header("Accept-Language", language))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.totalElements").value(pageableDto.getTotalElements()))
-                .andExpect(jsonPath("$.currentPage").value(pageableDto.getCurrentPage()))
-                .andExpect(jsonPath("$.totalPages").value(pageableDto.getTotalPages()))
+            .accept(MediaType.APPLICATION_JSON)
+            .header("Accept-Language", language))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements").value(pageableDto.getTotalElements()))
+            .andExpect(jsonPath("$.currentPage").value(pageableDto.getCurrentPage()))
+            .andExpect(jsonPath("$.totalPages").value(pageableDto.getTotalPages()))
 
-                .andExpect(jsonPath("$.page[0].id").value(news1.getId()))
-                .andExpect(jsonPath("$.page[0].title").value(news1.getTitle()))
-                .andExpect(jsonPath("$.page[0].author.id").value(news1.getAuthor().getId()))
-                .andExpect(jsonPath("$.page[0].author.name").value(news1.getAuthor().getName()))
-                .andExpect(jsonPath("$.page[0].tags[0]").value(news1.getTags().get(0)))
-                .andExpect(jsonPath("$.page[0].tags[1]").value(news1.getTags().get(1)))
+            .andExpect(jsonPath("$.page[0].id").value(news1.getId()))
+            .andExpect(jsonPath("$.page[0].title").value(news1.getTitle()))
+            .andExpect(jsonPath("$.page[0].author.id").value(news1.getAuthor().getId()))
+            .andExpect(jsonPath("$.page[0].author.name").value(news1.getAuthor().getName()))
+            .andExpect(jsonPath("$.page[0].tags[0]").value(news1.getTags().get(0)))
+            .andExpect(jsonPath("$.page[0].tags[1]").value(news1.getTags().get(1)))
 
-                .andExpect(jsonPath("$.page[1].id").value(news2.getId()))
-                .andExpect(jsonPath("$.page[1].title").value(news2.getTitle()))
-                .andExpect(jsonPath("$.page[1].author.id").value(news2.getAuthor().getId()))
-                .andExpect(jsonPath("$.page[1].author.name").value(news2.getAuthor().getName()))
-                .andExpect(jsonPath("$.page[1].tags[0]").value(news2.getTags().get(0)))
-                .andExpect(jsonPath("$.page[1].tags[1]").value(news2.getTags().get(1)));
+            .andExpect(jsonPath("$.page[1].id").value(news2.getId()))
+            .andExpect(jsonPath("$.page[1].title").value(news2.getTitle()))
+            .andExpect(jsonPath("$.page[1].author.id").value(news2.getAuthor().getId()))
+            .andExpect(jsonPath("$.page[1].author.name").value(news2.getAuthor().getName()))
+            .andExpect(jsonPath("$.page[1].tags[0]").value(news2.getTags().get(0)))
+            .andExpect(jsonPath("$.page[1].tags[1]").value(news2.getTags().get(1)));
     }
-
 
 }

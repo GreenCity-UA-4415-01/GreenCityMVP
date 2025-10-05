@@ -73,10 +73,10 @@ public class HabitFactControllerTest {
     void setup() {
         objectMapper = new ObjectMapper();
         this.mockMvc = MockMvcBuilders.standaloneSetup(habitFactController)
-                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
-                .setValidator(mockValidator)
-                .setControllerAdvice(new CustomExceptionHandler(errorAttributes, objectMapper))
-                .build();
+            .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver())
+            .setValidator(mockValidator)
+            .setControllerAdvice(new CustomExceptionHandler(errorAttributes, objectMapper))
+            .build();
     }
 
     @Test
@@ -85,13 +85,13 @@ public class HabitFactControllerTest {
         response.setContent("Random fact");
 
         when(habitFactService.getRandomHabitFactByHabitIdAndLanguage(eq(1L), eq("en")))
-                .thenReturn(response);
+            .thenReturn(response);
 
         this.mockMvc.perform(get("/facts/random/{habitId}", 1L)
-                        .accept(MediaType.APPLICATION_JSON)
-                .locale(Locale.ENGLISH))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .accept(MediaType.APPLICATION_JSON)
+            .locale(Locale.ENGLISH))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         verify(habitFactService).getRandomHabitFactByHabitIdAndLanguage(1L, "en");
     }
@@ -104,9 +104,9 @@ public class HabitFactControllerTest {
         when(habitFactService.getHabitFactOfTheDay(1L)).thenReturn(response);
 
         this.mockMvc.perform(get("/facts/dayFact/{languageId}", 1L)
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
 
         verify(habitFactService).getHabitFactOfTheDay(1L);
     }
@@ -119,22 +119,22 @@ public class HabitFactControllerTest {
         res2.setContent("Fact #2");
 
         PageableDto<LanguageTranslationDTO> pageableDto = new PageableDto<>(
-                List.of(res1, res2), 2, 0, 1);
+            List.of(res1, res2), 2, 0, 1);
 
         when(habitFactService.getAllHabitFacts(any(Pageable.class), eq("en"))).thenReturn(pageableDto);
 
         this.mockMvc.perform(get("/facts")
-                .param("page", "1")
-                .param("size", "10")
-                .locale(Locale.ENGLISH)
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.currentPage").value(0))
-                .andExpect(jsonPath("$.totalElements").value(2))
-                .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.page[0].content").value("Fact #1"))
-                .andExpect(jsonPath("$.page[1].content").value("Fact #2"));
+            .param("page", "1")
+            .param("size", "10")
+            .locale(Locale.ENGLISH)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.currentPage").value(0))
+            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.totalPages").value(1))
+            .andExpect(jsonPath("$.page[0].content").value("Fact #1"))
+            .andExpect(jsonPath("$.page[1].content").value("Fact #2"));
 
         verify(habitFactService).getAllHabitFacts(any(Pageable.class), eq("en"));
     }
@@ -154,12 +154,12 @@ public class HabitFactControllerTest {
         when(mapper.map(savedVo, HabitFactDtoResponse.class)).thenReturn(responseDto);
 
         mockMvc.perform(post("/facts")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(habitFactPostDto)))
-                .andExpect(status().isCreated())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(100L));
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(habitFactPostDto)))
+            .andExpect(status().isCreated())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(100L));
 
         verify(habitFactService).save(any(HabitFactPostDto.class));
         verify(mapper).map(savedVo, HabitFactDtoResponse.class);
@@ -180,12 +180,12 @@ public class HabitFactControllerTest {
         when(mapper.map(updatedVo, HabitFactPostDto.class)).thenReturn(postDto);
 
         mockMvc.perform(put("/facts/{id}", 2L)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.habit.id").value(2L));
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(dto)))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.habit.id").value(2L));
 
         verify(habitFactService).update(any(HabitFactUpdateDto.class), eq(2L));
         verify(mapper).map(updatedVo, HabitFactPostDto.class);
@@ -199,7 +199,7 @@ public class HabitFactControllerTest {
         when(habitFactService.delete(1L)).thenReturn(deletedVO.getId());
 
         mockMvc.perform(delete("/facts/{id}", 1L))
-                .andExpect(status().isOk());
+            .andExpect(status().isOk());
 
         verify(habitFactService).delete(1L);
     }
@@ -215,21 +215,3 @@ public class HabitFactControllerTest {
         verify(habitFactService).delete(99L);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
