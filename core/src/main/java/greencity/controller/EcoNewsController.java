@@ -147,8 +147,7 @@ public class EcoNewsController {
     @Operation(summary = "Update eco news")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK,
-            content = @Content(schema = @Schema(implementation = EcoNewsGenericDto.class))),
-        @ApiResponse(responseCode = "303", description = HttpStatuses.SEE_OTHER),
+                    content = @Content(schema = @Schema(implementation = EcoNewsGenericDto.class))),
         @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN)
     })
     @PutMapping(path = "/update", consumes = {MediaType.APPLICATION_JSON_VALUE,
