@@ -64,13 +64,12 @@ public class EcoNewsController {
      */
     @Operation(summary = "Add new eco news.")
     @ResponseStatus(value = HttpStatus.CREATED)
-    @ApiResponses(
-        value = {
-            @ApiResponse(
-                responseCode = "201",
-                description = HttpStatuses.CREATED,
-                content = @Content(schema = @Schema(implementation = EcoNewsGenericDto.class))),
-        })
+    @ApiResponses(value = {@ApiResponse(responseCode = "201", description = HttpStatuses.CREATED,
+            content = @Content(schema = @Schema(implementation = EcoNewsGenericDto.class))),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401",  description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "415",  description = HttpStatuses.UNSUPPORTED_MEDIA_TYPE)
+    })
     @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<EcoNewsGenericDto> save(
         @Parameter(description = SwaggerExampleModel.ADD_ECO_NEWS_REQUEST,
@@ -147,8 +146,10 @@ public class EcoNewsController {
     @Operation(summary = "Update eco news")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK,
-                    content = @Content(schema = @Schema(implementation = EcoNewsGenericDto.class))),
-        @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN)
+            content = @Content(schema = @Schema(implementation = EcoNewsGenericDto.class))),
+        @ApiResponse(responseCode = "303", description = HttpStatuses.SEE_OTHER),
+        @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
     @PutMapping(path = "/update", consumes = {MediaType.APPLICATION_JSON_VALUE,
         MediaType.MULTIPART_FORM_DATA_VALUE})
