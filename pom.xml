@@ -48,6 +48,13 @@
         <jjwt.version>0.12.5</jjwt.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version> </dependency>
+    </dependencies>
+
     <build>
         <plugins>
             <plugin>
