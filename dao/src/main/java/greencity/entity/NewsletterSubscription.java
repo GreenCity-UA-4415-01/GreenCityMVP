@@ -4,7 +4,6 @@ import greencity.enums.NewsletterSubscriptionSource;
 import greencity.enums.NewsletterSubscriptionStatus;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
 
 @Entity
