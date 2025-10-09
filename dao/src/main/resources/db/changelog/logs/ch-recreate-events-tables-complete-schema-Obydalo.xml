@@ -50,6 +50,14 @@
         <createIndex tableName="events" indexName="idx_events_is_open">
             <column name="is_open"/>
         </createIndex>
+
+        <rollback>
+            <dropIndex tableName="events" indexName="idx_events_is_open"/>
+            <dropIndex tableName="events" indexName="idx_events_created_at"/>
+            <dropIndex tableName="events" indexName="idx_events_organizer_id"/>
+            <dropForeignKeyConstraint baseTableName="events" constraintName="FK_events_organizer_id"/>
+            <dropTable tableName="events" cascadeConstraints="true"/>
+        </rollback>
     </changeSet>
 
     <!-- Event date time locations table -->
@@ -103,6 +111,14 @@
             <column name="latitude"/>
             <column name="longitude"/>
         </createIndex>
+
+        <rollback>
+            <dropIndex tableName="event_date_time_locations" indexName="idx_event_date_time_locations_coordinates"/>
+            <dropIndex tableName="event_date_time_locations" indexName="idx_event_date_time_locations_start_date"/>
+            <dropIndex tableName="event_date_time_locations" indexName="idx_event_date_time_locations_event_id"/>
+            <dropForeignKeyConstraint baseTableName="event_date_time_locations" constraintName="FK_event_date_time_locations_event_id"/>
+            <dropTable tableName="event_date_time_locations" cascadeConstraints="true"/>
+        </rollback>
     </changeSet>
 
     <!-- Event images table -->
@@ -140,6 +156,13 @@
         <createIndex tableName="event_images" indexName="idx_event_images_is_main">
             <column name="is_main"/>
         </createIndex>
+
+        <rollback>
+            <dropIndex tableName="event_images" indexName="idx_event_images_is_main"/>
+            <dropIndex tableName="event_images" indexName="idx_event_images_event_id"/>
+            <dropForeignKeyConstraint baseTableName="event_images" constraintName="FK_event_images_event_id"/>
+            <dropTable tableName="event_images" cascadeConstraints="true"/>
+        </rollback>
     </changeSet>
 
     <!-- Events attenders table -->
@@ -183,6 +206,15 @@
         <createIndex tableName="events_attenders" indexName="idx_events_attenders_user_id">
             <column name="user_id"/>
         </createIndex>
+
+        <rollback>
+            <dropIndex tableName="events_attenders" indexName="idx_events_attenders_user_id"/>
+            <dropIndex tableName="events_attenders" indexName="idx_events_attenders_event_id"/>
+            <dropForeignKeyConstraint baseTableName="events_attenders" constraintName="FK_events_attenders_user_id"/>
+            <dropForeignKeyConstraint baseTableName="events_attenders" constraintName="FK_events_attenders_event_id"/>
+            <dropPrimaryKey tableName="events_attenders" constraintName="PK_events_attenders"/>
+            <dropTable tableName="events_attenders" cascadeConstraints="true"/>
+        </rollback>
     </changeSet>
 
     <!-- Events tags table -->
@@ -223,6 +255,15 @@
         <createIndex tableName="events_tags" indexName="idx_events_tags_tag_id">
             <column name="tag_id"/>
         </createIndex>
+
+        <rollback>
+            <dropIndex tableName="events_tags" indexName="idx_events_tags_tag_id"/>
+            <dropIndex tableName="events_tags" indexName="idx_events_tags_event_id"/>
+            <dropForeignKeyConstraint baseTableName="events_tags" constraintName="FK_events_tags_tag_id"/>
+            <dropForeignKeyConstraint baseTableName="events_tags" constraintName="FK_events_tags_event_id"/>
+            <dropPrimaryKey tableName="events_tags" constraintName="PK_events_tags"/>
+            <dropTable tableName="events_tags" cascadeConstraints="true"/>
+        </rollback>
     </changeSet>
 
     <!-- Add default values for created_at columns -->
@@ -233,6 +274,15 @@
             ALTER TABLE event_images ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
             ALTER TABLE events_attenders ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
         </sql>
+
+        <rollback>
+            <sql>
+                ALTER TABLE events ALTER COLUMN created_at DROP DEFAULT;
+                ALTER TABLE event_date_time_locations ALTER COLUMN created_at DROP DEFAULT;
+                ALTER TABLE event_images ALTER COLUMN created_at DROP DEFAULT;
+                ALTER TABLE events_attenders ALTER COLUMN created_at DROP DEFAULT;
+            </sql>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>
