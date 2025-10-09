@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <!-- Main events table -->
+    <changeSet id="recreate-events-table-complete" author="Obydalo">
+        <createTable tableName="events">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT">
+                <constraints nullable="true"/>
+            </column>
+            <column name="is_open" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="organizer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title_image" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign key constraint for organizer -->
+        <addForeignKeyConstraint baseColumnNames="organizer_id"
+                                 baseTableName="events"
+                                 constraintName="FK_events_organizer_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="users"
+                                 onDelete="CASCADE"/>
+
+        <!-- Indexes for performance -->
+        <createIndex tableName="events" indexName="idx_events_organizer_id">
+            <column name="organizer_id"/>
+        </createIndex>
+        <createIndex tableName="events" indexName="idx_events_created_at">
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="events" indexName="idx_events_is_open">
+            <column name="is_open"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Event date time locations table -->
+    <changeSet id="recreate-event-date-time-locations-table" author="Obydalo">
+        <createTable tableName="event_date_time_locations">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_date" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="finish_date" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="DOUBLE PRECISION">
+                <constraints nullable="true"/>
+            </column>
+            <column name="longitude" type="DOUBLE PRECISION">
+                <constraints nullable="true"/>
+            </column>
+            <column name="online_link" type="VARCHAR(500)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="true"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign key constraint -->
+        <addForeignKeyConstraint baseColumnNames="event_id"
+                                 baseTableName="event_date_time_locations"
+                                 constraintName="FK_event_date_time_locations_event_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="events"
+                                 onDelete="CASCADE"/>
+
+        <!-- Indexes for performance -->
+        <createIndex tableName="event_date_time_locations" indexName="idx_event_date_time_locations_event_id">
+            <column name="event_id"/>
+        </createIndex>
+        <createIndex tableName="event_date_time_locations" indexName="idx_event_date_time_locations_start_date">
+            <column name="start_date"/>
+        </createIndex>
+        <createIndex tableName="event_date_time_locations" indexName="idx_event_date_time_locations_coordinates">
+            <column name="latitude"/>
+            <column name="longitude"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Event images table -->
+    <changeSet id="recreate-event-images-table" author="Obydalo">
+        <createTable tableName="event_images">
+            <column name="id" autoIncrement="true" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="image_path" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_main" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Foreign key constraint -->
+        <addForeignKeyConstraint baseColumnNames="event_id"
+                                 baseTableName="event_images"
+                                 constraintName="FK_event_images_event_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="events"
+                                 onDelete="CASCADE"/>
+
+        <!-- Indexes for performance -->
+        <createIndex tableName="event_images" indexName="idx_event_images_event_id">
+            <column name="event_id"/>
+        </createIndex>
+        <createIndex tableName="event_images" indexName="idx_event_images_is_main">
+            <column name="is_main"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Events attenders table -->
+    <changeSet id="recreate-events-attenders-table" author="Obydalo">
+        <createTable tableName="events_attenders">
+            <column name="event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Primary key constraint -->
+        <addPrimaryKey tableName="events_attenders"
+                       columnNames="event_id, user_id"
+                       constraintName="PK_events_attenders"/>
+
+        <!-- Foreign key constraints -->
+        <addForeignKeyConstraint baseColumnNames="event_id"
+                                 baseTableName="events_attenders"
+                                 constraintName="FK_events_attenders_event_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="events"
+                                 onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseColumnNames="user_id"
+                                 baseTableName="events_attenders"
+                                 constraintName="FK_events_attenders_user_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="users"
+                                 onDelete="CASCADE"/>
+
+        <!-- Indexes for performance -->
+        <createIndex tableName="events_attenders" indexName="idx_events_attenders_event_id">
+            <column name="event_id"/>
+        </createIndex>
+        <createIndex tableName="events_attenders" indexName="idx_events_attenders_user_id">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Events tags table -->
+    <changeSet id="recreate-events-tags-table" author="Obydalo">
+        <createTable tableName="events_tags">
+            <column name="event_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="tag_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Primary key constraint -->
+        <addPrimaryKey tableName="events_tags"
+                       columnNames="event_id, tag_id"
+                       constraintName="PK_events_tags"/>
+
+        <!-- Foreign key constraints -->
+        <addForeignKeyConstraint baseColumnNames="event_id"
+                                 baseTableName="events_tags"
+                                 constraintName="FK_events_tags_event_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="events"
+                                 onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseColumnNames="tag_id"
+                                 baseTableName="events_tags"
+                                 constraintName="FK_events_tags_tag_id"
+                                 referencedColumnNames="id"
+                                 referencedTableName="tags"
+                                 onDelete="CASCADE"/>
+
+        <!-- Indexes for performance -->
+        <createIndex tableName="events_tags" indexName="idx_events_tags_event_id">
+            <column name="event_id"/>
+        </createIndex>
+        <createIndex tableName="events_tags" indexName="idx_events_tags_tag_id">
+            <column name="tag_id"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- Add default values for created_at columns -->
+    <changeSet id="add-default-values-for-timestamps" author="Obydalo">
+        <sql>
+            ALTER TABLE events ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+            ALTER TABLE event_date_time_locations ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+            ALTER TABLE event_images ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+            ALTER TABLE events_attenders ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
