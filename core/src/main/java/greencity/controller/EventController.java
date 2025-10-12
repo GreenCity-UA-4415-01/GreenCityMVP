@@ -26,13 +26,17 @@ public class EventController {
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EventDto> createEvent(
+    public ResponseEntity<?> createEvent(
             @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
             @RequestPart(value = "images", required = false) MultipartFile[] images,
             @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
-        validateUser(currentUser);
-        validateEventRequest(addEventDtoRequest);
-        validateImages(images);
+        try {
+            validateUser(currentUser);
+            validateEventRequest(addEventDtoRequest);
+            validateImages(images);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
 
         EventDto created = eventService.createEvent(addEventDtoRequest, images, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -80,8 +84,8 @@ public class EventController {
                 && !contentType.equals(MediaType.IMAGE_PNG_VALUE))) {
             throw new BadRequestException("Invalid image format. Only JPEG, PNG are allowed.");
         }
-        if (image.getSize() > 10 * 1024 * 1024) { // 5MB size limit
-            throw new BadRequestException("Image size must not exceed 5MB.");
+        if (image.getSize() > 10 * 1024 * 1024) { // 10MB size limit
+            throw new BadRequestException("Image size must not exceed 10MB.");
         }
     }
 }
