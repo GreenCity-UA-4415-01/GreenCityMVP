@@ -22,7 +22,7 @@ public class AddEcoNewsDtoResponseMapper extends AbstractConverter<EcoNews, AddE
      * @return converted object.
      */
     @Override
-    protected AddEcoNewsDtoResponse convert(EcoNews ecoNews) {
+    public AddEcoNewsDtoResponse convert(EcoNews ecoNews) {
         return AddEcoNewsDtoResponse.builder()
             .id(ecoNews.getId())
             .text(ecoNews.getText())
