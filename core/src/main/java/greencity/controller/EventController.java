@@ -29,10 +29,22 @@ public class EventController {
     public ResponseEntity<EventDto> createEvent(
             @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
             @RequestPart(value = "images", required = false) MultipartFile[] images,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        validateUser(currentUser);
+        validateEventRequest(addEventDtoRequest);
+        validateImages(images);
+
+        EventDto created = eventService.createEvent(addEventDtoRequest, images, currentUser.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    private void validateUser(UserVO currentUser) {
         if (currentUser == null) {
             throw new BadRequestException("User must be authenticated to create an event.");
         }
+    }
+    
+    private void validateEventRequest(AddEventDtoRequest addEventDtoRequest) {
         if (addEventDtoRequest.getTitle() == null || addEventDtoRequest.getTitle().isBlank()) {
             throw new BadRequestException("Title is required.");
         }
@@ -49,8 +61,27 @@ public class EventController {
                 || addEventDtoRequest.getDatesLocations().size() > 7) {
             throw new BadRequestException("Event must contain between 1 and 7 date/location entries.");
         }
+    }
 
-        EventDto created = eventService.createEvent(addEventDtoRequest, images, currentUser.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    private static void validateImages(MultipartFile[] images) {
+        if (images != null) {
+            if (images.length > 5) {
+                throw new BadRequestException("A maximum of 5 images are allowed.");
+            }
+            for (MultipartFile image : images) {
+                validateImage(image);
+            }
+        }
+    }
+    
+    private static void validateImage(MultipartFile image) {
+        String contentType = image.getContentType();
+        if (contentType == null || (!contentType.equals(MediaType.IMAGE_JPEG_VALUE)
+                && !contentType.equals(MediaType.IMAGE_PNG_VALUE))) {
+            throw new BadRequestException("Invalid image format. Only JPEG, PNG are allowed.");
+        }
+        if (image.getSize() > 10 * 1024 * 1024) { // 5MB size limit
+            throw new BadRequestException("Image size must not exceed 5MB.");
+        }
     }
 }
