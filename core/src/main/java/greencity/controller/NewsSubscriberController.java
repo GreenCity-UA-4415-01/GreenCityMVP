@@ -23,7 +23,7 @@ public class NewsSubscriberController {
     @PostMapping
     public ResponseEntity<NewsSubscriberResponseDto> subscribe(
         @RequestBody @Valid NewsSubscriberRequestDto newsSubscriberRequestDto) {
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(HttpStatus.CREATED)
             .body(newsSubscriberService.subscribe(newsSubscriberRequestDto));
     }
 }
