@@ -29,5 +29,11 @@
         <addUniqueConstraint columnNames="email" constraintName="uc_newsletter_subscriptions_email"
                              tableName="newsletter_subscriptions"/>
     </changeSet>
-
+    <changeSet id="add-unsubscribe-token-to-newsletter-subscriptions" author="andrii">
+        <addColumn tableName="newsletter_subscriptions">
+            <column name="unsubscribe_token" type="varchar(255)">
+                <constraints nullable="true" unique="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

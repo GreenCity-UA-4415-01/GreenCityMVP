@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface NewsletterSubscriptionRepo extends JpaRepository<NewsletterSubscription, Long> {
     Optional<NewsletterSubscription> findByEmail(String email);
+
+    Optional<NewsletterSubscription> findByUnsubscribeToken(String token);
 }

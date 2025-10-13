@@ -41,4 +41,7 @@ public class NewsletterSubscription {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedDate;
+
+    @Column(name = "unsubscribe_token", unique = true)
+    private String unsubscribeToken;
 }
