@@ -27,7 +27,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="adds-columns-to-users-for-google-oauth2" author="your_name">
+    <changeSet id="add-unique-constraint-users-provider-provider-id" author="Oleksandr-Braiko">
         <comment>Adding unique constraint on (provider, provider_id) for Google OAuth.</comment>
 
         <addUniqueConstraint

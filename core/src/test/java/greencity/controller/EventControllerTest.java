@@ -45,7 +45,7 @@ public class EventControllerTest {
 
     ObjectMapper objectMapper = new ObjectMapper()
         .registerModule(new JavaTimeModule())
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);;
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     @Mock
     UserArgumentResolver userArgumentResolver;
 
