@@ -18,6 +18,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -477,6 +478,7 @@ public class RestClient {
         return token == null ? null : "Bearer " + token;
     }
 
+    @Async
     public void sendNewNewsForSubscriber(List<NewsSubscriberResponseDto> subscribers,
         AddEcoNewsDtoResponse newsDto) {
         HttpHeaders headers = new HttpHeaders();
