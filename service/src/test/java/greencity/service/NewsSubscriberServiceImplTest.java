@@ -6,6 +6,7 @@ import greencity.dto.newssubscriber.NewsSubscriberRequestDto;
 import greencity.dto.newssubscriber.NewsSubscriberResponseDto;
 import greencity.entity.EcoNews;
 import greencity.entity.NewsletterSubscription;
+import greencity.enums.NewsletterSubscriptionStatus;
 import greencity.mapping.AddEcoNewsDtoResponseMapper;
 import greencity.repository.EcoNewsRepo;
 import greencity.repository.NewsletterSubscriptionRepo;
@@ -60,17 +61,18 @@ public class NewsSubscriberServiceImplTest {
     }
 
     @Test
-    void subscribe_ShouldReturnAlreadyExists_WhenEmailExists() {
+    void subscribe_ShouldReturnNewToken_WhenEmailExists() {
         String email = "exists@test.com";
-        NewsSubscriberRequestDto dto = new NewsSubscriberRequestDto(email);
-        when(subscriptionRepo.findByEmail(email)).thenReturn(Optional.of(new NewsletterSubscription()));
+        NewsletterSubscription existingSubscription = new NewsletterSubscription();
+        existingSubscription.setStatus(NewsletterSubscriptionStatus.UNSUBSCRIBED); // або SUBSCRIBED
+        when(subscriptionRepo.findByEmail(email)).thenReturn(Optional.of(existingSubscription));
 
+        NewsSubscriberRequestDto dto = new NewsSubscriberRequestDto(email);
         NewsSubscriberResponseDto result = newsSubscriberService.subscribe(dto);
 
         assertEquals(email, result.getEmail());
-        assertEquals("no token, email already exists", result.getUnsubscribeToken());
-        verify(subscriptionRepo, never()).save(any());
-        verify(restClient, never()).sendNewNewsForSubscriber(anyList(), any());
+        assertNotNull(result.getUnsubscribeToken());
+        verify(subscriptionRepo).save(existingSubscription);
     }
 
     @Test
@@ -96,4 +98,52 @@ public class NewsSubscriberServiceImplTest {
         assertEquals(email, result.getEmail());
         assertEquals("Unexpected value", result.getUnsubscribeToken());
     }
+
+    @Test
+    void unsubscribe_ShouldReturnInvalidToken_WhenTokenNotFound() {
+        String token = "invalid-token";
+        when(subscriptionRepo.findByUnsubscribeToken(token)).thenReturn(Optional.empty());
+
+        NewsSubscriberResponseDto result = newsSubscriberService.unsubscribe("test@test.com", token);
+
+        assertNull(result.getEmail());
+        assertEquals("invalid token", result.getUnsubscribeToken());
+    }
+
+    @Test
+    void unsubscribe_ShouldReturnAlreadyUnsubscribed_WhenStatusUnsubscribed() {
+        String email = "test@test.com";
+        String token = "valid-token";
+
+        NewsletterSubscription subscription = new NewsletterSubscription();
+        subscription.setEmail(email);
+        subscription.setStatus(NewsletterSubscriptionStatus.UNSUBSCRIBED);
+
+        when(subscriptionRepo.findByUnsubscribeToken(token)).thenReturn(Optional.of(subscription));
+
+        NewsSubscriberResponseDto result = newsSubscriberService.unsubscribe(email, token);
+
+        assertEquals(email, result.getEmail());
+        assertEquals("already unsubscribed", result.getUnsubscribeToken());
+    }
+
+    @Test
+    void unsubscribe_ShouldReturnSuccess_WhenValidTokenAndSubscribed() {
+        String email = "test@test.com";
+        String token = "valid-token";
+
+        NewsletterSubscription subscription = new NewsletterSubscription();
+        subscription.setEmail(email);
+        subscription.setStatus(NewsletterSubscriptionStatus.SUBSCRIBED);
+
+        when(subscriptionRepo.findByUnsubscribeToken(token)).thenReturn(Optional.of(subscription));
+
+        NewsSubscriberResponseDto result = newsSubscriberService.unsubscribe(email, token);
+
+        assertEquals(email, result.getEmail());
+        assertEquals("successfully unsubscribed", result.getUnsubscribeToken());
+        assertEquals(NewsletterSubscriptionStatus.UNSUBSCRIBED, subscription.getStatus());
+        verify(subscriptionRepo).save(subscription);
+    }
+
 }
