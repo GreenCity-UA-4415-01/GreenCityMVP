@@ -147,4 +147,6 @@ public interface EcoNewsRepo extends JpaRepository<EcoNews, Long>, JpaSpecificat
     @Query(nativeQuery = true,
         value = "select count(id) from eco_news")
     int totalCountOfCreationNews();
+
+    Optional<EcoNews> findFirstByOrderByIdDesc();
 }

@@ -1,8 +1,10 @@
 package greencity.entity;
 
+import greencity.constant.ValidationConstants;
 import greencity.enums.NewsletterSubscriptionSource;
 import greencity.enums.NewsletterSubscriptionStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -21,6 +23,9 @@ public class NewsletterSubscription {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
+    @Email(
+        regexp = ValidationConstants.VALIDATION_EMAIL,
+        message = ValidationConstants.INVALID_EMAIL)
     private String email;
 
     @Enumerated(EnumType.STRING)

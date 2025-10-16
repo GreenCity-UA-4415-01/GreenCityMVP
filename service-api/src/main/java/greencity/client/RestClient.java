@@ -3,7 +3,9 @@ package greencity.client;
 import com.google.gson.Gson;
 import greencity.constant.RestTemplateLinks;
 import greencity.dto.PageableAdvancedDto;
+import greencity.dto.econews.AddEcoNewsDtoResponse;
 import greencity.dto.econews.EcoNewsForSendEmailDto;
+import greencity.dto.newssubscriber.NewsSubscriberResponseDto;
 import greencity.dto.user.*;
 import greencity.enums.EmailNotification;
 import greencity.enums.Role;
@@ -21,10 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import static greencity.constant.AppConstant.AUTHORIZATION;
 
 @RequiredArgsConstructor
@@ -476,5 +475,23 @@ public class RestClient {
             .findFirst()
             .map(Cookie::getValue).orElse(null);
         return token == null ? null : "Bearer " + token;
+    }
+
+    public void sendNewNewsForSubscriber(List<NewsSubscriberResponseDto> subscribers,
+        AddEcoNewsDtoResponse newsDto) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> request = new HashMap<>();
+        request.put("subscribers", subscribers);
+        request.put("newsDto", newsDto);
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(request, headers);
+
+        restTemplate.exchange(
+            greenCityUserServerAddress + RestTemplateLinks.SEND_NEW_NEWS,
+            HttpMethod.POST,
+            entity,
+            Void.class);
     }
 }
