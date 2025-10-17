@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
 import greencity.exception.exceptions.BadRequestException;
+import greencity.exception.exceptions.NotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 import org.modelmapper.ModelMapper;
 import java.time.OffsetDateTime;
@@ -74,6 +75,14 @@ public class EventServiceImpl implements EventService {
         return toEventDto(event);
     }
 
+    @Override
+    public EventDto getEventById(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+
+        return toEventDto(event);
+    }
+
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
                 .map(loc -> EventDateLocationDto.builder()
@@ -88,6 +97,10 @@ public class EventServiceImpl implements EventService {
         List<String> imageUrls = event.getImages().stream()
                 .map(EventImage::getImagePath)
                 .collect(Collectors.toList());
+
+        // Compute event status based on date/time occurrences
+        EventStatusCalculator.EventStatusResult statusResult =
+                EventStatusCalculator.computeStatus(event.getDateTimeLocations(), OffsetDateTime.now());
 
         return EventDto.builder()
                 .id(event.getId())
@@ -104,6 +117,9 @@ public class EventServiceImpl implements EventService {
                 .updatedAt(event.getUpdatedAt())
                 .datesLocations(dateDtos)
                 .imageUrls(imageUrls)
+                .status(statusResult.getStatus())
+                .nearestStart(statusResult.getNearestStart())
+                .nearestFinish(statusResult.getNearestFinish())
                 .build();
     }
 

@@ -1,5 +1,6 @@
 package greencity.dto.event;
 
+import greencity.enums.EventStatus;
 import lombok.*;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -21,4 +22,8 @@ public class EventDto {
     private OffsetDateTime updatedAt;
     private List<EventDateLocationDto> datesLocations;
     private List<String> imageUrls;
+    private EventStatus status;
+    private OffsetDateTime nearestStart;
+    private OffsetDateTime nearestFinish;
 }
+

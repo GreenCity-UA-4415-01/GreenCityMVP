@@ -178,5 +178,6 @@
     <include file="db/changelog/logs/ch-drop-user-friends-table-Bokalo.xml"/>
     <include file="/db/changelog/logs/ch-add-table-newsletter-subscription-Zakordonskyi.xml"/>
     <include file="db/changelog/logs/ch-recreate-events-tables-complete-schema-Obydalo.xml"/>
+    <include file="db/changelog/logs/ch-add-event-status-Obydalo.xml"/>
 </databaseChangeLog>
 
