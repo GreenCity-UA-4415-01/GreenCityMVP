@@ -30,28 +30,28 @@ public class EventServiceImpl implements EventService {
     public EventDto createEvent(AddEventDtoRequest dto, MultipartFile[] images, Long organizerId) {
         validateEvent(dto, images);
         Event event = Event.builder()
-                .title(dto.getTitle().trim())
-                .description(dto.getDescription().trim())
-                .open(dto.isOpen())
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .title(dto.getTitle().trim())
+            .description(dto.getDescription().trim())
+            .open(dto.isOpen())
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         event = eventRepository.save(event);
 
         Event finalEvent = event;
         List<EventDateTimeLocation> dateLocations = dto.getDatesLocations().stream()
-                .map(d -> EventDateTimeLocation.builder()
-                        .event(finalEvent)
-                        .startDate(d.getStartDate())
-                        .finishDate(d.getFinishDate())
-                        .latitude(d.getLatitude())
-                        .longitude(d.getLongitude())
-                        .onlineLink(d.getOnlineLink())
-                        .createdAt(OffsetDateTime.now())
-                        .updatedAt(null)
-                        .build())
-                .collect(Collectors.toList());
+            .map(d -> EventDateTimeLocation.builder()
+                .event(finalEvent)
+                .startDate(d.getStartDate())
+                .finishDate(d.getFinishDate())
+                .latitude(d.getLatitude())
+                .longitude(d.getLongitude())
+                .onlineLink(d.getOnlineLink())
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(null)
+                .build())
+            .collect(Collectors.toList());
 
         dateTimeLocationRepository.saveAll(dateLocations);
         event.setDateTimeLocations(dateLocations);
@@ -61,11 +61,11 @@ public class EventServiceImpl implements EventService {
 
         for (int i = 0; i < imagePaths.size(); i++) {
             EventImage img = EventImage.builder()
-                    .event(event)
-                    .imagePath(imagePaths.get(i))
-                    .main(i == 0) // перше зображення — головне
-                    .createdAt(OffsetDateTime.now())
-                    .build();
+                .event(event)
+                .imagePath(imagePaths.get(i))
+                .main(i == 0) // перше зображення — головне
+                .createdAt(OffsetDateTime.now())
+                .build();
             eventImages.add(img);
         }
 
@@ -85,42 +85,42 @@ public class EventServiceImpl implements EventService {
 
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
-                .map(loc -> EventDateLocationDto.builder()
-                        .startDate(loc.getStartDate())
-                        .finishDate(loc.getFinishDate())
-                        .latitude(loc.getLatitude())
-                        .longitude(loc.getLongitude())
-                        .onlineLink(loc.getOnlineLink())
-                        .build())
-                .collect(Collectors.toList());
+            .map(loc -> EventDateLocationDto.builder()
+                .startDate(loc.getStartDate())
+                .finishDate(loc.getFinishDate())
+                .latitude(loc.getLatitude())
+                .longitude(loc.getLongitude())
+                .onlineLink(loc.getOnlineLink())
+                .build())
+            .collect(Collectors.toList());
 
         List<String> imageUrls = event.getImages().stream()
-                .map(EventImage::getImagePath)
-                .collect(Collectors.toList());
+            .map(EventImage::getImagePath)
+            .collect(Collectors.toList());
 
         // Compute event status based on date/time occurrences
         EventStatusCalculator.EventStatusResult statusResult =
                 EventStatusCalculator.computeStatus(event.getDateTimeLocations(), OffsetDateTime.now());
 
         return EventDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .description(event.getDescription())
-                .open(event.isOpen())
-                .organizerId(event.getOrganizerId())
-                .titleImage(event.getImages().stream()
-                        .filter(EventImage::isMain)
-                        .findFirst()
-                        .map(EventImage::getImagePath)
-                        .orElse(null))
-                .createdAt(event.getCreatedAt())
-                .updatedAt(event.getUpdatedAt())
-                .datesLocations(dateDtos)
-                .imageUrls(imageUrls)
-                .status(statusResult.getStatus())
-                .nearestStart(statusResult.getNearestStart())
-                .nearestFinish(statusResult.getNearestFinish())
-                .build();
+               .id(event.getId())
+               .title(event.getTitle())
+               .description(event.getDescription())
+               .open(event.isOpen())
+               .organizerId(event.getOrganizerId())
+               .titleImage(event.getImages().stream()
+                       .filter(EventImage::isMain)
+                       .findFirst()
+                       .map(EventImage::getImagePath)
+                       .orElse(null))
+               .createdAt(event.getCreatedAt())
+               .updatedAt(event.getUpdatedAt())
+               .datesLocations(dateDtos)
+               .imageUrls(imageUrls)
+               .status(statusResult.getStatus())
+               .nearestStart(statusResult.getNearestStart())
+               .nearestFinish(statusResult.getNearestFinish())
+               .build();
     }
 
     private void validateEvent(AddEventDtoRequest dto, MultipartFile[] images) {
@@ -129,8 +129,8 @@ public class EventServiceImpl implements EventService {
         }
 
         if (dto.getDescription() == null
-                || dto.getDescription().length() < 20
-                || dto.getDescription().length() > 63206) {
+            || dto.getDescription().length() < 20
+            || dto.getDescription().length() > 63206) {
             throw new BadRequestException("Description must be between 20 and 63,206 characters");
         }
 
