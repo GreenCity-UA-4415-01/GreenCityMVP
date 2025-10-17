@@ -7,7 +7,11 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public class EventStatusCalculator {
+public final class EventStatusCalculator {
+
+    private EventStatusCalculator() {
+    }
+
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor

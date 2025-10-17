@@ -6,14 +6,11 @@ import greencity.entity.EventDateTimeLocation;
 import greencity.entity.EventImage;
 import greencity.enums.EventStatus;
 import greencity.exception.exceptions.NotFoundException;
-import greencity.repository.EventDateTimeLocationRepo;
-import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.modelmapper.ModelMapper;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.OffsetDateTime;
@@ -24,26 +21,11 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for EventServiceImpl.
- */
 @ExtendWith(SpringExtension.class)
 class EventServiceImplTest {
 
     @Mock
     private EventRepo eventRepository;
-
-    @Mock
-    private EventDateTimeLocationRepo dateTimeLocationRepository;
-
-    @Mock
-    private EventImageRepo eventImageRepository;
-
-    @Mock
-    private ImageStorageService imageStorageService;
-
-    @Mock
-    private ModelMapper mapper;
 
     @InjectMocks
     private EventServiceImpl eventService;

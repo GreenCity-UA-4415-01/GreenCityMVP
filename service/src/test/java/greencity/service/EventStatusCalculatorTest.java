@@ -12,9 +12,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for EventStatusCalculator.
- */
 class EventStatusCalculatorTest {
 
     @Test
@@ -277,5 +274,4 @@ class EventStatusCalculatorTest {
                 .build();
     }
 }
-
 

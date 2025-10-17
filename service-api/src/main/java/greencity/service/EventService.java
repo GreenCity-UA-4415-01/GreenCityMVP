@@ -24,6 +24,7 @@ public interface EventService {
      *
      * @param eventId event ID
      * @return event DTO with computed status, nearestStart, and nearestFinish
+     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
      */
     EventDto getEventById(Long eventId);
 }
