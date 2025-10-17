@@ -26,12 +26,12 @@ public class EventController {
     private final Tika tika = new Tika();
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+        produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EventDto> createEvent(
-            @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
-            @RequestPart(value = "images", required = false) MultipartFile[] images,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
+        @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
+        @RequestPart(value = "images", required = false) MultipartFile[] images,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
         validateUser(currentUser);
         validateEventRequest(addEventDtoRequest);
         validateImages(images);
@@ -54,13 +54,13 @@ public class EventController {
             throw new BadRequestException("Title length must not exceed 70 characters.");
         }
         if (addEventDtoRequest.getDescription() == null
-                || addEventDtoRequest.getDescription().length() < 20
-                || addEventDtoRequest.getDescription().length() > 63206) {
+            || addEventDtoRequest.getDescription().length() < 20
+            || addEventDtoRequest.getDescription().length() > 63206) {
             throw new BadRequestException("Description must be between 20 and 63,206 characters.");
         }
         if (addEventDtoRequest.getDatesLocations() == null
-                || addEventDtoRequest.getDatesLocations().isEmpty()
-                || addEventDtoRequest.getDatesLocations().size() > 7) {
+            || addEventDtoRequest.getDatesLocations().isEmpty()
+            || addEventDtoRequest.getDatesLocations().size() > 7) {
             throw new BadRequestException("Event must contain between 1 and 7 date/location entries.");
         }
     }

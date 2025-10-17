@@ -44,34 +44,31 @@ public class EventControllerTest {
     MockMvc mockMvc;
 
     ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    ;
+        .registerModule(new JavaTimeModule())
+        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
     @Mock
     UserArgumentResolver userArgumentResolver;
 
     // Mock the authenticated user
     UserVO mockUser = UserVO.builder()
-            .id(5L)
-            .email("test@example.com")
-            .name("Test User")
-            .build();
+        .id(5L)
+        .email("test@example.com")
+        .name("Test User")
+        .build();
 
     EventDateLocationDto locationDto = EventDateLocationDto.builder()
-            .startDate(OffsetDateTime.now().plusDays(2))
-            .finishDate(OffsetDateTime.now().plusDays(2).plusHours(3))
-            .latitude(50.45)
-            .longitude(30.52)
-            .build();
+        .startDate(OffsetDateTime.now().plusDays(2))
+        .finishDate(OffsetDateTime.now().plusDays(2).plusHours(3))
+        .latitude(50.45)
+        .longitude(30.52)
+        .build();
 
     AddEventDtoRequest addEventDtoRequest = AddEventDtoRequest.builder()
-            .title("Eco Cleanup")
-            .description("Let's clean the park together for a better future!")
-            .open(true)
-            .datesLocations(List.of(locationDto))
-            .build();
-
-
+        .title("Eco Cleanup")
+        .description("Let's clean the park together for a better future!")
+        .open(true)
+        .datesLocations(List.of(locationDto))
+        .build();
 
     @BeforeEach
     public void setup() {
@@ -80,13 +77,13 @@ public class EventControllerTest {
 
         CustomExceptionHandler exceptionHandler = new CustomExceptionHandler(errorAttributes, objectMapper);
         mockMvc = MockMvcBuilders.standaloneSetup(eventController)
-                .setCustomArgumentResolvers(userArgumentResolver)
-                .setControllerAdvice(exceptionHandler)
-                .build();
+            .setCustomArgumentResolvers(userArgumentResolver)
+            .setControllerAdvice(exceptionHandler)
+            .build();
     }
 
     private byte[] createValidJpegBytes() {
-        byte[] jpegHeader = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0};
+        byte[] jpegHeader = new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0};
         byte[] padding = new byte[100]; // Add some padding
         byte[] result = new byte[jpegHeader.length + padding.length];
         System.arraycopy(jpegHeader, 0, result, 0, jpegHeader.length);
@@ -95,14 +92,14 @@ public class EventControllerTest {
     }
 
     private byte[] createValidJpegBytes(int size) {
-        byte[] jpegHeader = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0};
+        byte[] jpegHeader = new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0};
         byte[] result = new byte[size];
         System.arraycopy(jpegHeader, 0, result, 0, Math.min(jpegHeader.length, size));
         return result;
     }
 
     private byte[] createValidPngBytes() {
-        byte[] pngHeader = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+        byte[] pngHeader = new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
         byte[] padding = new byte[100]; // Add some padding
         byte[] result = new byte[pngHeader.length + padding.length];
         System.arraycopy(pngHeader, 0, result, 0, pngHeader.length);
