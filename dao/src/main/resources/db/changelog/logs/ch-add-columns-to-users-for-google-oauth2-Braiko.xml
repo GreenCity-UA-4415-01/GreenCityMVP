@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="adds-columns-to-users-for-google-oauth2" author="Oleksandr-Braiko">
+        <comment>Adding Google OAuth fields to the users table: provider, provider_id, email_verified.</comment>
+
+        <addColumn tableName="users">
+            <column name="provider" type="VARCHAR(20)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="users">
+            <column name="provider_id" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+
+        <addColumn tableName="users">
+            <column name="email_verified" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="add-unique-constraint-users-provider-provider-id" author="Oleksandr-Braiko">
+        <comment>Adding unique constraint on (provider, provider_id) for Google OAuth.</comment>
+
+        <addUniqueConstraint
+                columnNames="provider, provider_id"
+                constraintName="uc_user_provider_providerid"
+                tableName="users"/>
+    </changeSet>
+
+</databaseChangeLog>
