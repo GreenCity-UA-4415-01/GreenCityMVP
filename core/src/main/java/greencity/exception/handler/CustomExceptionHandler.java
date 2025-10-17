@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import java.io.IOException;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -191,6 +192,21 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         log.info(ex.getMessage());
         ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
+    }
+
+    /**
+     * Method intercept exception {@link IOException}.
+     *
+     * @param ex      Exception witch should be intercepted.
+     * @param request contain detail about occur exception
+     * @return ResponseEntity witch contain http status and body with message of
+     *         exception.
+     */
+    @ExceptionHandler(IOException.class)
+    public final ResponseEntity<Object> handleIOException(IOException ex, WebRequest request) {
+        log.error("IOException occurred: " + ex.getMessage(), ex);
+        ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exceptionResponse);
     }
 
     /**

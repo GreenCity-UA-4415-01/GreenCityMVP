@@ -30,6 +30,7 @@ public class RestTemplateLinks {
     public static final String DELETE_DEACTIVATED_USERS = " /user/deleteDeactivatedUsers";
     public static final String FIND_ALL_REGISTRATION_MONTHS_MAP = "/user/findAllRegistrationMonthsMap";
     public static final String FIND_ALL_USERS_CITIES = "/user/findAllUsersCities";
+    public static final String SEND_NEW_NEWS = "/email/sendNewNews";
 
     private RestTemplateLinks() {
     }

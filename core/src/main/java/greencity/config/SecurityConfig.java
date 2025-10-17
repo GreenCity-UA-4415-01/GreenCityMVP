@@ -150,12 +150,14 @@ public class SecurityConfig {
                     "/user/emailNotifications",
                     "/user/activatedUsersAmount",
                     "/user/{userId}/habit/assign",
-                    "/token")
+                    "/token",
+                    "/newsSubscriber/unsubscribe")
                 .permitAll()
                 .requestMatchers(HttpMethod.POST,
                     "/ownSecurity/signUp",
                     "/ownSecurity/signIn",
-                    "/ownSecurity/changePassword")
+                    "/ownSecurity/changePassword",
+                    "/newsSubscriber")
                 .permitAll()
                 .requestMatchers(HttpMethod.GET,
                     "/achievements",
@@ -212,7 +214,6 @@ public class SecurityConfig {
                     "/habit/assign/{habitAssignId}/enroll/**",
                     "/habit/assign/{habitAssignId}/unenroll/{date}",
                     "/habit/statistic/{habitId}",
-                    "/newsSubscriber",
                     USER_CUSTOM_SHOPPING_LIST_ITEMS,
                     USER_SHOPPING_LIST,
                     "/user/{userId}/habit",

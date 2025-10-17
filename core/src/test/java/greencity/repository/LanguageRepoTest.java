@@ -20,9 +20,12 @@ class LanguageRepoTest extends IntegrationTestBase {
 
     @Test
     void findAllLanguageCodes() {
-        List<String> language = ModelUtils.getAllLanguages();
-        List<String> actual = languageRepo.findAllLanguageCodes();
-        Assertions.assertEquals(language, actual);
+        List<String> language =
+            ModelUtils.getAllLanguages();
+        List<String> actual =
+            languageRepo.findAllLanguageCodes();
+        Assertions.assertEquals(language,
+            actual);
     }
 
     @Test
@@ -34,8 +37,10 @@ class LanguageRepoTest extends IntegrationTestBase {
 
     @Test
     void findByTagTranslationId() {
-        Language language = ModelUtils.getLanguage();
-        Optional<Language> actual = languageRepo.findByTagTranslationId(1L);
+        Language language =
+            ModelUtils.getLanguage();
+        Optional<Language> actual =
+            languageRepo.findByTagTranslationId(1L);
         Assertions.assertEquals(language.getCode(), actual.get().getCode());
     }
 }
