@@ -3,11 +3,13 @@ package greencity.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import greencity.converters.UserArgumentResolver;
 import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDateLocationDto;
 import greencity.dto.event.EventDto;
+import greencity.dto.event.EventPreviewDto;
 import greencity.dto.user.UserVO;
+import greencity.enums.EventStatus;
+import greencity.enums.EventType;
 import greencity.exception.handler.CustomExceptionHandler;
 import greencity.service.EventService;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,8 +32,20 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
+import org.springframework.core.MethodParameter;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
+import greencity.annotations.CurrentUser;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -44,31 +58,52 @@ public class EventControllerTest {
     MockMvc mockMvc;
 
     ObjectMapper objectMapper = new ObjectMapper()
-        .registerModule(new JavaTimeModule())
-        .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    @Mock
-    UserArgumentResolver userArgumentResolver;
+            .registerModule(new JavaTimeModule())
+            .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     // Mock the authenticated user
     UserVO mockUser = UserVO.builder()
-        .id(5L)
-        .email("test@example.com")
-        .name("Test User")
-        .build();
+            .id(5L)
+            .email("test@example.com")
+            .name("Test User")
+            .build();
+
+    // Custom UserArgumentResolver for testing
+    static class TestUserArgumentResolver implements HandlerMethodArgumentResolver {
+        private final UserVO userVO;
+
+        public TestUserArgumentResolver(UserVO userVO) {
+            this.userVO = userVO;
+        }
+
+        @Override
+        public boolean supportsParameter(MethodParameter parameter) {
+            return parameter.getParameterAnnotation(CurrentUser.class) != null
+                    && parameter.getParameterType().equals(UserVO.class);
+        }
+
+        @Override
+        public Object resolveArgument(MethodParameter parameter,
+                                      ModelAndViewContainer mavContainer,
+                                      NativeWebRequest webRequest,
+                                      WebDataBinderFactory binderFactory) throws Exception {
+            return userVO;
+        }
+    }
 
     EventDateLocationDto locationDto = EventDateLocationDto.builder()
-        .startDate(OffsetDateTime.now().plusDays(2))
-        .finishDate(OffsetDateTime.now().plusDays(2).plusHours(3))
-        .latitude(50.45)
-        .longitude(30.52)
-        .build();
+            .startDate(OffsetDateTime.now().plusDays(2))
+            .finishDate(OffsetDateTime.now().plusDays(2).plusHours(3))
+            .latitude(50.45)
+            .longitude(30.52)
+            .build();
 
     AddEventDtoRequest addEventDtoRequest = AddEventDtoRequest.builder()
-        .title("Eco Cleanup")
-        .description("Let's clean the park together for a better future!")
-        .open(true)
-        .datesLocations(List.of(locationDto))
-        .build();
+            .title("Eco Cleanup")
+            .description("Let's clean the park together for a better future!")
+            .open(true)
+            .datesLocations(List.of(locationDto))
+            .build();
 
     @BeforeEach
     public void setup() {
@@ -77,9 +112,10 @@ public class EventControllerTest {
 
         CustomExceptionHandler exceptionHandler = new CustomExceptionHandler(errorAttributes, objectMapper);
         mockMvc = MockMvcBuilders.standaloneSetup(eventController)
-            .setCustomArgumentResolvers(userArgumentResolver)
-            .setControllerAdvice(exceptionHandler)
-            .build();
+                .setCustomArgumentResolvers(new PageableHandlerMethodArgumentResolver(),
+                        new TestUserArgumentResolver(mockUser))
+                .setControllerAdvice(exceptionHandler)
+                .build();
     }
 
     private byte[] createValidJpegBytes() {
@@ -110,8 +146,6 @@ public class EventControllerTest {
     @Test
     public void createEvent_ShouldReturn201Created() throws Exception {
 
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -157,8 +191,6 @@ public class EventControllerTest {
     @Test
     public void createEventWithWrongImageType() throws Exception {
 
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -184,8 +216,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithPngImage_ShouldReturn201Created() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -227,8 +257,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithOversizedImage_ShouldReturn400BadRequest() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -256,8 +284,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithExactly10MBImage_ShouldReturn201Created() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -300,8 +326,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithMoreThan5Images_ShouldReturn400BadRequest() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -334,8 +358,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithExactly5Images_ShouldReturn201Created() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -383,8 +405,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithNoImages_ShouldUseDefaultImage() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -420,8 +440,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithMultipleImages_FirstShouldBeMain() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -465,8 +483,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithImageWithoutContentType_ShouldReturn400BadRequest() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -492,8 +508,6 @@ public class EventControllerTest {
 
     @Test
     public void createEventWithMixedValidAndInvalidImages_ShouldReturn400BadRequest() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -513,5 +527,85 @@ public class EventControllerTest {
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void getMyEvents_ShouldReturn200Ok() throws Exception {
+
+        EventPreviewDto eventPreview = EventPreviewDto.builder()
+                .id(1L)
+                .title("Test Event")
+                .description("Test Description")
+                .open(true)
+                .organizerId(1L)
+                .titleImage("test-image.jpg")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .status(EventStatus.UPCOMING)
+                .nearestStart(OffsetDateTime.now().plusDays(1))
+                .canCancelJoin(true)
+                .isFavourite(false)
+                .isSubscribed(false)
+                .visibility("PUBLIC")
+                .latitude(50.45)
+                .longitude(30.52)
+                .onlineLink(null)
+                .build();
+
+        Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
+
+        when(eventService.getMyEvents(eq(5L), eq(EventType.BOTH), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(eventPage);
+
+        mockMvc.perform(get("/events/myEvents")
+                        .param("eventType", "BOTH")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].title").value("Test Event"))
+                .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    public void getMyEventsWithCoordinates_ShouldReturn200Ok() throws Exception {
+
+        EventPreviewDto eventPreview = EventPreviewDto.builder()
+                .id(1L)
+                .title("Test Event")
+                .description("Test Description")
+                .open(true)
+                .organizerId(1L)
+                .titleImage("test-image.jpg")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .status(EventStatus.UPCOMING)
+                .nearestStart(OffsetDateTime.now().plusDays(1))
+                .canCancelJoin(true)
+                .isFavourite(false)
+                .isSubscribed(false)
+                .visibility("PUBLIC")
+                .latitude(50.45)
+                .longitude(30.52)
+                .onlineLink(null)
+                .build();
+
+        Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
+
+        when(eventService.getMyEvents(eq(5L), eq(EventType.PLACE), eq(50.45), eq(30.52), any(Pageable.class)))
+                .thenReturn(eventPage);
+
+        mockMvc.perform(get("/events/myEvents")
+                        .param("eventType", "PLACE")
+                        .param("userLatitude", "50.45")
+                        .param("userLongitude", "30.52")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].title").value("Test Event"))
+                .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
+                .andExpect(jsonPath("$.totalElements").value(1));
     }
 }
