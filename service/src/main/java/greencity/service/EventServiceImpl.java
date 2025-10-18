@@ -112,8 +112,15 @@ public class EventServiceImpl implements EventService {
                 .min(OffsetDateTime::compareTo)
                 .orElse(null);
 
-        // Determine event status
-        EventStatus status = determineEventStatus(nearestStart);
+        // Find the corresponding finish date for the nearest start date
+        OffsetDateTime nearestFinish = event.getDateTimeLocations().stream()
+                .filter(loc -> loc.getStartDate().equals(nearestStart))
+                .findFirst()
+                .map(EventDateTimeLocation::getFinishDate)
+                .orElse(null);
+
+        // Determine event status using actual finish date
+        EventStatus status = determineEventStatus(nearestStart, nearestFinish);
 
         // Get the first date location for coordinates and online link
         EventDateTimeLocation firstLocation = event.getDateTimeLocations().stream()
@@ -138,7 +145,7 @@ public class EventServiceImpl implements EventService {
                 .updatedAt(event.getUpdatedAt())
                 .status(status)
                 .nearestStart(nearestStart)
-                .canCancelJoin(true) // User can always cancel their join
+                .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
                 .isFavourite(false) // TODO: Implement when favorites feature is added
                 .isSubscribed(false) // TODO: Implement when subscription feature is added
                 .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
@@ -148,17 +155,19 @@ public class EventServiceImpl implements EventService {
                 .build();
     }
 
-    private EventStatus determineEventStatus(OffsetDateTime nearestStart) {
+    private EventStatus determineEventStatus(OffsetDateTime nearestStart, OffsetDateTime finishDate) {
         if (nearestStart == null) {
             return EventStatus.PASSED;
         }
 
         OffsetDateTime now = OffsetDateTime.now();
-        OffsetDateTime endTime = nearestStart.plusHours(3); // Assuming 3-hour duration
+
+        // Use actual finish date if available, otherwise treat as passed
+        OffsetDateTime endTime = finishDate != null ? finishDate : nearestStart;
 
         if (now.isBefore(nearestStart)) {
             return EventStatus.UPCOMING;
-        } else if (now.isAfter(nearestStart) && now.isBefore(endTime)) {
+        } else if (now.isAfter(nearestStart) && (finishDate == null || now.isBefore(endTime))) {
             return EventStatus.LIVE;
         } else {
             return EventStatus.PASSED;
