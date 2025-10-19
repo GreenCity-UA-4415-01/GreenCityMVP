@@ -31,12 +31,12 @@ public class EventController {
     private final Tika tika = new Tika();
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+        produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EventDto> createEvent(
-            @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
-            @RequestPart(value = "images", required = false) MultipartFile[] images,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
+        @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
+        @RequestPart(value = "images", required = false) MultipartFile[] images,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
         validateUser(currentUser);
         validateEventRequest(addEventDtoRequest);
         validateImages(images);
@@ -48,16 +48,15 @@ public class EventController {
     @GetMapping("/myEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam(value = "eventType", required = false) EventType eventType,
-            @RequestParam(value = "userLatitude", required = false) Double userLatitude,
-            @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
-
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+        @RequestParam(value = "eventType", required = false) EventType eventType,
+        @RequestParam(value = "userLatitude", required = false) Double userLatitude,
+        @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
-                currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+            currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -76,13 +75,13 @@ public class EventController {
             throw new BadRequestException("Title length must not exceed 70 characters.");
         }
         if (addEventDtoRequest.getDescription() == null
-                || addEventDtoRequest.getDescription().length() < 20
-                || addEventDtoRequest.getDescription().length() > 63206) {
+            || addEventDtoRequest.getDescription().length() < 20
+            || addEventDtoRequest.getDescription().length() > 63206) {
             throw new BadRequestException("Description must be between 20 and 63,206 characters.");
         }
         if (addEventDtoRequest.getDatesLocations() == null
-                || addEventDtoRequest.getDatesLocations().isEmpty()
-                || addEventDtoRequest.getDatesLocations().size() > 7) {
+            || addEventDtoRequest.getDatesLocations().isEmpty()
+            || addEventDtoRequest.getDatesLocations().size() > 7) {
             throw new BadRequestException("Event must contain between 1 and 7 date/location entries.");
         }
     }
