@@ -3,6 +3,7 @@ package greencity.service;
 import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDto;
 import greencity.dto.user.UserVO;
+import greencity.dto.user.UserVO;
 import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,23 @@ public interface EventService {
      * @return created event {@link EventDto} with computed status
      */
     EventDto createEvent(AddEventDtoRequest request, MultipartFile[] images, Long organizerId);
+
+    /**
+     * Method for deleting the {@link EventDto} instance by its id.
+     *
+     * @param id   - {@link EventDto} instance id which will be deleted.
+     * @param user current {@link UserVO} that wants to delete.
+     */
+    void deleteEvent(Long id, UserVO user);
+
+    /**
+     * Method for getting the {@link EventDto} instance by its id.
+     *
+     * @param id {@link EventDto} instance id.
+     * @return {@link EventDto} instance.
+     */
+    EventDto findById(Long id);
+}
 
     /**
      * Method for deleting the {@link EventDto} instance by its id.
