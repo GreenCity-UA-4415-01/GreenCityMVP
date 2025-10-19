@@ -20,6 +20,13 @@ import greencity.dto.econews.EcoNewsVO;
 import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.constant.ErrorMessage;
+import greencity.dto.user.UserVO;
+import greencity.enums.EventStatus;
+import greencity.enums.EventType;
+import greencity.enums.Role;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
@@ -38,7 +45,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
@@ -47,10 +53,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.modelmapper.ModelMapper;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-import static greencity.constant.AppConstant.AUTHORIZATION;
 
 @Service
 @RequiredArgsConstructor
