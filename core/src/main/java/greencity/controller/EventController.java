@@ -111,7 +111,7 @@ public class EventController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
             @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10, sort = "nearestStart", direction = ASC) Pageable pageable) {
+            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
 
         validateUser(currentUser);
 
