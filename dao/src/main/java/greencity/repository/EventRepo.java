@@ -42,6 +42,7 @@ public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationE
 
     /**
      * Method that finds {@link Event} by id.
+     *
      * @param id {@link Long}.
      * @return {@link Optional} of {@link Event}
      */
