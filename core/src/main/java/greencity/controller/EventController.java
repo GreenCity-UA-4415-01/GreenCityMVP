@@ -1,6 +1,7 @@
 package greencity.controller;
 
 import greencity.annotations.CurrentUser;
+import greencity.constant.HttpStatuses;
 import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDto;
 import greencity.dto.event.EventPreviewDto;
@@ -8,7 +9,10 @@ import greencity.dto.user.UserVO;
 import greencity.enums.EventType;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.service.EventService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +34,13 @@ public class EventController {
     private final EventService eventService;
     private final Tika tika = new Tika();
 
+    /**
+     * Endpoint for event creation.
+     * @param addEventDtoRequest
+     * @param images
+     * @param currentUser
+     * @throws IOException
+     */
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("isAuthenticated()")
@@ -61,12 +72,44 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
+    /**
+     * Endpoint for event deletion.
+     * @param eventId
+     * @param user
+     * @author Oleksandr Braiko
+     */
+    @Operation(summary = "Delete event")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+            @ApiResponse(responseCode = "403", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @DeleteMapping(value = "/{eventId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<EventDto> deleteEvent(@PathVariable Long eventId,
+        @Parameter(hidden = true) @CurrentUser UserVO user
+    ) {
+        eventService.deleteEvent(eventId, user);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    /**
+     *
+     * @param currentUser
+     * @author Oleksandr Obydalo
+     */
     private void validateUser(UserVO currentUser) {
         if (currentUser == null) {
             throw new BadRequestException("User must be authenticated to create an event.");
         }
     }
 
+    /**
+     * Helper method to validate {@link AddEventDtoRequest}
+     * @param addEventDtoRequest
+     * @author Kateryna Holtvianska
+     */
     private void validateEventRequest(AddEventDtoRequest addEventDtoRequest) {
         if (addEventDtoRequest.getTitle() == null || addEventDtoRequest.getTitle().isBlank()) {
             throw new BadRequestException("Title is required.");
@@ -86,6 +129,12 @@ public class EventController {
         }
     }
 
+    /**
+     * Helper method to validate quantity of uploaded images.
+     * @param images
+     * @throws IOException
+     * @author Oleksandr Obydalo
+     */
     private void validateImages(MultipartFile[] images) throws IOException {
         if (images != null) {
             if (images.length > 5) {
@@ -97,6 +146,12 @@ public class EventController {
         }
     }
 
+    /**
+     * Helper method to validate a single image.
+     * @param image
+     * @throws IOException
+     * @author Oleksandr Obydalo
+     */
     private void validateImage(MultipartFile image) throws IOException {
         // Use Apache Tika to detect actual file type based on content
         String detectedType = tika.detect(image.getInputStream());
