@@ -27,6 +27,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 import java.io.IOException;
 
+import static org.springframework.data.domain.Sort.Direction.ASC;
+
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
@@ -58,32 +60,6 @@ public class EventController {
     }
 
     /**
-     * Endpoint for events organized by the authenticated user.
-     *
-     * @param currentUser   User that is currently logged in.
-     * @param pageable      Pageable.
-     * @param eventType     Type of the event.
-     * @param userLatitude  User coordinates.
-     * @param userLongitude User coordinates.
-     * @author Oleksandr Obydalo.
-     */
-    @GetMapping("/myEvents")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
-        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-        @RequestParam(value = "eventType", required = false) EventType eventType,
-        @RequestParam(value = "userLatitude", required = false) Double userLatitude,
-        @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
-        validateUser(currentUser);
-
-        Page<EventPreviewDto> events = eventService.getMyEvents(
-            currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
-
-        return ResponseEntity.ok(events);
-    }
-
-    /**
      * Endpoint for event deletion.
      *
      * @param eventId ID of the Event instance.
@@ -104,17 +80,7 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    /**
-     * Method to validate authentication of the User.
-     *
-     * @param currentUser User that is currently logged in.
-     * @author Oleksandr Obydalo
-     */
-    private void validateUser(UserVO currentUser) {
-        if (currentUser == null) {
-            throw new BadRequestException("User must be authenticated to create an event.");
-        }
-    }
+
 
     /**
      * Helper method to validate {@link AddEventDtoRequest}.
@@ -174,6 +140,58 @@ public class EventController {
 
         if (image.getSize() > 10 * 1024 * 1024) { // 10MB size limit
             throw new BadRequestException("Image size must not exceed 10MB.");
+        }
+    }
+
+    /**
+     * Endpoint for events organized by the authenticated user.
+     *
+     * @param currentUser   User that is currently logged in.
+     * @param pageable      Pageable.
+     * @param eventType     Type of the event.
+     * @param userLatitude  User coordinates.
+     * @param userLongitude User coordinates.
+     * @author Oleksandr Obydalo.
+     */
+    @GetMapping("/myEvents")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(value = "eventType", required = false) EventType eventType,
+            @RequestParam(value = "userLatitude", required = false) Double userLatitude,
+            @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
+
+        validateUser(currentUser);
+
+        Page<EventPreviewDto> events = eventService.getMyEvents(
+                currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/myCreatedEvents")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+            @Parameter(hidden = true) @PageableDefault(size = 10, sort = "nearestStart", direction = ASC) Pageable pageable) {
+
+        validateUser(currentUser);
+
+        Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), pageable);
+
+        return ResponseEntity.ok(events);
+    }
+
+    /**
+     * Method to validate authentication of the User.
+     *
+     * @param currentUser User that is currently logged in.
+     * @author Oleksandr Obydalo
+     */
+    private void validateUser(UserVO currentUser) {
+        if (currentUser == null) {
+            throw new BadRequestException("User must be authenticated to create an event.");
         }
     }
 }

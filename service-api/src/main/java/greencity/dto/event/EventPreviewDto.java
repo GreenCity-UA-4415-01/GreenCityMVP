@@ -22,6 +22,7 @@ public class EventPreviewDto {
     private EventStatus status;
     private OffsetDateTime nearestStart;
     private boolean canCancelJoin;
+    private boolean canEdit;
     private boolean isFavourite;
     private boolean isSubscribed;
     private String visibility;

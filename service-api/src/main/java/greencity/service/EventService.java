@@ -13,8 +13,8 @@ public interface EventService {
     /**
      * Method that creates event.
      *
-     * @param request     event creation request
-     * @param images      event images
+     * @param request event creation request
+     * @param images event images
      * @param organizerId ID of the user creating the event
      * @return created event {@link EventDto} with computed status
      */
@@ -50,14 +50,25 @@ public interface EventService {
         Double userLongitude, Pageable pageable);
 
     /**
-     * Get event by ID with computed status (LIVE/UPCOMING/PASSED). Status is
-     * computed based on event date/time occurrences: - LIVE: now is between start
-     * and finish of at least one occurrence. - UPCOMING: all occurrences are in the
-     * future. - PASSED: all occurrences are in the past. "now" is evaluated as
-     * server time in UTC for consistent comparison with database timestamps.
+     * Method that gets events created by the current user with capability flags for editing.
+     * Returns events with canEdit flag set to true for organizers and admins.
+     * Default sorting by nearestStart.
+     *
+     * @param userId   user ID of the current user
+     * @param pageable paging parameters
+     * @return page of created events {@link EventPreviewDto} with canEdit flags
+     */
+    Page<EventPreviewDto> getMyCreatedEvents(Long userId, Pageable pageable);
+
+    /** Get event by ID with computed status (LIVE/UPCOMING/PASSED).
+     * Status is computed based on event date/time occurrences:
+     * - LIVE: now is between start and finish of at least one occurrence
+     * - UPCOMING: all occurrences are in the future
+     * - PASSED: all occurrences are in the past
      *
      * @param eventId event ID
      * @return event DTO with computed status, nearestStart, and nearestFinish
+     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
      */
     EventDto getEventById(Long eventId);
 }
