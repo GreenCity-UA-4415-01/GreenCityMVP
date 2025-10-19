@@ -80,8 +80,6 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-
-
     /**
      * Helper method to validate {@link AddEventDtoRequest}.
      *
