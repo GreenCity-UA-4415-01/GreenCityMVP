@@ -99,4 +99,5 @@ public interface EventService {
      * @return event DTO with computed status, nearestStart, and nearestFinish
      */
     EventDto getEventById(Long eventId);
+
 }
