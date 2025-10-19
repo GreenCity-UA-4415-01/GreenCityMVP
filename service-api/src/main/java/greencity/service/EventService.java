@@ -83,4 +83,5 @@ public interface EventService {
      * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
      */
     EventDto getEventById(Long eventId);
+
 }
