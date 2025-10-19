@@ -39,4 +39,11 @@ public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationE
                WHERE e.organizerId = :organizerId
             """)
     Page<Event> findByOrganizerIdOrderByNearestStart(@Param("organizerId") Long organizerId, Pageable pageable);
+
+    /**
+     * Method that finds {@link Event} by id.
+     * @param id {@link Long}.
+     * @return {@link Optional} of {@link Event}
+     */
+    Optional<Event> findById(Long id);
 }

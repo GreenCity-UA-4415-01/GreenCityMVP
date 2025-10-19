@@ -1,6 +1,13 @@
 package greencity.service;
 
 import greencity.constant.ErrorMessage;
+import greencity.annotations.RatingCalculationEnum;
+import greencity.constant.CacheConstants;
+import greencity.constant.ErrorMessage;
+import greencity.dto.econews.EcoNewsVO;
+import greencity.dto.user.UserVO;
+import greencity.enums.Role;
+import greencity.exception.exceptions.NotFoundException;
 import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
@@ -12,12 +19,15 @@ import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
 import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletRequest;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import greencity.enums.Role;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -28,7 +38,10 @@ import greencity.exception.exceptions.BadRequestException;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
+import static greencity.constant.AppConstant.AUTHORIZATION;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +54,7 @@ public class EventServiceImpl implements EventService {
     private final EntityManager entityManager;
     private final ModelMapper mapper;
     private final UserService userService;
+    private final HttpServletRequest httpServletRequest;
 
     /**
      * {@inheritDoc}
@@ -299,6 +313,11 @@ public class EventServiceImpl implements EventService {
         return Objects.equals(userVO.getId(), organizerId);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska.
+     */
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
             .map(loc -> EventDateLocationDto.builder()

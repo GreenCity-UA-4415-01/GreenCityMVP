@@ -1,5 +1,6 @@
 package greencity.repository;
 
+import greencity.dto.event.EventDto;
 import greencity.entity.EventDateTimeLocation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
