@@ -191,7 +191,7 @@ public class EventController {
      */
     private void validateUser(UserVO currentUser) {
         if (currentUser == null) {
-            throw new BadRequestException("User must be authenticated to create an event.");
+            throw new BadRequestException("User must be authenticated.");
         }
     }
 }

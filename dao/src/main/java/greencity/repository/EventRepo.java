@@ -28,11 +28,16 @@ public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationE
      * @param pageable pagination parameters
      * @return page of events created by the organizer
      */
-    @Query("""
-        SELECT DISTINCT e FROM Event e
-        JOIN e.dateTimeLocations edtl
+    @Query(
+        value = """
+        SELECT e FROM Event e
         WHERE e.organizerId = :organizerId
-        ORDER BY edtl.startDate ASC
-        """)
+        ORDER BY (SELECT MIN(l.startDate) FROM e.dateTimeLocations l) ASC
+        """,
+        countQuery = """
+           SELECT COUNT(e) FROM Event e
+           WHERE e.organizerId = :organizerId
+        """
+     )
     Page<Event> findByOrganizerIdOrderByNearestStart(@Param("organizerId") Long organizerId, Pageable pageable);
 }
