@@ -100,33 +100,6 @@ public class EventController {
      * @param currentUser
      * @author Oleksandr Obydalo
      */
-    /**
-     * Endpoint for event deletion.
-     * @param eventId
-     * @param user
-     * @author Oleksandr Braiko
-     */
-    @Operation(summary = "Delete event")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
-            @ApiResponse(responseCode = "403", description = HttpStatuses.BAD_REQUEST),
-            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
-    })
-    @DeleteMapping(value = "/{eventId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EventDto> deleteEvent(@PathVariable Long eventId,
-        @Parameter(hidden = true) @CurrentUser UserVO user
-    ) {
-        eventService.deleteEvent(eventId, user);
-        return ResponseEntity.status(HttpStatus.OK).build();
-    }
-
-    /**
-     *
-     * @param currentUser
-     * @author Oleksandr Obydalo
-     */
     private void validateUser(UserVO currentUser) {
         if (currentUser == null) {
             throw new BadRequestException("User must be authenticated to create an event.");

@@ -61,19 +61,4 @@ public interface EventService {
 //     */
     EventDto getEventById(Long eventId);
 
-    /**
-     * Method for deleting the {@link EventDto} instance by its id.
-     *
-     * @param id   - {@link EventDto} instance id which will be deleted.
-     * @param user current {@link UserVO} that wants to delete.
-     */
-    void deleteEvent(Long id, UserVO user);
-
-    /**
-     * Method for getting the {@link EventDto} instance by its id.
-     *
-     * @param id {@link EventDto} instance id.
-     * @return {@link EventDto} instance.
-     */
-    EventDto findById(Long id);
 }
