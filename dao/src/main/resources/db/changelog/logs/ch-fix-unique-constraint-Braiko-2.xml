@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="fix-failed-unique-constraint-cleanup" author="Oleksandr-Braiko" runInTransaction="false">
+        <comment>Clean up failed constraint attempts and DATABASECHANGELOG table.</comment>
+
+        <sql dbms="postgresql">
+            ALTER TABLE users DROP CONSTRAINT IF EXISTS uc_user_provider_providerid;
+        </sql>
+
+        <sql dbms="postgresql">
+            DROP INDEX IF EXISTS uc_user_provider_providerid;
+        </sql>
+
+        <sql dbms="mysql, mariadb">
+            ALTER TABLE users DROP INDEX IF EXISTS uc_user_provider_providerid;
+        </sql>
+
+        <sql dbms="postgresql, mysql, h2, mariadb, oracle, mssql">
+            DELETE FROM DATABASECHANGELOG
+            WHERE FILENAME = 'db/changelog/logs/ch-add-columns-to-users-for-google-oauth2-Braiko.xml'
+              AND ID = 'add-unique-constraint-users-provider-provider-id'
+              AND AUTHOR = 'Oleksandr-Braiko';
+        </sql>
+    </changeSet>
+
+    <changeSet id="add-partial-unique-index-users-provider-provider-id" author="Oleksandr-Braiko" dbms="postgresql, mysql, h2, mariadb">
+        <comment>Adds the unique index as a partial index (WHERE provider IS NOT NULL) to allow existing NULL data.</comment>
+
+        <sql>
+            CREATE UNIQUE INDEX uc_user_provider_providerid
+                ON users (provider, provider_id)
+                WHERE provider IS NOT NULL;
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
