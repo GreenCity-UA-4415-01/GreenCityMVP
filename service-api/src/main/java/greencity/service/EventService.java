@@ -31,15 +31,15 @@ public interface EventService {
      */
     Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, Double userLatitude,
                                       Double userLongitude, Pageable pageable);
-     * Get event by ID with computed status (LIVE/UPCOMING/PASSED).
-     * Status is computed based on event date/time occurrences:
-     * - LIVE: now is between start and finish of at least one occurrence
-     * - UPCOMING: all occurrences are in the future
-     * - PASSED: all occurrences are in the past
-     *
-     * @param eventId event ID
-     * @return event DTO with computed status, nearestStart, and nearestFinish
-     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
-     */
+//     * Get event by ID with computed status (LIVE/UPCOMING/PASSED).
+//     * Status is computed based on event date/time occurrences:
+//     * - LIVE: now is between start and finish of at least one occurrence
+//     * - UPCOMING: all occurrences are in the future
+//     * - PASSED: all occurrences are in the past
+//     *
+//     * @param eventId event ID
+//     * @return event DTO with computed status, nearestStart, and nearestFinish
+//     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
+//     */
     EventDto getEventById(Long eventId);
 }
