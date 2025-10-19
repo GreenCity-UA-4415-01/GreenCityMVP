@@ -179,5 +179,6 @@
     <include file="/db/changelog/logs/ch-add-table-newsletter-subscription-Zakordonskyi.xml"/>
     <include file="db/changelog/logs/ch-recreate-events-tables-complete-schema-Obydalo.xml"/>
     <include file="/db/changelog/logs/ch-add-columns-to-users-for-google-oauth2-Braiko.xml"/>
+    <include file="db/changelog/logs/ch-add-event-status-Obydalo.xml"/>
 </databaseChangeLog>
 

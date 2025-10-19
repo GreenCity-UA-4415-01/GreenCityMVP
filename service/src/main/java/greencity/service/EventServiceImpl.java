@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
 import greencity.exception.exceptions.BadRequestException;
+import greencity.exception.exceptions.NotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 import org.modelmapper.ModelMapper;
 import java.time.OffsetDateTime;
@@ -173,6 +174,12 @@ public class EventServiceImpl implements EventService {
             return EventStatus.PASSED;
         }
     }
+    public EventDto getEventById(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+
+        return toEventDto(event);
+    }
 
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
@@ -189,22 +196,29 @@ public class EventServiceImpl implements EventService {
                 .map(EventImage::getImagePath)
                 .collect(Collectors.toList());
 
+        // Compute event status based on date/time occurrences
+        EventStatusCalculator.EventStatusResult statusResult =
+                EventStatusCalculator.computeStatus(event.getDateTimeLocations(), OffsetDateTime.now());
+
         return EventDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .description(event.getDescription())
-                .open(event.isOpen())
-                .organizerId(event.getOrganizerId())
-                .titleImage(event.getImages().stream()
-                        .filter(EventImage::isMain)
-                        .findFirst()
-                        .map(EventImage::getImagePath)
-                        .orElse(null))
-                .createdAt(event.getCreatedAt())
-                .updatedAt(event.getUpdatedAt())
-                .datesLocations(dateDtos)
-                .imageUrls(imageUrls)
-                .build();
+               .id(event.getId())
+               .title(event.getTitle())
+               .description(event.getDescription())
+               .open(event.isOpen())
+               .organizerId(event.getOrganizerId())
+               .titleImage(event.getImages().stream()
+                       .filter(EventImage::isMain)
+                       .findFirst()
+                       .map(EventImage::getImagePath)
+                       .orElse(null))
+               .createdAt(event.getCreatedAt())
+               .updatedAt(event.getUpdatedAt())
+               .datesLocations(dateDtos)
+               .imageUrls(imageUrls)
+               .status(statusResult.getStatus())
+               .nearestStart(statusResult.getNearestStart())
+               .nearestFinish(statusResult.getNearestFinish())
+               .build();
     }
 
     private void validateEvent(AddEventDtoRequest dto, MultipartFile[] images) {
