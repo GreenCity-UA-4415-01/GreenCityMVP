@@ -38,7 +38,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.modelmapper.ModelMapper;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
+import static greencity.constant.AppConstant.AUTHORIZATION;
 
 @Service
 @RequiredArgsConstructor

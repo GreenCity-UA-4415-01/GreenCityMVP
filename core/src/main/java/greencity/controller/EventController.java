@@ -33,7 +33,6 @@ import static org.springframework.data.domain.Sort.Direction.ASC;
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
-@EnableMethodSecurity
 public class EventController {
     private final EventService eventService;
     private final Tika tika = new Tika();
