@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationExecutor<Event> {
     /**
      * Method that finds {@link Event} by id.
+     *
      * @param id {@link Long}.
      * @return {@link Optional} of {@link Event}
      */

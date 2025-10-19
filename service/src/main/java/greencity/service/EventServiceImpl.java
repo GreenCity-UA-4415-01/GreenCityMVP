@@ -1,9 +1,6 @@
 package greencity.service;
 
-import greencity.annotations.RatingCalculationEnum;
-import greencity.constant.CacheConstants;
 import greencity.constant.ErrorMessage;
-import greencity.dto.econews.EcoNewsVO;
 import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
@@ -16,7 +13,6 @@ import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -24,15 +20,11 @@ import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
 import greencity.exception.exceptions.BadRequestException;
-import greencity.exception.exceptions.NotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 import org.modelmapper.ModelMapper;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-import static greencity.constant.AppConstant.AUTHORIZATION;
 
 @Service
 @RequiredArgsConstructor
@@ -336,8 +328,8 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDto findById(Long id) {
         Event event = eventRepository
-                .findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id));
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id));
         return mapper.map(event, EventDto.class);
     }
 }

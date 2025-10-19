@@ -83,7 +83,6 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             if (!deleted) {
                 log.debug("Warning: File not found or already deleted: {}", filename);
             }
-
         } catch (IOException e) {
             throw new DeleteFileException(ErrorMessage.DELETE_FILE_FAILURE + filename);
         }

@@ -15,7 +15,8 @@ public interface EventImageRepo extends JpaRepository<EventImage, Long>,
     /**
      * Method to delete all images related to an event ID.
      *
-     * @param eventId {@link EventDto} id whose children {@link EventImage} instances will be deleted.
+     * @param eventId {@link EventDto} id whose children {@link EventImage}
+     *                instances will be deleted.
      */
     @Modifying
     @Query("DELETE FROM EventImage e WHERE e.event.id = :eventId")

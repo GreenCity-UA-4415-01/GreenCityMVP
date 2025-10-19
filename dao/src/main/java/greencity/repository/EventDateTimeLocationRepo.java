@@ -17,7 +17,8 @@ public interface EventDateTimeLocationRepo extends JpaRepository<EventDateTimeLo
     /**
      * New method to delete all date/locations related to an event ID.
      *
-     * @param eventId {@link EventDto} id whose children {@link EventDateTimeLocation} instances will be deleted.
+     * @param eventId {@link EventDto} id whose children
+     *                {@link EventDateTimeLocation} instances will be deleted.
      */
     @Modifying
     @Query("DELETE FROM EventDateTimeLocation d WHERE d.event.id = :eventId")

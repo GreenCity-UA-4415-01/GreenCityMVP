@@ -36,10 +36,11 @@ public class EventController {
 
     /**
      * Endpoint for event creation.
-     * @param addEventDtoRequest
-     * @param images
-     * @param currentUser
-     * @throws IOException
+     *
+     * @param addEventDtoRequest DTO for event
+     * @param images             images files for the event
+     * @param currentUser        current user
+     * @author Kateryna Holtvianska & Oleksandr Obydalo.
      */
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
@@ -56,6 +57,16 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    /**
+     * Endpoint for events organized by the authenticated user.
+     *
+     * @param currentUser   User that is currently logged in.
+     * @param pageable      Pageable.
+     * @param eventType     Type of the event.
+     * @param userLatitude  User coordinates.
+     * @param userLongitude User coordinates.
+     * @author Oleksandr Obydalo.
+     */
     @GetMapping("/myEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
@@ -74,29 +85,30 @@ public class EventController {
 
     /**
      * Endpoint for event deletion.
-     * @param eventId
-     * @param user
+     *
+     * @param eventId ID of the Event instance.
+     * @param user    Current User.
      * @author Oleksandr Braiko
      */
     @Operation(summary = "Delete event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
-            @ApiResponse(responseCode = "403", description = HttpStatuses.BAD_REQUEST),
-            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "403", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
     @DeleteMapping(value = "/{eventId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EventDto> deleteEvent(@PathVariable Long eventId,
-        @Parameter(hidden = true) @CurrentUser UserVO user
-    ) {
+        @Parameter(hidden = true) @CurrentUser UserVO user) {
         eventService.deleteEvent(eventId, user);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     /**
+     * Method to validate authentication of the User.
      *
-     * @param currentUser
+     * @param currentUser User that is currently logged in.
      * @author Oleksandr Obydalo
      */
     private void validateUser(UserVO currentUser) {
@@ -106,8 +118,9 @@ public class EventController {
     }
 
     /**
-     * Helper method to validate {@link AddEventDtoRequest}
-     * @param addEventDtoRequest
+     * Helper method to validate {@link AddEventDtoRequest}.
+     *
+     * @param addEventDtoRequest DTO under validation.
      * @author Kateryna Holtvianska
      */
     private void validateEventRequest(AddEventDtoRequest addEventDtoRequest) {
@@ -131,8 +144,8 @@ public class EventController {
 
     /**
      * Helper method to validate quantity of uploaded images.
-     * @param images
-     * @throws IOException
+     *
+     * @param images Images for the Event.
      * @author Oleksandr Obydalo
      */
     private void validateImages(MultipartFile[] images) throws IOException {
@@ -148,8 +161,8 @@ public class EventController {
 
     /**
      * Helper method to validate a single image.
-     * @param image
-     * @throws IOException
+     *
+     * @param image Image under validation.
      * @author Oleksandr Obydalo
      */
     private void validateImage(MultipartFile image) throws IOException {
