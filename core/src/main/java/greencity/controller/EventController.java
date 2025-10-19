@@ -32,6 +32,8 @@ import org.apache.tika.Tika;
 import java.io.IOException;
 import java.util.List;
 
+import static org.springframework.data.domain.Sort.Direction.ASC;
+
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
