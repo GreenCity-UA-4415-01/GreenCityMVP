@@ -3,12 +3,17 @@ package greencity.controller;
 import greencity.annotations.CurrentUser;
 import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDto;
+import greencity.dto.event.EventPreviewDto;
 import greencity.dto.user.UserVO;
+import greencity.enums.EventType;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.service.EventService;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +43,22 @@ public class EventController {
 
         EventDto created = eventService.createEvent(addEventDtoRequest, images, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @GetMapping("/myEvents")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+        @RequestParam(value = "eventType", required = false) EventType eventType,
+        @RequestParam(value = "userLatitude", required = false) Double userLatitude,
+        @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
+        validateUser(currentUser);
+
+        Page<EventPreviewDto> events = eventService.getMyEvents(
+            currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+
+        return ResponseEntity.ok(events);
     }
 
     private void validateUser(UserVO currentUser) {

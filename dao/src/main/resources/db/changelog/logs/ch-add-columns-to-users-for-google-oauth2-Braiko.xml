@@ -27,13 +27,13 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="add-unique-constraint-users-provider-provider-id" author="Oleksandr-Braiko">
-        <comment>Adding unique constraint on (provider, provider_id) for Google OAuth.</comment>
+<!--    <changeSet id="add-unique-constraint-users-provider-provider-id" author="your_name">-->
+<!--        <comment>Adding unique constraint on (provider, provider_id) for Google OAuth.</comment>-->
 
-        <addUniqueConstraint
-                columnNames="provider, provider_id"
-                constraintName="uc_user_provider_providerid"
-                tableName="users"/>
-    </changeSet>
+<!--        <addUniqueConstraint-->
+<!--                columnNames="provider, provider_id"-->
+<!--                constraintName="uc_user_provider_providerid"-->
+<!--                tableName="users"/>-->
+<!--    </changeSet>-->
 
 </databaseChangeLog>

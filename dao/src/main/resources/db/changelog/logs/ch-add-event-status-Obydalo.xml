@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <!-- Add composite index for event_id and start_date for efficient status computation queries -->
+    <changeSet id="add-event-date-time-locations-composite-index" author="Obydalo">
+        <createIndex tableName="event_date_time_locations"
+                     indexName="idx_event_date_time_locations_event_start">
+            <column name="event_id"/>
+            <column name="start_date"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="event_date_time_locations"
+                       indexName="idx_event_date_time_locations_event_start"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Add index on finish_date for efficient queries checking if events have passed -->
+    <changeSet id="add-event-date-time-locations-finish-date-index" author="Obydalo">
+        <createIndex tableName="event_date_time_locations"
+                     indexName="idx_event_date_time_locations_finish_date">
+            <column name="finish_date"/>
+        </createIndex>
+
+        <rollback>
+            <dropIndex tableName="event_date_time_locations"
+                       indexName="idx_event_date_time_locations_finish_date"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

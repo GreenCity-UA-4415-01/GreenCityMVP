@@ -1,14 +1,21 @@
 package greencity.service;
 
+import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
+import greencity.enums.EventStatus;
+import greencity.enums.EventType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
 import greencity.exception.exceptions.BadRequestException;
+import greencity.exception.exceptions.NotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 import org.modelmapper.ModelMapper;
 import java.time.OffsetDateTime;
@@ -21,6 +28,7 @@ public class EventServiceImpl implements EventService {
     private final EventRepo eventRepository;
     private final EventDateTimeLocationRepo dateTimeLocationRepository;
     private final EventImageRepo eventImageRepository;
+    private final EventAttenderRepo eventAttenderRepo;
     private final ImageStorageService imageStorageService;
     private final ModelMapper mapper;
 
@@ -74,6 +82,105 @@ public class EventServiceImpl implements EventService {
         return toEventDto(event);
     }
 
+    @Override
+    @Transactional()
+    public Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, Double userLatitude,
+        Double userLongitude, Pageable pageable) {
+        OffsetDateTime currentTime = OffsetDateTime.now();
+
+        Page<Event> events;
+
+        if (eventType != null && eventType != EventType.BOTH) {
+            events = eventAttenderRepo.findJoinedEventsWithSorting(
+                userId, currentTime, eventType.name(), userLatitude, userLongitude, pageable);
+        } else {
+            events = eventAttenderRepo.findJoinedEventsDefaultSorting(
+                userId, currentTime, pageable);
+        }
+
+        List<EventPreviewDto> eventPreviews = events.getContent().stream()
+            .map(this::toEventPreviewDto)
+            .collect(Collectors.toList());
+
+        return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
+    }
+
+    private EventPreviewDto toEventPreviewDto(Event event) {
+        // Find the nearest start date
+        OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
+            .map(EventDateTimeLocation::getStartDate)
+            .min(OffsetDateTime::compareTo)
+            .orElse(null);
+
+        // Find the corresponding finish date for the nearest start date
+        OffsetDateTime nearestFinish = event.getDateTimeLocations().stream()
+            .filter(loc -> loc.getStartDate().equals(nearestStart))
+            .findFirst()
+            .map(EventDateTimeLocation::getFinishDate)
+            .orElse(null);
+
+        // Determine event status using actual finish date
+        EventStatus status = determineEventStatus(nearestStart, nearestFinish);
+
+        // Get the first date location for coordinates and online link
+        EventDateTimeLocation firstLocation = event.getDateTimeLocations().stream()
+            .findFirst()
+            .orElse(null);
+
+        // Get main image
+        String titleImage = event.getImages().stream()
+            .filter(EventImage::isMain)
+            .findFirst()
+            .map(EventImage::getImagePath)
+            .orElse(null);
+
+        return EventPreviewDto.builder()
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .open(event.isOpen())
+            .organizerId(event.getOrganizerId())
+            .titleImage(titleImage)
+            .createdAt(event.getCreatedAt())
+            .updatedAt(event.getUpdatedAt())
+            .status(status)
+            .nearestStart(nearestStart)
+            .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
+            .isFavourite(false) // TODO: Implement when favorites feature is added
+            .isSubscribed(false) // TODO: Implement when subscription feature is added
+            .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
+            .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
+            .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
+            .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
+            .build();
+    }
+
+    private EventStatus determineEventStatus(OffsetDateTime nearestStart, OffsetDateTime finishDate) {
+        if (nearestStart == null) {
+            return EventStatus.PASSED;
+        }
+
+        OffsetDateTime now = OffsetDateTime.now();
+
+        // Use actual finish date if available, otherwise treat as passed
+        OffsetDateTime endTime = finishDate != null ? finishDate : nearestStart;
+
+        if (now.isBefore(nearestStart)) {
+            return EventStatus.UPCOMING;
+        } else if (now.isAfter(nearestStart) && (finishDate == null || now.isBefore(endTime))) {
+            return EventStatus.LIVE;
+        } else {
+            return EventStatus.PASSED;
+        }
+    }
+
+    public EventDto getEventById(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+
+        return toEventDto(event);
+    }
+
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
             .map(loc -> EventDateLocationDto.builder()
@@ -88,6 +195,10 @@ public class EventServiceImpl implements EventService {
         List<String> imageUrls = event.getImages().stream()
             .map(EventImage::getImagePath)
             .collect(Collectors.toList());
+
+        // Compute event status based on date/time occurrences
+        EventStatusCalculator.EventStatusResult statusResult =
+            EventStatusCalculator.computeStatus(event.getDateTimeLocations(), OffsetDateTime.now());
 
         return EventDto.builder()
             .id(event.getId())
@@ -104,6 +215,9 @@ public class EventServiceImpl implements EventService {
             .updatedAt(event.getUpdatedAt())
             .datesLocations(dateDtos)
             .imageUrls(imageUrls)
+            .status(statusResult.getStatus())
+            .nearestStart(statusResult.getNearestStart())
+            .nearestFinish(statusResult.getNearestFinish())
             .build();
     }
 

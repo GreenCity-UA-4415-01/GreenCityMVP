@@ -3,7 +3,6 @@ package greencity.dto.event;
 import greencity.enums.EventStatus;
 import lombok.*;
 import java.time.OffsetDateTime;
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -11,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode
-public class EventDto {
+public class EventPreviewDto {
     private Long id;
     private String title;
     private String description;
@@ -20,9 +19,13 @@ public class EventDto {
     private String titleImage;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
-    private List<EventDateLocationDto> datesLocations;
-    private List<String> imageUrls;
     private EventStatus status;
     private OffsetDateTime nearestStart;
-    private OffsetDateTime nearestFinish;
+    private boolean canCancelJoin;
+    private boolean isFavourite;
+    private boolean isSubscribed;
+    private String visibility;
+    private Double latitude;
+    private Double longitude;
+    private String onlineLink;
 }

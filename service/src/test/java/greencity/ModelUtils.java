@@ -668,4 +668,92 @@ public class ModelUtils {
             .status(ShoppingListItemStatus.INPROGRESS)
             .build();
     }
+
+    // Event-related test data
+    public static Event getEvent() {
+        return Event.builder()
+            .id(1L)
+            .title("Green City Workshop")
+            .description("Learn about sustainable living practices")
+            .open(true)
+            .organizerId(1L)
+            .titleImage("https://example.com/image.jpg")
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .dateTimeLocations(getEventDateTimeLocations())
+            .images(getEventImages())
+            .build();
+    }
+
+    public static List<EventDateTimeLocation> getEventDateTimeLocations() {
+        Event event = Event.builder().id(1L).build();
+        return Arrays.asList(
+            EventDateTimeLocation.builder()
+                .id(1L)
+                .event(event)
+                .startDate(OffsetDateTime.now().plusDays(1))
+                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+                .latitude(50.4501)
+                .longitude(30.5234)
+                .onlineLink(null)
+                .createdAt(OffsetDateTime.now())
+                .build(),
+            EventDateTimeLocation.builder()
+                .id(2L)
+                .event(event)
+                .startDate(OffsetDateTime.now().plusDays(3))
+                .finishDate(OffsetDateTime.now().plusDays(3).plusHours(2))
+                .latitude(50.4501)
+                .longitude(30.5234)
+                .onlineLink(null)
+                .createdAt(OffsetDateTime.now())
+                .build());
+    }
+
+    public static List<EventDateTimeLocation> getLiveEventDateTimeLocations() {
+        Event event = Event.builder().id(1L).build();
+        return Arrays.asList(
+            EventDateTimeLocation.builder()
+                .id(1L)
+                .event(event)
+                .startDate(OffsetDateTime.now().minusHours(1))
+                .finishDate(OffsetDateTime.now().plusHours(1))
+                .latitude(50.4501)
+                .longitude(30.5234)
+                .createdAt(OffsetDateTime.now())
+                .build());
+    }
+
+    public static List<EventDateTimeLocation> getPassedEventDateTimeLocations() {
+        Event event = Event.builder().id(1L).build();
+        return Arrays.asList(
+            EventDateTimeLocation.builder()
+                .id(1L)
+                .event(event)
+                .startDate(OffsetDateTime.now().minusDays(2))
+                .finishDate(OffsetDateTime.now().minusDays(1))
+                .latitude(50.4501)
+                .longitude(30.5234)
+                .createdAt(OffsetDateTime.now())
+                .build());
+    }
+
+    public static List<EventImage> getEventImages() {
+        Event event = Event.builder().id(1L).build();
+        return Arrays.asList(
+            EventImage.builder()
+                .id(1L)
+                .event(event)
+                .imagePath("https://example.com/image1.jpg")
+                .main(true)
+                .createdAt(OffsetDateTime.now())
+                .build(),
+            EventImage.builder()
+                .id(2L)
+                .event(event)
+                .imagePath("https://example.com/image2.jpg")
+                .main(false)
+                .createdAt(OffsetDateTime.now())
+                .build());
+    }
 }
