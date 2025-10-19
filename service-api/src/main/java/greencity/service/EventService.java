@@ -7,6 +7,7 @@ import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import greencity.dto.user.UserVO;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface EventService {
@@ -59,4 +60,20 @@ public interface EventService {
 //     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
 //     */
     EventDto getEventById(Long eventId);
+
+    /**
+     * Method for deleting the {@link EventDto} instance by its id.
+     *
+     * @param id   - {@link EventDto} instance id which will be deleted.
+     * @param user current {@link UserVO} that wants to delete.
+     */
+    void deleteEvent(Long id, UserVO user);
+
+    /**
+     * Method for getting the {@link EventDto} instance by its id.
+     *
+     * @param id {@link EventDto} instance id.
+     * @return {@link EventDto} instance.
+     */
+    EventDto findById(Long id);
 }

@@ -1,25 +1,16 @@
 package greencity.service;
 
-import greencity.annotations.RatingCalculationEnum;
-import greencity.constant.CacheConstants;
-import greencity.constant.ErrorMessage;
-import greencity.dto.econews.EcoNewsVO;
-import greencity.dto.user.UserVO;
-import greencity.enums.Role;
-import greencity.exception.exceptions.NotFoundException;
-import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
 import jakarta.servlet.http.HttpServletRequest;
-import greencity.enums.EventStatus;
-import greencity.enums.EventType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
@@ -204,16 +195,21 @@ public class EventServiceImpl implements EventService {
      *
      * @author Kateryna Holtvianska.
      */
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska.
+     */
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
-                .map(loc -> EventDateLocationDto.builder()
-                        .startDate(loc.getStartDate())
-                        .finishDate(loc.getFinishDate())
-                        .latitude(loc.getLatitude())
-                        .longitude(loc.getLongitude())
-                        .onlineLink(loc.getOnlineLink())
-                        .build())
-                .collect(Collectors.toList());
+            .map(loc -> EventDateLocationDto.builder()
+                .startDate(loc.getStartDate())
+                .finishDate(loc.getFinishDate())
+                .latitude(loc.getLatitude())
+                .longitude(loc.getLongitude())
+                .onlineLink(loc.getOnlineLink())
+                .build())
+            .collect(Collectors.toList());
 
         List<String> imageUrls = event.getImages().stream()
                 .map(EventImage::getImagePath)
