@@ -51,6 +51,7 @@ import greencity.service.UserService;
 import jakarta.persistence.EntityManager;
 import greencity.enums.Role;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
