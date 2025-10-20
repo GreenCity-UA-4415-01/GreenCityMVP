@@ -30,7 +30,6 @@ import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
-import jakarta.servlet.http.HttpServletRequest;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import greencity.enums.Role;
