@@ -218,6 +218,8 @@ public class SecurityConfig {
                     USER_SHOPPING_LIST,
                     "/user/{userId}/habit",
                     "/habit/custom",
+                    "/events/create",
+                    "/events/myEvents",
                     "/custom/shopping-list-items/{userId}/{habitId}/custom-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PUT,
@@ -251,6 +253,7 @@ public class SecurityConfig {
                     CUSTOM_SHOPPING_LIST_URL,
                     "/favorite_place/{placeId}",
                     "/social-networks",
+                    "/events/{eventId}",
                     USER_CUSTOM_SHOPPING_LIST_ITEMS,
                     USER_SHOPPING_LIST + "/user-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)

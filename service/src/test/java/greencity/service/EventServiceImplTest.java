@@ -1,11 +1,15 @@
 package greencity.service;
 
+import greencity.constant.ErrorMessage;
 import greencity.dto.event.EventDto;
+import greencity.dto.user.UserVO;
 import greencity.entity.Event;
 import greencity.entity.EventDateTimeLocation;
 import greencity.entity.EventImage;
 import greencity.enums.EventStatus;
+import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
@@ -13,12 +17,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.modelmapper.ModelMapper;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,7 +53,27 @@ class EventServiceImplTest {
     private Clock clock;
 
     @InjectMocks
+    @Spy
     private EventServiceImpl eventService;
+
+    private final Long EVENT_ID = 1L;
+    private final Long ORGANIZER_ID = 10L;
+    private final Long OTHER_USER_ID = 20L;
+
+    private EventDto createEventDto(Long organizerId, List<String> imageUrls) {
+        return EventDto.builder()
+            .id(EVENT_ID)
+            .organizerId(organizerId)
+            .imageUrls(imageUrls)
+            .build();
+    }
+
+    private UserVO createUserVO(Long id, Role role) {
+        return UserVO.builder()
+            .id(id)
+            .role(role)
+            .build();
+    }
 
     @Test
     void getEventById_WithUpcomingEvent_ReturnsEventDtoWithUpcomingStatus() {
@@ -404,5 +430,86 @@ class EventServiceImplTest {
         event.setImages(images);
 
         return event;
+    }
+
+    @Test
+    void deleteEvent_AsOrganizer_Success() {
+        UserVO organizer = createUserVO(ORGANIZER_ID, Role.ROLE_USER);
+        List<String> imageUrls = Arrays.asList("path/to/img1.jpg", "path/to/img2.png");
+        EventDto mockEventDto = createEventDto(ORGANIZER_ID, imageUrls);
+
+        doReturn(mockEventDto).when(eventService).findById(EVENT_ID);
+
+        eventService.deleteEvent(EVENT_ID, organizer);
+
+        verify(eventService).findById(EVENT_ID);
+        imageUrls.forEach(url -> verify(imageStorageService).deleteImage(url));
+        verify(eventImageRepository).deleteAllByEventId(EVENT_ID);
+        verify(dateTimeLocationRepository).deleteAllByEventId(EVENT_ID);
+        verify(eventRepository).deleteById(EVENT_ID);
+    }
+
+    @Test
+    void deleteEvent_AsAdmin_Success() {
+        UserVO admin = createUserVO(OTHER_USER_ID, Role.ROLE_ADMIN);
+        EventDto mockEventDto = createEventDto(ORGANIZER_ID, Collections.emptyList());
+
+        doReturn(mockEventDto).when(eventService).findById(EVENT_ID);
+
+        eventService.deleteEvent(EVENT_ID, admin);
+
+        verify(eventService).findById(EVENT_ID);
+        verify(imageStorageService, never()).deleteImage(anyString());
+        verify(eventImageRepository).deleteAllByEventId(EVENT_ID);
+        verify(dateTimeLocationRepository).deleteAllByEventId(EVENT_ID);
+        verify(eventRepository).deleteById(EVENT_ID);
+    }
+
+    @Test
+    void deleteEvent_EventHasNullImages_Success() {
+        UserVO organizer = createUserVO(ORGANIZER_ID, Role.ROLE_USER);
+        EventDto mockEventDto = createEventDto(ORGANIZER_ID, null);
+
+        doReturn(mockEventDto).when(eventService).findById(EVENT_ID);
+
+        eventService.deleteEvent(EVENT_ID, organizer);
+
+        verify(eventService).findById(EVENT_ID);
+        verify(imageStorageService, never()).deleteImage(anyString());
+        verify(eventImageRepository).deleteAllByEventId(EVENT_ID);
+        verify(dateTimeLocationRepository).deleteAllByEventId(EVENT_ID);
+        verify(eventRepository).deleteById(EVENT_ID);
+    }
+
+    @Test
+    void deleteEvent_UnauthorizedException_NotOrganizerAndNotAdmin() {
+        UserVO regularUser = createUserVO(OTHER_USER_ID, Role.ROLE_USER);
+        EventDto mockEventDto = createEventDto(ORGANIZER_ID, null);
+
+        doReturn(mockEventDto).when(eventService).findById(EVENT_ID);
+
+        UnauthorizedException thrown = assertThrows(UnauthorizedException.class,
+            () -> eventService.deleteEvent(EVENT_ID, regularUser),
+            "Expected UnauthorizedException to be thrown");
+
+        assertEquals(ErrorMessage.USER_HAS_NO_PERMISSION, thrown.getMessage());
+
+        verify(eventRepository, never()).deleteById(anyLong());
+        verify(eventImageRepository, never()).deleteAllByEventId(anyLong());
+        verify(dateTimeLocationRepository, never()).deleteAllByEventId(anyLong());
+    }
+
+    @Test
+    void deleteEvent_NotFoundException() {
+        UserVO user = createUserVO(ORGANIZER_ID, Role.ROLE_USER);
+
+        doThrow(new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + EVENT_ID))
+            .when(eventService).findById(EVENT_ID);
+
+        assertThrows(NotFoundException.class,
+            () -> eventService.deleteEvent(EVENT_ID, user),
+            "Expected NotFoundException to be thrown when event not found");
+
+        verify(eventRepository, never()).deleteById(anyLong());
     }
 }

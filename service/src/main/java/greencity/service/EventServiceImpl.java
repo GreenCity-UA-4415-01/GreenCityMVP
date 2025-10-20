@@ -4,6 +4,7 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
@@ -309,7 +310,7 @@ public class EventServiceImpl implements EventService {
     public void deleteEvent(Long id, UserVO user) {
         EventDto eventDto = findById(id);
         if (user.getRole() != Role.ROLE_ADMIN && !user.getId().equals(eventDto.getOrganizerId())) {
-            throw new BadRequestException(ErrorMessage.USER_HAS_NO_PERMISSION);
+            throw new UnauthorizedException(ErrorMessage.USER_HAS_NO_PERMISSION);
         }
         if (eventDto.getImageUrls() != null) {
             eventDto.getImageUrls().forEach(imageStorageService::deleteImage);
