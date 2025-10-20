@@ -192,6 +192,7 @@ public class SecurityConfig {
                     "/factoftheday/",
                     "/factoftheday/all",
                     "/user/shopping-list-items/{userId}/get-all-inprogress",
+                    "/events/myEvents",
                     "/habit/assign/{habitAssignId}/allUserAndCustomList",
                     "/habit/assign/allUserAndCustomShoppingListsInprogress",
                     "/habit/assign/{habitAssignId}",
@@ -219,7 +220,6 @@ public class SecurityConfig {
                     "/user/{userId}/habit",
                     "/habit/custom",
                     "/events/create",
-                    "/events/myEvents",
                     "/custom/shopping-list-items/{userId}/{habitId}/custom-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PUT,
