@@ -175,7 +175,6 @@ class EventControllerTest {
 
     @Test
     void createEvent_ShouldReturn201Created() throws Exception {
-
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
         MockMultipartFile image = new MockMultipartFile(
@@ -729,7 +728,7 @@ class EventControllerTest {
         doNothing().when(eventService).deleteEvent(eventId, mockUser);
 
         mockMvc.perform(delete("/events/delete/{eventId}", eventId))
-            .andExpect(status().isOk());
+                .andExpect(status().isOk());
 
         verify(eventService).deleteEvent(eventId, mockUser);
     }
