@@ -26,4 +26,3 @@ public class EventDto {
     private OffsetDateTime nearestStart;
     private OffsetDateTime nearestFinish;
 }
-

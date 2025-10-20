@@ -12,8 +12,8 @@ public interface EventService {
     /**
      * Method that creates event.
      *
-     * @param request event creation request
-     * @param images event images
+     * @param request     event creation request
+     * @param images      event images
      * @param organizerId ID of the user creating the event
      * @return created event {@link EventDto} with computed status
      */
