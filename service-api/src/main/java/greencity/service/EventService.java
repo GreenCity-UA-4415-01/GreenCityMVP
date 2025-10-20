@@ -6,7 +6,10 @@ import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import greencity.dto.user.UserVO;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface EventService {
     /**
@@ -18,6 +21,15 @@ public interface EventService {
      * @return created event {@link EventDto} with computed status
      */
     EventDto createEvent(AddEventDtoRequest request, MultipartFile[] images, Long organizerId);
+
+    /**
+     * Returns all events visible to the given user.
+     * Open events are visible to everyone, closed — only to organizer’s friends.
+     *
+     * @param userVO current authenticated user
+     * @return list of visible events
+     */
+    List<EventDto> getVisibleEvents(UserVO userVO);
 
     /**
      * Method that gets user's joined events with paging and sorting.

@@ -10,6 +10,7 @@ import greencity.dto.event.EventPreviewDto;
 import greencity.dto.user.UserVO;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
+import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.handler.CustomExceptionHandler;
 import greencity.service.EventService;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,8 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -185,6 +187,84 @@ public class EventControllerTest {
             .andExpect(jsonPath("$.title").value("Eco Cleanup"))
             .andExpect(jsonPath("$.organizerId").value(5))
             .andExpect(jsonPath("$.imageUrls[0]").value("event-1-uuid.jpg"));
+    }
+
+    @Test
+    public void createEvent_ShouldReturn400BadRequest() throws Exception {
+        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
+        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
+
+        AddEventDtoRequest invalidDto = AddEventDtoRequest.builder()
+                .title("")
+                .description("Too short")
+                .open(true)
+                .datesLocations(List.of(locationDto))
+                .build();
+
+        String json = objectMapper.writeValueAsString(invalidDto);
+
+        MockMultipartFile dtoPart = new MockMultipartFile(
+                "addEventDtoRequest",
+                "",
+                MediaType.APPLICATION_JSON_VALUE,
+                json.getBytes()
+        );
+
+        MockMultipartFile image = new MockMultipartFile(
+                "images",
+                "test.jpg",
+                MediaType.IMAGE_JPEG_VALUE,
+                createValidJpegBytes()
+        );
+
+        when(eventService.createEvent(any(), any(), anyLong()))
+                .thenThrow(new BadRequestException("Title must be between 1 and 70 characters"));
+
+        mockMvc.perform(multipart("/events/create")
+                        .file(dtoPart)
+                        .file(image)
+                        .contentType(MediaType.MULTIPART_FORM_DATA)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void getVisibleEvents_ShouldReturn200() throws Exception {
+        EventDto openEvent = EventDto.builder()
+                .id(1L)
+                .title("Public Cleanup")
+                .description("Open event for everyone")
+                .open(true)
+                .organizerId(10L)
+                .build();
+
+        EventDto friendEvent = EventDto.builder()
+                .id(2L)
+                .title("Private Book Club")
+                .description("Closed event, visible to friends only")
+                .open(false)
+                .organizerId(7L)
+                .build();
+
+        List<EventDto> visibleEvents = List.of(openEvent, friendEvent);
+
+        when(eventService.getVisibleEvents(eq(mockUser))).thenReturn(visibleEvents);
+
+        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
+        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
+
+        mockMvc.perform(get("/events/visible")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].title").value("Public Cleanup"))
+                .andExpect(jsonPath("$[0].open").value(true))
+                .andExpect(jsonPath("$[1].title").value("Private Book Club"))
+                .andExpect(jsonPath("$[1].open").value(false));
+
+        verify(eventService, times(1)).getVisibleEvents(eq(mockUser));
     }
 
     @Test
