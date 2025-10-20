@@ -76,16 +76,9 @@ class EventControllerTest {
         .name("Test User")
         .build();
 
-    /**
-     * FIX: Custom ErrorAttributes to ensure the exception message is correctly
-     * included in the error response map, even in a MockMvc standalone setup where
-     * detail inclusion is often suppressed. We explicitly include MESSAGE and
-     * EXCEPTION to ensure all details are picked up.
-     */
     static class ForcedMessageErrorAttributes extends DefaultErrorAttributes {
         @Override
         public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options) {
-            // Explicitly force inclusion of MESSAGE and EXCEPTION attributes
             ErrorAttributeOptions newOptions = options.including(
                 ErrorAttributeOptions.Include.MESSAGE,
                 ErrorAttributeOptions.Include.EXCEPTION);
@@ -132,7 +125,6 @@ class EventControllerTest {
 
     @BeforeEach
     void setup() {
-        // USE the modified ForcedMessageErrorAttributes here
         DefaultErrorAttributes errorAttributes = new ForcedMessageErrorAttributes();
 
         CustomExceptionHandler exceptionHandler = new CustomExceptionHandler(errorAttributes, objectMapper);
@@ -649,53 +641,43 @@ class EventControllerTest {
             .andExpect(jsonPath("$.totalElements").value(1));
     }
 
-    // --- Tests for deleteEvent() ---
-
     @Test
     void deleteEvent_ShouldReturn200Ok() throws Exception {
         Long eventId = 1L;
 
-        // Mock the void method call from the service
         doNothing().when(eventService).deleteEvent(eventId, mockUser);
 
         mockMvc.perform(delete("/events/{eventId}", eventId))
-            .andExpect(status().isOk()); // Controller returns HttpStatus.OK (200)
+            .andExpect(status().isOk());
 
-        // Verify that the service method was called
         verify(eventService).deleteEvent(eventId, mockUser);
     }
 
     @Test
     void deleteEvent_Unauthorized_ShouldReturn401Unauthorized() throws Exception {
         Long eventId = 2L;
-        // Use the constant value from ErrorMessage.java
         String errorMessage = USER_NO_PERMISSION_MESSAGE;
 
-        // FIX: Must use eq() for all arguments when one argument is a matcher
-        // (eq(mockUser)).
         doThrow(new UnauthorizedException(errorMessage))
             .when(eventService).deleteEvent(eventId, mockUser);
 
         mockMvc.perform(delete("/events/{eventId}", eventId)
             .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized()) // Expect 401
+            .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.message").value(errorMessage));
     }
 
     @Test
     void deleteEvent_NotFound_ShouldReturn404NotFound() throws Exception {
         Long eventId = 99L;
-        // Use the constant prefix and concatenate the ID
         String errorMessage = EVENT_NOT_FOUND_MESSAGE_PREFIX + eventId;
 
-        // FIX: Must use eq() for all arguments when one argument is a matcher
-        // (eq(mockUser)).
         doThrow(new NotFoundException(errorMessage))
             .when(eventService).deleteEvent(eventId, mockUser);
 
         mockMvc.perform(delete("/events/{eventId}", eventId)
             .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound()) // Expect 404
+            .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value(errorMessage));
     }
 }
