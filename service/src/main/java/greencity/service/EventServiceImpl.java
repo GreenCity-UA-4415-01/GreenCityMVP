@@ -26,6 +26,7 @@ import greencity.dto.econews.EcoNewsVO;
 import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventAttenderRepo;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
