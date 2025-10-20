@@ -9,7 +9,6 @@ import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
-import jakarta.servlet.http.HttpServletRequest;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import jakarta.transaction.Transactional;
@@ -35,7 +34,6 @@ public class EventServiceImpl implements EventService {
     private final EventImageRepo eventImageRepository;
     private final EventAttenderRepo eventAttenderRepo;
     private final ImageStorageService imageStorageService;
-    private final HttpServletRequest httpServletRequest;
     private final ModelMapper mapper;
 
     /**

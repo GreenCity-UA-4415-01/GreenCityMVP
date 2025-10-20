@@ -24,7 +24,7 @@ public interface ImageStorageService {
     String storeImage(MultipartFile image, Long eventId);
 
     /**
-     * Stores a single image for a given event.
+     * Deletes an image file from storage.
      *
      * @param filename filename to image file
      */

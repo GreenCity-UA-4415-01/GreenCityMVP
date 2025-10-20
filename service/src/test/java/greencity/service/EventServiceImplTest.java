@@ -56,13 +56,13 @@ class EventServiceImplTest {
     @Spy
     private EventServiceImpl eventService;
 
-    private final Long EVENT_ID = 1L;
-    private final Long ORGANIZER_ID = 10L;
-    private final Long OTHER_USER_ID = 20L;
+    private final Long mockEventId = 1L;
+    private final Long mockOrganizerId = 10L;
+    private final Long mockOtherUserId = 20L;
 
     private EventDto createEventDto(Long organizerId, List<String> imageUrls) {
         return EventDto.builder()
-            .id(EVENT_ID)
+            .id(mockEventId)
             .organizerId(organizerId)
             .imageUrls(imageUrls)
             .build();
@@ -434,62 +434,62 @@ class EventServiceImplTest {
 
     @Test
     void deleteEvent_AsOrganizer_Success() {
-        UserVO organizer = createUserVO(ORGANIZER_ID, Role.ROLE_USER);
+        UserVO organizer = createUserVO(mockOrganizerId, Role.ROLE_USER);
         List<String> imageUrls = Arrays.asList("path/to/img1.jpg", "path/to/img2.png");
-        EventDto mockEventDto = createEventDto(ORGANIZER_ID, imageUrls);
+        EventDto mockEventDto = createEventDto(mockOrganizerId, imageUrls);
 
-        doReturn(mockEventDto).when(eventService).findById(EVENT_ID);
+        doReturn(mockEventDto).when(eventService).findById(mockEventId);
 
-        eventService.deleteEvent(EVENT_ID, organizer);
+        eventService.deleteEvent(mockEventId, organizer);
 
-        verify(eventService).findById(EVENT_ID);
+        verify(eventService).findById(mockEventId);
         imageUrls.forEach(url -> verify(imageStorageService).deleteImage(url));
-        verify(eventImageRepository).deleteAllByEventId(EVENT_ID);
-        verify(dateTimeLocationRepository).deleteAllByEventId(EVENT_ID);
-        verify(eventRepository).deleteById(EVENT_ID);
+        verify(eventImageRepository).deleteAllByEventId(mockEventId);
+        verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
+        verify(eventRepository).deleteById(mockEventId);
     }
 
     @Test
     void deleteEvent_AsAdmin_Success() {
-        UserVO admin = createUserVO(OTHER_USER_ID, Role.ROLE_ADMIN);
-        EventDto mockEventDto = createEventDto(ORGANIZER_ID, Collections.emptyList());
+        UserVO admin = createUserVO(mockOtherUserId, Role.ROLE_ADMIN);
+        EventDto mockEventDto = createEventDto(mockOrganizerId, Collections.emptyList());
 
-        doReturn(mockEventDto).when(eventService).findById(EVENT_ID);
+        doReturn(mockEventDto).when(eventService).findById(mockEventId);
 
-        eventService.deleteEvent(EVENT_ID, admin);
+        eventService.deleteEvent(mockEventId, admin);
 
-        verify(eventService).findById(EVENT_ID);
+        verify(eventService).findById(mockEventId);
         verify(imageStorageService, never()).deleteImage(anyString());
-        verify(eventImageRepository).deleteAllByEventId(EVENT_ID);
-        verify(dateTimeLocationRepository).deleteAllByEventId(EVENT_ID);
-        verify(eventRepository).deleteById(EVENT_ID);
+        verify(eventImageRepository).deleteAllByEventId(mockEventId);
+        verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
+        verify(eventRepository).deleteById(mockEventId);
     }
 
     @Test
     void deleteEvent_EventHasNullImages_Success() {
-        UserVO organizer = createUserVO(ORGANIZER_ID, Role.ROLE_USER);
-        EventDto mockEventDto = createEventDto(ORGANIZER_ID, null);
+        UserVO organizer = createUserVO(mockOrganizerId, Role.ROLE_USER);
+        EventDto mockEventDto = createEventDto(mockOrganizerId, null);
 
-        doReturn(mockEventDto).when(eventService).findById(EVENT_ID);
+        doReturn(mockEventDto).when(eventService).findById(mockEventId);
 
-        eventService.deleteEvent(EVENT_ID, organizer);
+        eventService.deleteEvent(mockEventId, organizer);
 
-        verify(eventService).findById(EVENT_ID);
+        verify(eventService).findById(mockEventId);
         verify(imageStorageService, never()).deleteImage(anyString());
-        verify(eventImageRepository).deleteAllByEventId(EVENT_ID);
-        verify(dateTimeLocationRepository).deleteAllByEventId(EVENT_ID);
-        verify(eventRepository).deleteById(EVENT_ID);
+        verify(eventImageRepository).deleteAllByEventId(mockEventId);
+        verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
+        verify(eventRepository).deleteById(mockEventId);
     }
 
     @Test
     void deleteEvent_UnauthorizedException_NotOrganizerAndNotAdmin() {
-        UserVO regularUser = createUserVO(OTHER_USER_ID, Role.ROLE_USER);
-        EventDto mockEventDto = createEventDto(ORGANIZER_ID, null);
+        UserVO regularUser = createUserVO(mockOtherUserId, Role.ROLE_USER);
+        EventDto mockEventDto = createEventDto(mockOrganizerId, null);
 
-        doReturn(mockEventDto).when(eventService).findById(EVENT_ID);
+        doReturn(mockEventDto).when(eventService).findById(mockEventId);
 
         UnauthorizedException thrown = assertThrows(UnauthorizedException.class,
-            () -> eventService.deleteEvent(EVENT_ID, regularUser),
+            () -> eventService.deleteEvent(mockEventId, regularUser),
             "Expected UnauthorizedException to be thrown");
 
         assertEquals(ErrorMessage.USER_HAS_NO_PERMISSION, thrown.getMessage());
@@ -501,13 +501,13 @@ class EventServiceImplTest {
 
     @Test
     void deleteEvent_NotFoundException() {
-        UserVO user = createUserVO(ORGANIZER_ID, Role.ROLE_USER);
+        UserVO user = createUserVO(mockOrganizerId, Role.ROLE_USER);
 
-        doThrow(new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + EVENT_ID))
-            .when(eventService).findById(EVENT_ID);
+        doThrow(new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + mockEventId))
+            .when(eventService).findById(mockEventId);
 
         assertThrows(NotFoundException.class,
-            () -> eventService.deleteEvent(EVENT_ID, user),
+            () -> eventService.deleteEvent(mockEventId, user),
             "Expected NotFoundException to be thrown when event not found");
 
         verify(eventRepository, never()).deleteById(anyLong());
