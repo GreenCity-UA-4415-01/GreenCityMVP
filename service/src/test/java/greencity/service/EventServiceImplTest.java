@@ -13,6 +13,7 @@ import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -51,6 +52,9 @@ class EventServiceImplTest {
 
     @Mock
     private Clock clock;
+
+    @Mock
+    private EntityManager entityManager;
 
     @InjectMocks
     private EventServiceImpl eventService;
@@ -465,6 +469,10 @@ class EventServiceImplTest {
         imageUrls.forEach(url -> verify(imageStorageService).deleteImage(url));
         verify(eventImageRepository).deleteAllByEventId(mockEventId);
         verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
+
+        verify(entityManager).flush();
+        verify(entityManager).clear();
+
         verify(eventRepository).deleteById(mockEventId);
     }
 
@@ -489,6 +497,10 @@ class EventServiceImplTest {
         verify(imageStorageService, never()).deleteImage(anyString());
         verify(eventImageRepository).deleteAllByEventId(mockEventId);
         verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
+
+        verify(entityManager).flush();
+        verify(entityManager).clear();
+
         verify(eventRepository).deleteById(mockEventId);
     }
 
@@ -513,6 +525,10 @@ class EventServiceImplTest {
         verify(imageStorageService, never()).deleteImage(anyString());
         verify(eventImageRepository).deleteAllByEventId(mockEventId);
         verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
+
+        verify(entityManager).flush();
+        verify(entityManager).clear();
+
         verify(eventRepository).deleteById(mockEventId);
     }
 
@@ -540,6 +556,9 @@ class EventServiceImplTest {
         verify(eventRepository, never()).deleteById(anyLong());
         verify(eventImageRepository, never()).deleteAllByEventId(anyLong());
         verify(dateTimeLocationRepository, never()).deleteAllByEventId(anyLong());
+
+        verify(entityManager, never()).flush();
+        verify(entityManager, never()).clear();
     }
 
     @Test
@@ -553,5 +572,8 @@ class EventServiceImplTest {
             "Expected NotFoundException to be thrown when event not found");
 
         verify(eventRepository).findById(mockEventId);
+
+        verify(entityManager, never()).flush();
+        verify(entityManager, never()).clear();
     }
 }

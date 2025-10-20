@@ -253,7 +253,7 @@ public class SecurityConfig {
                     CUSTOM_SHOPPING_LIST_URL,
                     "/favorite_place/{placeId}",
                     "/social-networks",
-                    "/events/{eventId}",
+                    "/events/delete/{eventId}",
                     USER_CUSTOM_SHOPPING_LIST_ITEMS,
                     USER_SHOPPING_LIST + "/user-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)

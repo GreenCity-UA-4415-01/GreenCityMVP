@@ -11,6 +11,7 @@ import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,7 @@ public class EventServiceImpl implements EventService {
     private final EventImageRepo eventImageRepository;
     private final EventAttenderRepo eventAttenderRepo;
     private final ImageStorageService imageStorageService;
+    private final EntityManager entityManager;
     private final ModelMapper mapper;
 
     /**
@@ -312,7 +314,11 @@ public class EventServiceImpl implements EventService {
         }
         eventImageRepository.deleteAllByEventId(id);
         dateTimeLocationRepository.deleteAllByEventId(id);
-        eventRepository.deleteById(eventDto.getId());
+
+        entityManager.flush();
+        entityManager.clear();
+
+        eventRepository.deleteById(id);
 
         List<String> imagesToDelete = eventDto.getImageUrls() != null
             ? new ArrayList<>(eventDto.getImageUrls())
