@@ -100,7 +100,7 @@ public class EventController {
     })
     @DeleteMapping(value = "/delete/{eventId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<EventDto> deleteEvent(@PathVariable Long eventId,
+    public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId,
         @Parameter(hidden = true) @CurrentUser UserVO user) {
         eventService.deleteEvent(eventId, user);
         return ResponseEntity.status(HttpStatus.OK).build();
