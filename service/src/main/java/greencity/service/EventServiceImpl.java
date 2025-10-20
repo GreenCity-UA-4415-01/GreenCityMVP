@@ -11,6 +11,7 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
