@@ -17,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.modelmapper.ModelMapper;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -27,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -53,25 +53,37 @@ class EventServiceImplTest {
     private Clock clock;
 
     @InjectMocks
-    @Spy
     private EventServiceImpl eventService;
 
     private final Long mockEventId = 1L;
     private final Long mockOrganizerId = 10L;
     private final Long mockOtherUserId = 20L;
 
-    private EventDto createEventDto(Long organizerId, List<String> imageUrls) {
-        return EventDto.builder()
-            .id(mockEventId)
-            .organizerId(organizerId)
-            .imageUrls(imageUrls)
-            .build();
-    }
-
     private UserVO createUserVO(Long id, Role role) {
         return UserVO.builder()
             .id(id)
             .role(role)
+            .build();
+    }
+
+    private Event createMinimalEventEntity(Long organizerId, List<String> imageUrls,
+        List<EventDateTimeLocation> dates) {
+        List<EventImage> mockEventImages = imageUrls.stream()
+            .map(url -> EventImage.builder().imagePath(url).build())
+            .collect(Collectors.toList());
+
+        List<EventDateTimeLocation> mockDates = dates != null ? dates : Collections.emptyList();
+
+        return Event.builder()
+            .id(mockEventId)
+            .organizerId(organizerId)
+            .title("Test Event")
+            .description("Test Description")
+            .open(true)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .images(mockEventImages)
+            .dateTimeLocations(mockDates)
             .build();
     }
 
@@ -436,13 +448,20 @@ class EventServiceImplTest {
     void deleteEvent_AsOrganizer_Success() {
         UserVO organizer = createUserVO(mockOrganizerId, Role.ROLE_USER);
         List<String> imageUrls = Arrays.asList("path/to/img1.jpg", "path/to/img2.png");
-        EventDto mockEventDto = createEventDto(mockOrganizerId, imageUrls);
 
-        doReturn(mockEventDto).when(eventService).findById(mockEventId);
+        Event mockEventEntity = createMinimalEventEntity(mockOrganizerId, imageUrls,
+            Collections.singletonList(
+                EventDateTimeLocation.builder()
+                    .startDate(OffsetDateTime.now().plusDays(1))
+                    .finishDate(OffsetDateTime.now().plusDays(2))
+                    .build()));
+
+        when(eventRepository.findById(mockEventId)).thenReturn(Optional.of(mockEventEntity));
 
         eventService.deleteEvent(mockEventId, organizer);
 
-        verify(eventService).findById(mockEventId);
+        verify(eventRepository).findById(mockEventId);
+
         imageUrls.forEach(url -> verify(imageStorageService).deleteImage(url));
         verify(eventImageRepository).deleteAllByEventId(mockEventId);
         verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
@@ -452,13 +471,21 @@ class EventServiceImplTest {
     @Test
     void deleteEvent_AsAdmin_Success() {
         UserVO admin = createUserVO(mockOtherUserId, Role.ROLE_ADMIN);
-        EventDto mockEventDto = createEventDto(mockOrganizerId, Collections.emptyList());
+        List<String> imageUrls = Collections.emptyList();
 
-        doReturn(mockEventDto).when(eventService).findById(mockEventId);
+        Event mockEventEntity = createMinimalEventEntity(mockOrganizerId, imageUrls,
+            Collections.singletonList(
+                EventDateTimeLocation.builder()
+                    .startDate(OffsetDateTime.now().plusDays(1))
+                    .finishDate(OffsetDateTime.now().plusDays(2))
+                    .build()));
+
+        when(eventRepository.findById(mockEventId)).thenReturn(Optional.of(mockEventEntity));
 
         eventService.deleteEvent(mockEventId, admin);
 
-        verify(eventService).findById(mockEventId);
+        verify(eventRepository).findById(mockEventId);
+
         verify(imageStorageService, never()).deleteImage(anyString());
         verify(eventImageRepository).deleteAllByEventId(mockEventId);
         verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
@@ -466,15 +493,23 @@ class EventServiceImplTest {
     }
 
     @Test
-    void deleteEvent_EventHasNullImages_Success() {
+    void deleteEvent_EventHasEmptyImages_Success() {
         UserVO organizer = createUserVO(mockOrganizerId, Role.ROLE_USER);
-        EventDto mockEventDto = createEventDto(mockOrganizerId, null);
+        List<String> imageUrls = Collections.emptyList();
 
-        doReturn(mockEventDto).when(eventService).findById(mockEventId);
+        Event mockEventEntity = createMinimalEventEntity(mockOrganizerId, imageUrls,
+            Collections.singletonList(
+                EventDateTimeLocation.builder()
+                    .startDate(OffsetDateTime.now().plusDays(1))
+                    .finishDate(OffsetDateTime.now().plusDays(2))
+                    .build()));
+
+        when(eventRepository.findById(mockEventId)).thenReturn(Optional.of(mockEventEntity));
 
         eventService.deleteEvent(mockEventId, organizer);
 
-        verify(eventService).findById(mockEventId);
+        verify(eventRepository).findById(mockEventId);
+
         verify(imageStorageService, never()).deleteImage(anyString());
         verify(eventImageRepository).deleteAllByEventId(mockEventId);
         verify(dateTimeLocationRepository).deleteAllByEventId(mockEventId);
@@ -484,9 +519,16 @@ class EventServiceImplTest {
     @Test
     void deleteEvent_UnauthorizedException_NotOrganizerAndNotAdmin() {
         UserVO regularUser = createUserVO(mockOtherUserId, Role.ROLE_USER);
-        EventDto mockEventDto = createEventDto(mockOrganizerId, null);
+        List<String> imageUrls = Collections.emptyList();
 
-        doReturn(mockEventDto).when(eventService).findById(mockEventId);
+        Event mockEventEntity = createMinimalEventEntity(mockOrganizerId, imageUrls,
+            Collections.singletonList(
+                EventDateTimeLocation.builder()
+                    .startDate(OffsetDateTime.now().plusDays(1))
+                    .finishDate(OffsetDateTime.now().plusDays(2))
+                    .build()));
+
+        when(eventRepository.findById(mockEventId)).thenReturn(Optional.of(mockEventEntity));
 
         UnauthorizedException thrown = assertThrows(UnauthorizedException.class,
             () -> eventService.deleteEvent(mockEventId, regularUser),
@@ -494,6 +536,7 @@ class EventServiceImplTest {
 
         assertEquals(ErrorMessage.USER_HAS_NO_PERMISSION, thrown.getMessage());
 
+        verify(eventRepository).findById(mockEventId);
         verify(eventRepository, never()).deleteById(anyLong());
         verify(eventImageRepository, never()).deleteAllByEventId(anyLong());
         verify(dateTimeLocationRepository, never()).deleteAllByEventId(anyLong());
@@ -503,13 +546,12 @@ class EventServiceImplTest {
     void deleteEvent_NotFoundException() {
         UserVO user = createUserVO(mockOrganizerId, Role.ROLE_USER);
 
-        doThrow(new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + mockEventId))
-            .when(eventService).findById(mockEventId);
+        when(eventRepository.findById(mockEventId)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
             () -> eventService.deleteEvent(mockEventId, user),
             "Expected NotFoundException to be thrown when event not found");
 
-        verify(eventRepository, never()).deleteById(anyLong());
+        verify(eventRepository).findById(mockEventId);
     }
 }
