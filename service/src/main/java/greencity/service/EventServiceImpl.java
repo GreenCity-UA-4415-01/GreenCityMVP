@@ -310,13 +310,15 @@ public class EventServiceImpl implements EventService {
         if (user.getRole() != Role.ROLE_ADMIN && !user.getId().equals(eventDto.getOrganizerId())) {
             throw new UnauthorizedException(ErrorMessage.USER_HAS_NO_PERMISSION);
         }
-        if (eventDto.getImageUrls() != null) {
-            eventDto.getImageUrls().forEach(imageStorageService::deleteImage);
-        }
         eventImageRepository.deleteAllByEventId(id);
         dateTimeLocationRepository.deleteAllByEventId(id);
-
         eventRepository.deleteById(eventDto.getId());
+
+        List<String> imagesToDelete = eventDto.getImageUrls() != null
+            ? new ArrayList<>(eventDto.getImageUrls())
+            : Collections.emptyList();
+
+        imagesToDelete.forEach(imageStorageService::deleteImage);
     }
 
     /**

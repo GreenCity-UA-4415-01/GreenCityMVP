@@ -98,7 +98,7 @@ public class EventController {
         @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
         @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
-    @DeleteMapping(value = "/{eventId}")
+    @DeleteMapping(value = "/delete/{eventId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EventDto> deleteEvent(@PathVariable Long eventId,
         @Parameter(hidden = true) @CurrentUser UserVO user) {

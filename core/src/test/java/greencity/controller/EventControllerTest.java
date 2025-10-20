@@ -647,7 +647,7 @@ class EventControllerTest {
 
         doNothing().when(eventService).deleteEvent(eventId, mockUser);
 
-        mockMvc.perform(delete("/events/{eventId}", eventId))
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId))
             .andExpect(status().isOk());
 
         verify(eventService).deleteEvent(eventId, mockUser);
@@ -661,7 +661,7 @@ class EventControllerTest {
         doThrow(new UnauthorizedException(errorMessage))
             .when(eventService).deleteEvent(eventId, mockUser);
 
-        mockMvc.perform(delete("/events/{eventId}", eventId)
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId)
             .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.message").value(errorMessage));
@@ -675,7 +675,7 @@ class EventControllerTest {
         doThrow(new NotFoundException(errorMessage))
             .when(eventService).deleteEvent(eventId, mockUser);
 
-        mockMvc.perform(delete("/events/{eventId}", eventId)
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId)
             .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value(errorMessage));
