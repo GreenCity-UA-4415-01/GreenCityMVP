@@ -7,7 +7,10 @@ import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import greencity.dto.user.UserVO;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 public interface EventService {
     /**
@@ -35,6 +38,15 @@ public interface EventService {
      * @return {@link EventDto} instance.
      */
     EventDto findById(Long id);
+
+    /**
+     * Returns all events visible to the given user.
+     * Open events are visible to everyone, closed — only to organizer’s friends.
+     *
+     * @param userVO current authenticated user
+     * @return list of visible events
+     */
+    List<EventDto> getVisibleEvents(UserVO userVO);
 
     /**
      * Method that gets user's joined events with paging and sorting.
@@ -69,8 +81,7 @@ public interface EventService {
      *
      * @param eventId event ID
      * @return event DTO with computed status, nearestStart, and nearestFinish
-     * @note "now" is evaluated as server time in UTC for consistent comparison with
-     *       database timestamps
+     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
      */
     EventDto getEventById(Long eventId);
 }
