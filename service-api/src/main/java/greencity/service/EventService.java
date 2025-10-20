@@ -7,7 +7,6 @@ import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import greencity.dto.user.UserVO;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
@@ -80,8 +79,6 @@ public interface EventService {
      *
      * @param eventId event ID
      * @return event DTO with computed status, nearestStart, and nearestFinish
-     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
      */
     EventDto getEventById(Long eventId);
-
 }
