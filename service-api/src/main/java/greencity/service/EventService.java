@@ -7,7 +7,6 @@ import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import greencity.dto.user.UserVO;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface EventService {
@@ -53,14 +52,12 @@ public interface EventService {
     /**
      * Get event by ID with computed status (LIVE/UPCOMING/PASSED). Status is
      * computed based on event date/time occurrences: - LIVE: now is between start
-     * and finish of at least one occurrence - UPCOMING: all occurrences are in the
-     * future - PASSED: all occurrences are in the past
+     * and finish of at least one occurrence. - UPCOMING: all occurrences are in the
+     * future. - PASSED: all occurrences are in the past. "now" is evaluated as
+     * server time in UTC for consistent comparison with database timestamps.
      *
      * @param eventId event ID
      * @return event DTO with computed status, nearestStart, and nearestFinish
-     * @note "now" is evaluated as server time in UTC for consistent comparison with
-     *       database timestamps
      */
     EventDto getEventById(Long eventId);
-
 }
