@@ -23,6 +23,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 import java.io.IOException;
 
+import static org.springframework.data.domain.Sort.Direction.ASC;
+
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
@@ -43,28 +45,6 @@ public class EventController {
 
         EventDto created = eventService.createEvent(addEventDtoRequest, images, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
-    }
-
-    @GetMapping("/myEvents")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
-        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-        @RequestParam(value = "eventType", required = false) EventType eventType,
-        @RequestParam(value = "userLatitude", required = false) Double userLatitude,
-        @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
-        validateUser(currentUser);
-
-        Page<EventPreviewDto> events = eventService.getMyEvents(
-            currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
-
-        return ResponseEntity.ok(events);
-    }
-
-    private void validateUser(UserVO currentUser) {
-        if (currentUser == null) {
-            throw new BadRequestException("User must be authenticated to create an event.");
-        }
     }
 
     private void validateEventRequest(AddEventDtoRequest addEventDtoRequest) {
@@ -107,6 +87,42 @@ public class EventController {
 
         if (image.getSize() > 10 * 1024 * 1024) { // 10MB size limit
             throw new BadRequestException("Image size must not exceed 10MB.");
+        }
+    }
+
+    @GetMapping("/myEvents")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(value = "eventType", required = false) EventType eventType,
+            @RequestParam(value = "userLatitude", required = false) Double userLatitude,
+            @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
+
+        validateUser(currentUser);
+
+        Page<EventPreviewDto> events = eventService.getMyEvents(
+                currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/myCreatedEvents")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
+
+        validateUser(currentUser);
+
+        Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), pageable);
+
+        return ResponseEntity.ok(events);
+    }
+
+    private void validateUser(UserVO currentUser) {
+        if (currentUser == null) {
+            throw new BadRequestException("User must be authenticated.");
         }
     }
 }
