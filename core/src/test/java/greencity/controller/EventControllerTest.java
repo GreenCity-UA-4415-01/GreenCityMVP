@@ -213,9 +213,6 @@ class EventControllerTest {
 
     @Test
     public void createEvent_ShouldReturn400BadRequest() throws Exception {
-        /*when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);*/
-
         AddEventDtoRequest invalidDto = AddEventDtoRequest.builder()
                 .title("")
                 .description("Too short")
