@@ -149,7 +149,6 @@ public class EventControllerTest {
 
     @Test
     public void createEvent_ShouldReturn201Created() throws Exception {
-
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
         MockMultipartFile image = new MockMultipartFile(
@@ -193,9 +192,6 @@ public class EventControllerTest {
 
     @Test
     public void createEvent_ShouldReturn400BadRequest() throws Exception {
-        /*when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);*/
-
         AddEventDtoRequest invalidDto = AddEventDtoRequest.builder()
                 .title("")
                 .description("Too short")
