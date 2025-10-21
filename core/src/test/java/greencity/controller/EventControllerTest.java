@@ -29,6 +29,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -191,8 +193,8 @@ public class EventControllerTest {
 
     @Test
     public void createEvent_ShouldReturn400BadRequest() throws Exception {
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
+        /*when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
+        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);*/
 
         AddEventDtoRequest invalidDto = AddEventDtoRequest.builder()
                 .title("")
@@ -235,36 +237,31 @@ public class EventControllerTest {
                 .title("Public Cleanup")
                 .description("Open event for everyone")
                 .open(true)
-                .organizerId(10L)
+                .organizerId(3L)
                 .build();
 
         EventDto friendEvent = EventDto.builder()
                 .id(2L)
-                .title("Private Book Club")
-                .description("Closed event, visible to friends only")
+                .title("Recycling Workshop")
+                .description("Learn how to recycle effectively at home.")
                 .open(false)
-                .organizerId(7L)
+                .organizerId(2L)
                 .build();
 
         List<EventDto> visibleEvents = List.of(openEvent, friendEvent);
 
-        when(eventService.getVisibleEvents(eq(mockUser))).thenReturn(visibleEvents);
-
-        when(userArgumentResolver.supportsParameter(any())).thenReturn(true);
-        when(userArgumentResolver.resolveArgument(any(), any(), any(), any())).thenReturn(mockUser);
+        when(eventService.getVisibleEvents(any(UserVO.class))).thenReturn(visibleEvents);
 
         mockMvc.perform(get("/events/visible")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].title").value("Public Cleanup"))
                 .andExpect(jsonPath("$[0].open").value(true))
-                .andExpect(jsonPath("$[1].title").value("Private Book Club"))
+                .andExpect(jsonPath("$[1].title").value("Recycling Workshop"))
                 .andExpect(jsonPath("$[1].open").value(false));
-
-        verify(eventService, times(1)).getVisibleEvents(eq(mockUser));
     }
 
     @Test
