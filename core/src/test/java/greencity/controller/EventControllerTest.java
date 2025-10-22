@@ -10,7 +10,11 @@ import greencity.dto.event.EventPreviewDto;
 import greencity.dto.user.UserVO;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UnauthorizedException;
 import greencity.exception.exceptions.BadRequestException;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UnauthorizedException;
 import greencity.exception.handler.CustomExceptionHandler;
 import greencity.service.EventService;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,22 +25,29 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.List;
-
+import java.util.Map;
 import static org.hamcrest.Matchers.hasSize;
+import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import org.springframework.data.domain.Page;
@@ -53,7 +64,7 @@ import greencity.annotations.CurrentUser;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class EventControllerTest {
+class EventControllerTest {
     @InjectMocks
     EventController eventController;
     @Mock
@@ -65,12 +76,25 @@ public class EventControllerTest {
         .registerModule(new JavaTimeModule())
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
+    private static final String EVENT_NOT_FOUND_MESSAGE_PREFIX = "Event doesn't exist by this id: ";
+    private static final String USER_NO_PERMISSION_MESSAGE = "Current user has no permission for this action";
+
     // Mock the authenticated user
     UserVO mockUser = UserVO.builder()
         .id(5L)
         .email("test@example.com")
         .name("Test User")
         .build();
+
+    static class ForcedMessageErrorAttributes extends DefaultErrorAttributes {
+        @Override
+        public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options) {
+            ErrorAttributeOptions newOptions = options.including(
+                ErrorAttributeOptions.Include.MESSAGE,
+                ErrorAttributeOptions.Include.EXCEPTION);
+            return super.getErrorAttributes(webRequest, newOptions);
+        }
+    }
 
     // Custom UserArgumentResolver for testing
     static class TestUserArgumentResolver implements HandlerMethodArgumentResolver {
@@ -110,9 +134,8 @@ public class EventControllerTest {
         .build();
 
     @BeforeEach
-    public void setup() {
-        // Use DefaultErrorAttributes which properly extracts exception information
-        DefaultErrorAttributes errorAttributes = new DefaultErrorAttributes();
+    void setup() {
+        DefaultErrorAttributes errorAttributes = new ForcedMessageErrorAttributes();
 
         CustomExceptionHandler exceptionHandler = new CustomExceptionHandler(errorAttributes, objectMapper);
         mockMvc = MockMvcBuilders.standaloneSetup(eventController)
@@ -148,7 +171,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEvent_ShouldReturn201Created() throws Exception {
+    void createEvent_ShouldReturn201Created() throws Exception {
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
         MockMultipartFile image = new MockMultipartFile(
@@ -191,7 +214,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEvent_ShouldReturn400BadRequest() throws Exception {
+    void createEvent_ShouldReturn400BadRequest() throws Exception {
         AddEventDtoRequest invalidDto = AddEventDtoRequest.builder()
             .title("")
             .description("Too short")
@@ -225,7 +248,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void getVisibleEvents_ShouldReturn200() throws Exception {
+    void getVisibleEvents_ShouldReturn200() throws Exception {
         EventDto openEvent = EventDto.builder()
             .id(1L)
             .title("Public Cleanup")
@@ -259,7 +282,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithWrongImageType() throws Exception {
+    void createEventWithWrongImageType() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -284,7 +307,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithPngImage_ShouldReturn201Created() throws Exception {
+    void createEventWithPngImage_ShouldReturn201Created() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -325,7 +348,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithOversizedImage_ShouldReturn400BadRequest() throws Exception {
+    void createEventWithOversizedImage_ShouldReturn400BadRequest() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -352,7 +375,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithExactly10MBImage_ShouldReturn201Created() throws Exception {
+    void createEventWithExactly10MBImage_ShouldReturn201Created() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -394,7 +417,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithMoreThan5Images_ShouldReturn400BadRequest() throws Exception {
+    void createEventWithMoreThan5Images_ShouldReturn400BadRequest() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -432,7 +455,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithExactly5Images_ShouldReturn201Created() throws Exception {
+    void createEventWithExactly5Images_ShouldReturn201Created() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -485,7 +508,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithNoImages_ShouldUseDefaultImage() throws Exception {
+    void createEventWithNoImages_ShouldUseDefaultImage() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -520,7 +543,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithMultipleImages_FirstShouldBeMain() throws Exception {
+    void createEventWithMultipleImages_FirstShouldBeMain() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -566,7 +589,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithImageWithoutContentType_ShouldReturn400BadRequest() throws Exception {
+    void createEventWithImageWithoutContentType_ShouldReturn400BadRequest() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -591,7 +614,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void createEventWithMixedValidAndInvalidImages_ShouldReturn400BadRequest() throws Exception {
+    void createEventWithMixedValidAndInvalidImages_ShouldReturn400BadRequest() throws Exception {
 
         String json = objectMapper.writeValueAsString(addEventDtoRequest);
 
@@ -616,7 +639,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void getMyEvents_ShouldReturn200Ok() throws Exception {
+    void getMyEvents_ShouldReturn200Ok() throws Exception {
 
         EventPreviewDto eventPreview = EventPreviewDto.builder()
             .id(1L)
@@ -655,7 +678,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void getMyEventsWithCoordinates_ShouldReturn200Ok() throws Exception {
+    void getMyEventsWithCoordinates_ShouldReturn200Ok() throws Exception {
 
         EventPreviewDto eventPreview = EventPreviewDto.builder()
             .id(1L)
@@ -696,7 +719,7 @@ public class EventControllerTest {
     }
 
     @Test
-    public void getMyCreatedEvents_ShouldReturn200Ok() throws Exception {
+    void getMyCreatedEvents_ShouldReturn200Ok() throws Exception {
 
         EventPreviewDto eventPreview = EventPreviewDto.builder()
             .id(1L)
@@ -734,6 +757,46 @@ public class EventControllerTest {
             .andExpect(jsonPath("$.content[0].canEdit").value(true))
             .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
             .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void deleteEvent_ShouldReturn200Ok() throws Exception {
+        Long eventId = 1L;
+
+        doNothing().when(eventService).deleteEvent(eventId, mockUser);
+
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId))
+            .andExpect(status().isOk());
+
+        verify(eventService).deleteEvent(eventId, mockUser);
+    }
+
+    @Test
+    void deleteEvent_Unauthorized_ShouldReturn401Unauthorized() throws Exception {
+        Long eventId = 2L;
+        String errorMessage = USER_NO_PERMISSION_MESSAGE;
+
+        doThrow(new UnauthorizedException(errorMessage))
+            .when(eventService).deleteEvent(eventId, mockUser);
+
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    void deleteEvent_NotFound_ShouldReturn404NotFound() throws Exception {
+        Long eventId = 99L;
+        String errorMessage = EVENT_NOT_FOUND_MESSAGE_PREFIX + eventId;
+
+        doThrow(new NotFoundException(errorMessage))
+            .when(eventService).deleteEvent(eventId, mockUser);
+
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(errorMessage));
     }
 
     @Test

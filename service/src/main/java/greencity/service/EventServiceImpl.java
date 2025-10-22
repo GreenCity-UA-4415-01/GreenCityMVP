@@ -1,15 +1,20 @@
 package greencity.service;
 
+import greencity.constant.ErrorMessage;
 import greencity.dto.user.UserVO;
+import greencity.enums.Role;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventAttenderRepo;
+import greencity.enums.EventStatus;
+import greencity.enums.EventType;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
-import greencity.enums.EventStatus;
-import greencity.enums.EventType;
-import greencity.enums.Role;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +22,6 @@ import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
 import greencity.exception.exceptions.BadRequestException;
-import greencity.exception.exceptions.NotFoundException;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -31,8 +35,15 @@ public class EventServiceImpl implements EventService {
     private final EventImageRepo eventImageRepository;
     private final EventAttenderRepo eventAttenderRepo;
     private final ImageStorageService imageStorageService;
+    private final EntityManager entityManager;
+    private final ModelMapper mapper;
     private final UserService userService;
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska.
+     */
     @Override
     @Transactional
     public EventDto createEvent(AddEventDtoRequest dto, MultipartFile[] images, Long organizerId) {
@@ -245,6 +256,11 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska.
+     */
     public EventDto getEventById(Long eventId) {
         Event event = eventRepository.findById(eventId)
             .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
@@ -252,6 +268,11 @@ public class EventServiceImpl implements EventService {
         return toEventDto(event);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska.
+     */
     @Override
     @Transactional
     public List<EventDto> getVisibleEvents(UserVO userVO) {
@@ -263,6 +284,11 @@ public class EventServiceImpl implements EventService {
             .collect(Collectors.toList());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska.
+     */
     private boolean isFriend(Long organizerId, UserVO userVO) {
         // We need FriendService for this method to check friendship, but the
         // FriendService is not ready yet.
@@ -270,6 +296,11 @@ public class EventServiceImpl implements EventService {
         return Objects.equals(userVO.getId(), organizerId);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska.
+     */
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
             .map(loc -> EventDateLocationDto.builder()
@@ -310,6 +341,11 @@ public class EventServiceImpl implements EventService {
             .build();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska & Oleksandr Obydalo.
+     */
     private void validateEvent(AddEventDtoRequest dto, MultipartFile[] images) {
         if (dto.getTitle() == null || dto.getTitle().isBlank() || dto.getTitle().length() > 70) {
             throw new BadRequestException("Title must be between 1 and 70 characters");
@@ -366,5 +402,45 @@ public class EventServiceImpl implements EventService {
                 }
             }
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Braiko.
+     */
+    @Transactional
+    @Override
+    public void deleteEvent(Long id, UserVO user) {
+        EventDto eventDto = findById(id);
+        if (user.getRole() != Role.ROLE_ADMIN && !user.getId().equals(eventDto.getOrganizerId())) {
+            throw new UnauthorizedException(ErrorMessage.USER_HAS_NO_PERMISSION);
+        }
+        eventImageRepository.deleteAllByEventId(id);
+        dateTimeLocationRepository.deleteAllByEventId(id);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        eventRepository.deleteById(id);
+
+        List<String> imagesToDelete = eventDto.getImageUrls() != null
+            ? new ArrayList<>(eventDto.getImageUrls())
+            : Collections.emptyList();
+
+        imagesToDelete.forEach(imageStorageService::deleteImage);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Braiko.
+     */
+    @Override
+    public EventDto findById(Long id) {
+        Event event = eventRepository
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id));
+        return toEventDto(event);
     }
 }

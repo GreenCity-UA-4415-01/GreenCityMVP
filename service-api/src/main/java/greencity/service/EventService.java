@@ -2,6 +2,7 @@ package greencity.service;
 
 import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDto;
+import greencity.dto.user.UserVO;
 import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,22 @@ public interface EventService {
      * @return created event {@link EventDto} with computed status
      */
     EventDto createEvent(AddEventDtoRequest request, MultipartFile[] images, Long organizerId);
+
+    /**
+     * Method for deleting the {@link EventDto} instance by its id.
+     *
+     * @param id   - {@link EventDto} instance id which will be deleted.
+     * @param user current {@link UserVO} that wants to delete.
+     */
+    void deleteEvent(Long id, UserVO user);
+
+    /**
+     * Method for getting the {@link EventDto} instance by its id.
+     *
+     * @param id {@link EventDto} instance id.
+     * @return {@link EventDto} instance.
+     */
+    EventDto findById(Long id);
 
     /**
      * Returns all events visible to the given user. Open events are visible to
@@ -57,13 +74,12 @@ public interface EventService {
     /**
      * Get event by ID with computed status (LIVE/UPCOMING/PASSED). Status is
      * computed based on event date/time occurrences: - LIVE: now is between start
-     * and finish of at least one occurrence - UPCOMING: all occurrences are in the
-     * future - PASSED: all occurrences are in the past
+     * and finish of at least one occurrence. - UPCOMING: all occurrences are in the
+     * future. - PASSED: all occurrences are in the past. "now" is evaluated as
+     * server time in UTC for consistent comparison with database timestamps.
      *
      * @param eventId event ID
      * @return event DTO with computed status, nearestStart, and nearestFinish
-     * @note "now" is evaluated as server time in UTC for consistent comparison with
-     *       database timestamps
      */
     EventDto getEventById(Long eventId);
 }
