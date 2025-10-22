@@ -193,71 +193,69 @@ public class EventControllerTest {
     @Test
     public void createEvent_ShouldReturn400BadRequest() throws Exception {
         AddEventDtoRequest invalidDto = AddEventDtoRequest.builder()
-                .title("")
-                .description("Too short")
-                .open(true)
-                .datesLocations(List.of(locationDto))
-                .build();
+            .title("")
+            .description("Too short")
+            .open(true)
+            .datesLocations(List.of(locationDto))
+            .build();
 
         String json = objectMapper.writeValueAsString(invalidDto);
 
         MockMultipartFile dtoPart = new MockMultipartFile(
-                "addEventDtoRequest",
-                "",
-                MediaType.APPLICATION_JSON_VALUE,
-                json.getBytes()
-        );
+            "addEventDtoRequest",
+            "",
+            MediaType.APPLICATION_JSON_VALUE,
+            json.getBytes());
 
         MockMultipartFile image = new MockMultipartFile(
-                "images",
-                "test.jpg",
-                MediaType.IMAGE_JPEG_VALUE,
-                createValidJpegBytes()
-        );
+            "images",
+            "test.jpg",
+            MediaType.IMAGE_JPEG_VALUE,
+            createValidJpegBytes());
 
         when(eventService.createEvent(any(), any(), anyLong()))
-                .thenThrow(new BadRequestException("Title must be between 1 and 70 characters"));
+            .thenThrow(new BadRequestException("Title must be between 1 and 70 characters"));
 
         mockMvc.perform(multipart("/events/create")
-                        .file(dtoPart)
-                        .file(image)
-                        .contentType(MediaType.MULTIPART_FORM_DATA)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+            .file(dtoPart)
+            .file(image)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
     }
 
     @Test
     public void getVisibleEvents_ShouldReturn200() throws Exception {
         EventDto openEvent = EventDto.builder()
-                .id(1L)
-                .title("Public Cleanup")
-                .description("Open event for everyone")
-                .open(true)
-                .organizerId(3L)
-                .build();
+            .id(1L)
+            .title("Public Cleanup")
+            .description("Open event for everyone")
+            .open(true)
+            .organizerId(3L)
+            .build();
 
         EventDto friendEvent = EventDto.builder()
-                .id(2L)
-                .title("Recycling Workshop")
-                .description("Learn how to recycle effectively at home.")
-                .open(false)
-                .organizerId(2L)
-                .build();
+            .id(2L)
+            .title("Recycling Workshop")
+            .description("Learn how to recycle effectively at home.")
+            .open(false)
+            .organizerId(2L)
+            .build();
 
         List<EventDto> visibleEvents = List.of(openEvent, friendEvent);
 
         when(eventService.getVisibleEvents(any(UserVO.class))).thenReturn(visibleEvents);
 
         mockMvc.perform(get("/events/visible")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].title").value("Public Cleanup"))
-                .andExpect(jsonPath("$[0].open").value(true))
-                .andExpect(jsonPath("$[1].title").value("Recycling Workshop"))
-                .andExpect(jsonPath("$[1].open").value(false));
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$[0].title").value("Public Cleanup"))
+            .andExpect(jsonPath("$[0].open").value(true))
+            .andExpect(jsonPath("$[1].title").value("Recycling Workshop"))
+            .andExpect(jsonPath("$[1].open").value(false));
     }
 
     @Test
@@ -701,80 +699,80 @@ public class EventControllerTest {
     public void getMyCreatedEvents_ShouldReturn200Ok() throws Exception {
 
         EventPreviewDto eventPreview = EventPreviewDto.builder()
-                .id(1L)
-                .title("My Created Event")
-                .description("Event I created")
-                .open(true)
-                .organizerId(5L) // Same as current user
-                .titleImage("my-event-image.jpg")
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .status(EventStatus.UPCOMING)
-                .nearestStart(OffsetDateTime.now().plusDays(1))
-                .canCancelJoin(true)
-                .canEdit(true) // Should be true for organizer
-                .isFavourite(false)
-                .isSubscribed(false)
-                .visibility("PUBLIC")
-                .latitude(50.45)
-                .longitude(30.52)
-                .onlineLink(null)
-                .build();
+            .id(1L)
+            .title("My Created Event")
+            .description("Event I created")
+            .open(true)
+            .organizerId(5L) // Same as current user
+            .titleImage("my-event-image.jpg")
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .status(EventStatus.UPCOMING)
+            .nearestStart(OffsetDateTime.now().plusDays(1))
+            .canCancelJoin(true)
+            .canEdit(true) // Should be true for organizer
+            .isFavourite(false)
+            .isSubscribed(false)
+            .visibility("PUBLIC")
+            .latitude(50.45)
+            .longitude(30.52)
+            .onlineLink(null)
+            .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
 
         when(eventService.getMyCreatedEvents(eq(5L), any(Pageable.class)))
-                .thenReturn(eventPage);
+            .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myCreatedEvents")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content[0].id").value(1))
-                .andExpect(jsonPath("$.content[0].title").value("My Created Event"))
-                .andExpect(jsonPath("$.content[0].organizerId").value(5))
-                .andExpect(jsonPath("$.content[0].canEdit").value(true))
-                .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
-                .andExpect(jsonPath("$.totalElements").value(1));
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.content[0].id").value(1))
+            .andExpect(jsonPath("$.content[0].title").value("My Created Event"))
+            .andExpect(jsonPath("$.content[0].organizerId").value(5))
+            .andExpect(jsonPath("$.content[0].canEdit").value(true))
+            .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
+            .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     @Test
     public void getMyCreatedEvents_ShouldReturnPassedEvents() throws Exception {
 
         EventPreviewDto passedEvent = EventPreviewDto.builder()
-                .id(2L)
-                .title("Past Event")
-                .description("Event that already happened")
-                .open(true)
-                .organizerId(5L)
-                .titleImage("past-event-image.jpg")
-                .createdAt(OffsetDateTime.now().minusDays(10))
-                .updatedAt(OffsetDateTime.now().minusDays(10))
-                .status(EventStatus.PASSED)
-                .nearestStart(OffsetDateTime.now().minusDays(5))
-                .canCancelJoin(false)
-                .canEdit(true) // Should still be true for organizer
-                .isFavourite(false)
-                .isSubscribed(false)
-                .visibility("PUBLIC")
-                .latitude(50.45)
-                .longitude(30.52)
-                .onlineLink(null)
-                .build();
+            .id(2L)
+            .title("Past Event")
+            .description("Event that already happened")
+            .open(true)
+            .organizerId(5L)
+            .titleImage("past-event-image.jpg")
+            .createdAt(OffsetDateTime.now().minusDays(10))
+            .updatedAt(OffsetDateTime.now().minusDays(10))
+            .status(EventStatus.PASSED)
+            .nearestStart(OffsetDateTime.now().minusDays(5))
+            .canCancelJoin(false)
+            .canEdit(true) // Should still be true for organizer
+            .isFavourite(false)
+            .isSubscribed(false)
+            .visibility("PUBLIC")
+            .latitude(50.45)
+            .longitude(30.52)
+            .onlineLink(null)
+            .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(passedEvent), PageRequest.of(0, 10), 1);
 
         when(eventService.getMyCreatedEvents(eq(5L), any(Pageable.class)))
-                .thenReturn(eventPage);
+            .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myCreatedEvents")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content[0].id").value(2))
-                .andExpect(jsonPath("$.content[0].title").value("Past Event"))
-                .andExpect(jsonPath("$.content[0].status").value("PASSED"))
-                .andExpect(jsonPath("$.content[0].canEdit").value(true))
-                .andExpect(jsonPath("$.totalElements").value(1));
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.content[0].id").value(2))
+            .andExpect(jsonPath("$.content[0].title").value("Past Event"))
+            .andExpect(jsonPath("$.content[0].status").value("PASSED"))
+            .andExpect(jsonPath("$.content[0].canEdit").value(true))
+            .andExpect(jsonPath("$.totalElements").value(1));
     }
 }

@@ -29,8 +29,6 @@ import org.apache.tika.Tika;
 import java.io.IOException;
 import java.util.List;
 
-import static org.springframework.data.domain.Sort.Direction.ASC;
-
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
@@ -42,8 +40,8 @@ public class EventController {
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
     })
     public ResponseEntity<EventDto> createEvent(
         @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
@@ -60,8 +58,8 @@ public class EventController {
     @GetMapping("/visible")
     @Operation(summary = "Get events visible to the current user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     public ResponseEntity<List<EventDto>> getVisibleEvents(@AuthenticationPrincipal UserVO user) {
         return ResponseEntity.ok(eventService.getVisibleEvents(user));
@@ -113,16 +111,15 @@ public class EventController {
     @GetMapping("/myEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam(value = "eventType", required = false) EventType eventType,
-            @RequestParam(value = "userLatitude", required = false) Double userLatitude,
-            @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
-
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+        @RequestParam(value = "eventType", required = false) EventType eventType,
+        @RequestParam(value = "userLatitude", required = false) Double userLatitude,
+        @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
-                currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+            currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -130,9 +127,8 @@ public class EventController {
     @GetMapping("/myCreatedEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
-
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), pageable);

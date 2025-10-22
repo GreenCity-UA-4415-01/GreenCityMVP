@@ -8,8 +8,6 @@ import greencity.repository.EventRepo;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import greencity.enums.Role;
-import greencity.dto.user.UserVO;
-import greencity.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,8 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static greencity.entity.Habit_.userId;
 
 @Service
 @RequiredArgsConstructor
@@ -120,8 +116,8 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
-                .collect(Collectors.toList());
+            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+            .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -179,55 +175,55 @@ public class EventServiceImpl implements EventService {
     private EventPreviewDto toEventPreviewDtoWithCanEdit(Event event, Long currentUserId, boolean isAdmin) {
         // Find the nearest start date
         OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
-                .map(EventDateTimeLocation::getStartDate)
-                .min(OffsetDateTime::compareTo)
-                .orElse(null);
+            .map(EventDateTimeLocation::getStartDate)
+            .min(OffsetDateTime::compareTo)
+            .orElse(null);
 
         // Find the corresponding finish date for the nearest start date
         OffsetDateTime nearestFinish = event.getDateTimeLocations().stream()
-                .filter(loc -> loc.getStartDate().equals(nearestStart))
-                .findFirst()
-                .map(EventDateTimeLocation::getFinishDate)
-                .orElse(null);
+            .filter(loc -> loc.getStartDate().equals(nearestStart))
+            .findFirst()
+            .map(EventDateTimeLocation::getFinishDate)
+            .orElse(null);
 
         // Determine event status using actual finish date
         EventStatus status = determineEventStatus(nearestStart, nearestFinish);
 
         // Get the first date location for coordinates and online link
         EventDateTimeLocation firstLocation = event.getDateTimeLocations().stream()
-                .findFirst()
-                .orElse(null);
+            .findFirst()
+            .orElse(null);
 
         // Get main image
         String titleImage = event.getImages().stream()
-                .filter(EventImage::isMain)
-                .findFirst()
-                .map(EventImage::getImagePath)
-                .orElse(null);
+            .filter(EventImage::isMain)
+            .findFirst()
+            .map(EventImage::getImagePath)
+            .orElse(null);
 
         // Determine canEdit: true if user is organizer or admin
         boolean canEdit = event.getOrganizerId().equals(currentUserId) || isAdmin;
 
         return EventPreviewDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .description(event.getDescription())
-                .open(event.isOpen())
-                .organizerId(event.getOrganizerId())
-                .titleImage(titleImage)
-                .createdAt(event.getCreatedAt())
-                .updatedAt(event.getUpdatedAt())
-                .status(status)
-                .nearestStart(nearestStart)
-                .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
-                .canEdit(canEdit)
-                .isFavourite(false) // TODO: Implement when favorites feature is added
-                .isSubscribed(false) // TODO: Implement when subscription feature is added
-                .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
-                .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
-                .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
-                .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
-                .build();
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .open(event.isOpen())
+            .organizerId(event.getOrganizerId())
+            .titleImage(titleImage)
+            .createdAt(event.getCreatedAt())
+            .updatedAt(event.getUpdatedAt())
+            .status(status)
+            .nearestStart(nearestStart)
+            .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
+            .canEdit(canEdit)
+            .isFavourite(false) // TODO: Implement when favorites feature is added
+            .isSubscribed(false) // TODO: Implement when subscription feature is added
+            .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
+            .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
+            .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
+            .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
+            .build();
     }
 
     private EventStatus determineEventStatus(OffsetDateTime nearestStart, OffsetDateTime finishDate) {
@@ -262,13 +258,14 @@ public class EventServiceImpl implements EventService {
         List<Event> allEvents = eventRepository.findAll();
 
         return allEvents.stream()
-                .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
-                .map(this::toEventDto)
-                .collect(Collectors.toList());
+            .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
+            .map(this::toEventDto)
+            .collect(Collectors.toList());
     }
 
     private boolean isFriend(Long organizerId, UserVO userVO) {
-        // We need FriendService for this method to check friendship, but the FriendService is not ready yet.
+        // We need FriendService for this method to check friendship, but the
+        // FriendService is not ready yet.
         // It is temporary solution
         return Objects.equals(userVO.getId(), organizerId);
     }
@@ -293,24 +290,24 @@ public class EventServiceImpl implements EventService {
             EventStatusCalculator.computeStatus(event.getDateTimeLocations(), OffsetDateTime.now());
 
         return EventDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .description(event.getDescription())
-                .open(event.isOpen())
-                .organizerId(event.getOrganizerId())
-                .titleImage(event.getImages().stream()
-                        .filter(EventImage::isMain)
-                        .findFirst()
-                        .map(EventImage::getImagePath)
-                        .orElse(null))
-                .createdAt(event.getCreatedAt())
-                .updatedAt(event.getUpdatedAt())
-                .datesLocations(dateDtos)
-                .imageUrls(imageUrls)
-                .status(statusResult.getStatus())
-                .nearestStart(statusResult.getNearestStart())
-                .nearestFinish(statusResult.getNearestFinish())
-                .build();
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .open(event.isOpen())
+            .organizerId(event.getOrganizerId())
+            .titleImage(event.getImages().stream()
+                .filter(EventImage::isMain)
+                .findFirst()
+                .map(EventImage::getImagePath)
+                .orElse(null))
+            .createdAt(event.getCreatedAt())
+            .updatedAt(event.getUpdatedAt())
+            .datesLocations(dateDtos)
+            .imageUrls(imageUrls)
+            .status(statusResult.getStatus())
+            .nearestStart(statusResult.getNearestStart())
+            .nearestFinish(statusResult.getNearestFinish())
+            .build();
     }
 
     private void validateEvent(AddEventDtoRequest dto, MultipartFile[] images) {
