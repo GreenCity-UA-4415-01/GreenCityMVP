@@ -36,10 +36,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
-
 import static org.hamcrest.Matchers.hasSize;
 import java.util.Map;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -216,7 +214,7 @@ class EventControllerTest {
     }
 
     @Test
-    public void createEvent_ShouldReturn400BadRequest() throws Exception {
+    void createEvent_ShouldReturn400BadRequest() throws Exception {
         AddEventDtoRequest invalidDto = AddEventDtoRequest.builder()
             .title("")
             .description("Too short")
@@ -250,7 +248,7 @@ class EventControllerTest {
     }
 
     @Test
-    public void getVisibleEvents_ShouldReturn200() throws Exception {
+    void getVisibleEvents_ShouldReturn200() throws Exception {
         EventDto openEvent = EventDto.builder()
             .id(1L)
             .title("Public Cleanup")
@@ -721,7 +719,7 @@ class EventControllerTest {
     }
 
     @Test
-    public void getMyCreatedEvents_ShouldReturn200Ok() throws Exception {
+    void getMyCreatedEvents_ShouldReturn200Ok() throws Exception {
 
         EventPreviewDto eventPreview = EventPreviewDto.builder()
             .id(1L)
