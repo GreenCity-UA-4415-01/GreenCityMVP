@@ -38,8 +38,10 @@
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.exclusions>**/config/*</sonar.exclusions>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml
+        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
+<!--        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml-->
+<!--        </sonar.coverage.jacoco.xmlReportPaths>-->
         <sonar.language>java</sonar.language>
         <test.containers.version>1.19.4</test.containers.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
@@ -76,8 +78,43 @@
                             <goal>report</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.jacoco</groupId>-->
+<!--                <artifactId>jacoco-maven-plugin</artifactId>-->
+<!--                <version>${jacoco.maven.plugin.version}</version>-->
+<!--                <configuration>-->
+<!--                    <excludes>-->
+<!--                        <exclude>**/config/*</exclude>-->
+<!--                        <exclude>**/enums/*</exclude>-->
+<!--                        <exclude>**/exceptions/*</exclude>-->
+<!--                        <exclude>**/entity/*</exclude>-->
+<!--                    </excludes>-->
+<!--                </configuration>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>default-prepare-agent</id>-->
+<!--                        <goals>-->
+<!--                            <goal>prepare-agent</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                    <execution>-->
+<!--                        <id>default-report</id>-->
+<!--                        <phase>prepare-package</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>report</goal>-->
+<!--                        </goals>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
