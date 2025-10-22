@@ -54,16 +54,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_USER }}
         run: |
           git fetch --unshallow
-          mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install sonar:sonar -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP -Dsonar.organization=greencity-ua-4415-01 -Dsonar.host.url=https://sonarcloud.io -Dsonar.binaries=target/classes -Dsonar.dynamicAnalysis=reuseReports
-#         Use 'verify' phase to ensure 'report-aggregate' runs.
-#         We removed -Dsonar.dynamicAnalysis=reuseReports as it's now in pom.xml.
-#         We removed -Dsonar.host.url as it's often autodetected/less critical if a token is present.
-          mvn clean install verify sonar:sonar \
-            -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP \
-            -Dsonar.organization=greencity-ua-4415-01
+          mvn clean install verify sonar:sonar -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP -Dsonar.organization=greencity-ua-4415-01
 #         mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent install
 #         Temporary mvn install without using Sonar
-#
 #         Uncomment after we setup Sonar properly
 #         Checks-out your greencity.repository under $GITHUB_WORKSPACE, so your job can access it
 
