@@ -722,46 +722,6 @@ class EventControllerTest {
     }
 
     @Test
-    void deleteEvent_ShouldReturn200Ok() throws Exception {
-        Long eventId = 1L;
-
-        doNothing().when(eventService).deleteEvent(eventId, mockUser);
-
-        mockMvc.perform(delete("/events/delete/{eventId}", eventId))
-                .andExpect(status().isOk());
-
-        verify(eventService).deleteEvent(eventId, mockUser);
-    }
-
-    @Test
-    void deleteEvent_Unauthorized_ShouldReturn401Unauthorized() throws Exception {
-        Long eventId = 2L;
-        String errorMessage = USER_NO_PERMISSION_MESSAGE;
-
-        doThrow(new UnauthorizedException(errorMessage))
-            .when(eventService).deleteEvent(eventId, mockUser);
-
-        mockMvc.perform(delete("/events/delete/{eventId}", eventId)
-            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isUnauthorized())
-            .andExpect(jsonPath("$.message").value(errorMessage));
-    }
-
-    @Test
-    void deleteEvent_NotFound_ShouldReturn404NotFound() throws Exception {
-        Long eventId = 99L;
-        String errorMessage = EVENT_NOT_FOUND_MESSAGE_PREFIX + eventId;
-
-        doThrow(new NotFoundException(errorMessage))
-            .when(eventService).deleteEvent(eventId, mockUser);
-
-        mockMvc.perform(delete("/events/delete/{eventId}", eventId)
-            .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value(errorMessage));
-    }
-
-    @Test
     public void getMyCreatedEvents_ShouldReturn200Ok() throws Exception {
 
         EventPreviewDto eventPreview = EventPreviewDto.builder()
@@ -800,6 +760,46 @@ class EventControllerTest {
             .andExpect(jsonPath("$.content[0].canEdit").value(true))
             .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
             .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void deleteEvent_ShouldReturn200Ok() throws Exception {
+        Long eventId = 1L;
+
+        doNothing().when(eventService).deleteEvent(eventId, mockUser);
+
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId))
+                .andExpect(status().isOk());
+
+        verify(eventService).deleteEvent(eventId, mockUser);
+    }
+
+    @Test
+    void deleteEvent_Unauthorized_ShouldReturn401Unauthorized() throws Exception {
+        Long eventId = 2L;
+        String errorMessage = USER_NO_PERMISSION_MESSAGE;
+
+        doThrow(new UnauthorizedException(errorMessage))
+            .when(eventService).deleteEvent(eventId, mockUser);
+
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized())
+            .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    void deleteEvent_NotFound_ShouldReturn404NotFound() throws Exception {
+        Long eventId = 99L;
+        String errorMessage = EVENT_NOT_FOUND_MESSAGE_PREFIX + eventId;
+
+        doThrow(new NotFoundException(errorMessage))
+            .when(eventService).deleteEvent(eventId, mockUser);
+
+        mockMvc.perform(delete("/events/delete/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(errorMessage));
     }
 
     @Test
