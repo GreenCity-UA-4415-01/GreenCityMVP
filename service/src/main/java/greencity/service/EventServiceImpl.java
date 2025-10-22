@@ -5,42 +5,16 @@ import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.UnauthorizedException;
-import greencity.annotations.RatingCalculationEnum;
-import greencity.constant.CacheConstants;
-import greencity.constant.ErrorMessage;
-import greencity.dto.user.UserVO;
-import greencity.enums.Role;
-import greencity.exception.exceptions.NotFoundException;
-import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventAttenderRepo;
-import greencity.annotations.RatingCalculationEnum;
-import greencity.constant.CacheConstants;
-import greencity.constant.ErrorMessage;
-import greencity.dto.econews.EcoNewsVO;
-import greencity.dto.user.UserVO;
-import greencity.enums.Role;
-import greencity.exception.exceptions.NotFoundException;
-import greencity.constant.ErrorMessage;
-import greencity.dto.user.UserVO;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
-import greencity.enums.Role;
-import greencity.exception.exceptions.NotFoundException;
-import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
-import greencity.enums.EventStatus;
-import greencity.enums.EventType;
-import greencity.enums.Role;
-import greencity.dto.user.UserVO;
-import greencity.service.UserService;
 import jakarta.persistence.EntityManager;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -49,7 +23,6 @@ import greencity.dto.event.*;
 import greencity.entity.*;
 import greencity.exception.exceptions.BadRequestException;
 import org.springframework.web.multipart.MultipartFile;
-import org.modelmapper.ModelMapper;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -63,8 +36,6 @@ public class EventServiceImpl implements EventService {
     private final EventAttenderRepo eventAttenderRepo;
     private final ImageStorageService imageStorageService;
     private final EntityManager entityManager;
-    private final ModelMapper mapper;
-    private final HttpServletRequest httpServletRequest;
     private final ModelMapper mapper;
     private final UserService userService;
 
@@ -156,8 +127,8 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
-                .collect(Collectors.toList());
+            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+            .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -215,55 +186,55 @@ public class EventServiceImpl implements EventService {
     private EventPreviewDto toEventPreviewDtoWithCanEdit(Event event, Long currentUserId, boolean isAdmin) {
         // Find the nearest start date
         OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
-                .map(EventDateTimeLocation::getStartDate)
-                .min(OffsetDateTime::compareTo)
-                .orElse(null);
+            .map(EventDateTimeLocation::getStartDate)
+            .min(OffsetDateTime::compareTo)
+            .orElse(null);
 
         // Find the corresponding finish date for the nearest start date
         OffsetDateTime nearestFinish = event.getDateTimeLocations().stream()
-                .filter(loc -> loc.getStartDate().equals(nearestStart))
-                .findFirst()
-                .map(EventDateTimeLocation::getFinishDate)
-                .orElse(null);
+            .filter(loc -> loc.getStartDate().equals(nearestStart))
+            .findFirst()
+            .map(EventDateTimeLocation::getFinishDate)
+            .orElse(null);
 
         // Determine event status using actual finish date
         EventStatus status = determineEventStatus(nearestStart, nearestFinish);
 
         // Get the first date location for coordinates and online link
         EventDateTimeLocation firstLocation = event.getDateTimeLocations().stream()
-                .findFirst()
-                .orElse(null);
+            .findFirst()
+            .orElse(null);
 
         // Get main image
         String titleImage = event.getImages().stream()
-                .filter(EventImage::isMain)
-                .findFirst()
-                .map(EventImage::getImagePath)
-                .orElse(null);
+            .filter(EventImage::isMain)
+            .findFirst()
+            .map(EventImage::getImagePath)
+            .orElse(null);
 
         // Determine canEdit: true if user is organizer or admin
         boolean canEdit = event.getOrganizerId().equals(currentUserId) || isAdmin;
 
         return EventPreviewDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .description(event.getDescription())
-                .open(event.isOpen())
-                .organizerId(event.getOrganizerId())
-                .titleImage(titleImage)
-                .createdAt(event.getCreatedAt())
-                .updatedAt(event.getUpdatedAt())
-                .status(status)
-                .nearestStart(nearestStart)
-                .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
-                .canEdit(canEdit)
-                .isFavourite(false) // TODO: Implement when favorites feature is added
-                .isSubscribed(false) // TODO: Implement when subscription feature is added
-                .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
-                .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
-                .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
-                .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
-                .build();
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .open(event.isOpen())
+            .organizerId(event.getOrganizerId())
+            .titleImage(titleImage)
+            .createdAt(event.getCreatedAt())
+            .updatedAt(event.getUpdatedAt())
+            .status(status)
+            .nearestStart(nearestStart)
+            .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
+            .canEdit(canEdit)
+            .isFavourite(false) // TODO: Implement when favorites feature is added
+            .isSubscribed(false) // TODO: Implement when subscription feature is added
+            .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
+            .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
+            .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
+            .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
+            .build();
     }
 
     private EventStatus determineEventStatus(OffsetDateTime nearestStart, OffsetDateTime finishDate) {

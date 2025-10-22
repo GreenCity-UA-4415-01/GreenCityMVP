@@ -13,8 +13,8 @@ public interface EventService {
     /**
      * Method that creates event.
      *
-     * @param request event creation request
-     * @param images event images
+     * @param request     event creation request
+     * @param images      event images
      * @param organizerId ID of the user creating the event
      * @return created event {@link EventDto} with computed status
      */
@@ -50,9 +50,9 @@ public interface EventService {
         Double userLongitude, Pageable pageable);
 
     /**
-     * Method that gets events created by the current user with capability flags for editing.
-     * Returns events with canEdit flag set to true for organizers and admins.
-     * Default sorting by nearestStart.
+     * Method that gets events created by the current user with capability flags for
+     * editing. Returns events with canEdit flag set to true for organizers and
+     * admins. Default sorting by nearestStart.
      *
      * @param userId   user ID of the current user
      * @param pageable paging parameters
@@ -69,7 +69,8 @@ public interface EventService {
      *
      * @param eventId event ID
      * @return event DTO with computed status, nearestStart, and nearestFinish
-     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
+     * @note "now" is evaluated as server time in UTC for consistent comparison with
+     *       database timestamps
      */
     EventDto getEventById(Long eventId);
 }

@@ -27,8 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 import java.io.IOException;
 
-import static org.springframework.data.domain.Sort.Direction.ASC;
-
 @RestController
 @RequestMapping("/events")
 @RequiredArgsConstructor
@@ -154,16 +152,15 @@ public class EventController {
     @GetMapping("/myEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam(value = "eventType", required = false) EventType eventType,
-            @RequestParam(value = "userLatitude", required = false) Double userLatitude,
-            @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
-
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+        @RequestParam(value = "eventType", required = false) EventType eventType,
+        @RequestParam(value = "userLatitude", required = false) Double userLatitude,
+        @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
-                currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+            currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -171,9 +168,8 @@ public class EventController {
     @GetMapping("/myCreatedEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
-
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), pageable);
