@@ -14,8 +14,8 @@ public interface EventService {
     /**
      * Method that creates event.
      *
-     * @param request event creation request
-     * @param images event images
+     * @param request     event creation request
+     * @param images      event images
      * @param organizerId ID of the user creating the event
      * @return created event {@link EventDto} with computed status
      */
@@ -38,8 +38,8 @@ public interface EventService {
     EventDto findById(Long id);
 
     /**
-     * Returns all events visible to the given user.
-     * Open events are visible to everyone, closed — only to organizer’s friends.
+     * Returns all events visible to the given user. Open events are visible to
+     * everyone, closed — only to organizer’s friends.
      *
      * @param userVO current authenticated user
      * @return list of visible events

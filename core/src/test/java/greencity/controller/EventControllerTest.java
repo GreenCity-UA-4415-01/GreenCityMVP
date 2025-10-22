@@ -37,7 +37,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
-
 import static org.hamcrest.Matchers.hasSize;
 import java.util.Map;
 
@@ -769,7 +768,7 @@ class EventControllerTest {
         doNothing().when(eventService).deleteEvent(eventId, mockUser);
 
         mockMvc.perform(delete("/events/delete/{eventId}", eventId))
-                .andExpect(status().isOk());
+            .andExpect(status().isOk());
 
         verify(eventService).deleteEvent(eventId, mockUser);
     }
