@@ -8,7 +8,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import greencity.dto.user.UserVO;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.List;
 
 public interface EventService {
@@ -23,8 +22,8 @@ public interface EventService {
     EventDto createEvent(AddEventDtoRequest request, MultipartFile[] images, Long organizerId);
 
     /**
-     * Returns all events visible to the given user.
-     * Open events are visible to everyone, closed — only to organizer’s friends.
+     * Returns all events visible to the given user. Open events are visible to
+     * everyone, closed — only to organizer’s friends.
      *
      * @param userVO current authenticated user
      * @return list of visible events
@@ -42,12 +41,12 @@ public interface EventService {
      * @return page of joined events {@link EventPreviewDto}
      */
     Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, Double userLatitude,
-                                      Double userLongitude, Pageable pageable);
+        Double userLongitude, Pageable pageable);
 
     /**
-     * Method that gets events created by the current user with capability flags for editing.
-     * Returns events with canEdit flag set to true for organizers and admins.
-     * Default sorting by nearestStart.
+     * Method that gets events created by the current user with capability flags for
+     * editing. Returns events with canEdit flag set to true for organizers and
+     * admins. Default sorting by nearestStart.
      *
      * @param userId   user ID of the current user
      * @param pageable paging parameters
@@ -55,15 +54,16 @@ public interface EventService {
      */
     Page<EventPreviewDto> getMyCreatedEvents(Long userId, Pageable pageable);
 
-    /** Get event by ID with computed status (LIVE/UPCOMING/PASSED).
-     * Status is computed based on event date/time occurrences:
-     * - LIVE: now is between start and finish of at least one occurrence
-     * - UPCOMING: all occurrences are in the future
-     * - PASSED: all occurrences are in the past
+    /**
+     * Get event by ID with computed status (LIVE/UPCOMING/PASSED). Status is
+     * computed based on event date/time occurrences: - LIVE: now is between start
+     * and finish of at least one occurrence - UPCOMING: all occurrences are in the
+     * future - PASSED: all occurrences are in the past
      *
      * @param eventId event ID
      * @return event DTO with computed status, nearestStart, and nearestFinish
-     * @note "now" is evaluated as server time in UTC for consistent comparison with database timestamps
+     * @note "now" is evaluated as server time in UTC for consistent comparison with
+     *       database timestamps
      */
     EventDto getEventById(Long eventId);
 }
