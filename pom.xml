@@ -40,6 +40,7 @@
         <sonar.exclusions>**/config/*</sonar.exclusions>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.language>java</sonar.language>
         <test.containers.version>1.19.4</test.containers.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
