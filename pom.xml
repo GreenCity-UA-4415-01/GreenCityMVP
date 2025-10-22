@@ -40,8 +40,6 @@
         <sonar.exclusions>**/config/*</sonar.exclusions>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
-<!--        <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml-->
-<!--        </sonar.coverage.jacoco.xmlReportPaths>-->
         <sonar.language>java</sonar.language>
         <test.containers.version>1.19.4</test.containers.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
@@ -99,34 +97,6 @@
                     </execution>
                 </executions>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.jacoco</groupId>-->
-<!--                <artifactId>jacoco-maven-plugin</artifactId>-->
-<!--                <version>${jacoco.maven.plugin.version}</version>-->
-<!--                <configuration>-->
-<!--                    <excludes>-->
-<!--                        <exclude>**/config/*</exclude>-->
-<!--                        <exclude>**/enums/*</exclude>-->
-<!--                        <exclude>**/exceptions/*</exclude>-->
-<!--                        <exclude>**/entity/*</exclude>-->
-<!--                    </excludes>-->
-<!--                </configuration>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>default-prepare-agent</id>-->
-<!--                        <goals>-->
-<!--                            <goal>prepare-agent</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                    <execution>-->
-<!--                        <id>default-report</id>-->
-<!--                        <phase>prepare-package</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>report</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--            </plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -170,25 +140,14 @@
                         **/target/generated-sources/**/*,
                         **/target/generated-test-sources/**/*
                     </excludes>
+
+                    <sourceDirectories>
+                        <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+                    </sourceDirectories>
+
+                    <includeTestSourceDirectory>false</includeTestSourceDirectory>
                 </configuration>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-checkstyle-plugin</artifactId>-->
-<!--                <version>${checkstyle-maven-plugin.version}</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <id>check</id>-->
-<!--                        <phase>validate</phase>-->
-<!--                        <goals>-->
-<!--                            <goal>check</goal>-->
-<!--                        </goals>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <configLocation>checkstyle.xml</configLocation>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
         </plugins>
     </build>
 </project>
