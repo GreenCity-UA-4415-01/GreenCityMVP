@@ -56,20 +56,22 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco.maven.plugin.version}</version>
-                <configuration>
-                    <excludes>
-                        <exclude>**/config/*</exclude>
-                        <exclude>**/enums/*</exclude>
-                        <exclude>**/exceptions/*</exclude>
-                        <exclude>**/entity/*</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <id>default-prepare-agent</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/config/*</exclude>
+                                <exclude>**/enums/*</exclude>
+                                <exclude>**/exceptions/*</exclude>
+                                <exclude>**/entity/*</exclude>
+                                <exclude>**/target/generated-sources/**/*</exclude>
+                                <exclude>**/target/generated-test-sources/**/*</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>default-report</id>
@@ -77,6 +79,16 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/config/*</exclude>
+                                <exclude>**/enums/*</exclude>
+                                <exclude>**/exceptions/*</exclude>
+                                <exclude>**/entity/*</exclude>
+                                <exclude>**/target/generated-sources/**/*</exclude>
+                                <exclude>**/target/generated-test-sources/**/*</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>report-aggregate</id>
