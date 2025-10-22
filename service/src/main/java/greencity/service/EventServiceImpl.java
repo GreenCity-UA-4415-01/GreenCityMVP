@@ -1,5 +1,6 @@
 package greencity.service;
 
+import greencity.dto.user.UserVO;
 import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
@@ -23,6 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static greencity.entity.Habit_.userId;
 
 @Service
 @RequiredArgsConstructor
@@ -251,6 +254,23 @@ public class EventServiceImpl implements EventService {
             .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
         return toEventDto(event);
+    }
+
+    @Override
+    @Transactional
+    public List<EventDto> getVisibleEvents(UserVO userVO) {
+        List<Event> allEvents = eventRepository.findAll();
+
+        return allEvents.stream()
+                .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
+                .map(this::toEventDto)
+                .collect(Collectors.toList());
+    }
+
+    private boolean isFriend(Long organizerId, UserVO userVO) {
+        // We need FriendService for this method to check friendship, but the FriendService is not ready yet.
+        // It is temporary solution
+        return Objects.equals(userVO.getId(), organizerId);
     }
 
     private EventDto toEventDto(Event event) {

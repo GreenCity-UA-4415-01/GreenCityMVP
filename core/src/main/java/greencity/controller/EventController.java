@@ -1,6 +1,7 @@
 package greencity.controller;
 
 import greencity.annotations.CurrentUser;
+import greencity.constant.HttpStatuses;
 import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDto;
 import greencity.dto.event.EventPreviewDto;
@@ -8,7 +9,10 @@ import greencity.dto.user.UserVO;
 import greencity.enums.EventType;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.service.EventService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,10 +22,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 import java.io.IOException;
+import java.util.List;
 
 import static org.springframework.data.domain.Sort.Direction.ASC;
 
@@ -34,7 +40,11 @@ public class EventController {
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Create a new event")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
+    })
     public ResponseEntity<EventDto> createEvent(
         @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
         @RequestPart(value = "images", required = false) MultipartFile[] images,
@@ -45,6 +55,16 @@ public class EventController {
 
         EventDto created = eventService.createEvent(addEventDtoRequest, images, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    @GetMapping("/visible")
+    @Operation(summary = "Get events visible to the current user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
+    public ResponseEntity<List<EventDto>> getVisibleEvents(@AuthenticationPrincipal UserVO user) {
+        return ResponseEntity.ok(eventService.getVisibleEvents(user));
     }
 
     private void validateEventRequest(AddEventDtoRequest addEventDtoRequest) {
