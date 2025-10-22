@@ -3,6 +3,7 @@ package greencity.repository;
 import greencity.entity.EventDateTimeLocation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -12,6 +13,16 @@ import java.util.List;
 @Repository
 public interface EventDateTimeLocationRepo extends JpaRepository<EventDateTimeLocation, Long>,
     JpaSpecificationExecutor<EventDateTimeLocation> {
+    /**
+     * Deletes all EventDateTimeLocation records associated with the given event ID.
+     *
+     * @param eventId the ID of the event whose {@link EventDateTimeLocation}
+     *                instances will be deleted.
+     */
+    @Modifying
+    @Query("DELETE FROM EventDateTimeLocation d WHERE d.event.id = :eventId")
+    void deleteAllByEventId(@Param("eventId") Long eventId);
+
     @Query("SELECT dtl FROM EventDateTimeLocation dtl WHERE dtl.event.id = :eventId ORDER BY dtl.startDate ASC")
     List<EventDateTimeLocation> findByEventIdOrderByStartDate(@Param("eventId") Long eventId);
 

@@ -36,6 +36,14 @@ public class EventController {
     private final EventService eventService;
     private final Tika tika = new Tika();
 
+    /**
+     * Endpoint for event creation.
+     *
+     * @param addEventDtoRequest DTO for event
+     * @param images             images files for the event
+     * @param currentUser        current user
+     * @author Kateryna Holtvianska & Oleksandr Obydalo.
+     */
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new event")
@@ -65,6 +73,33 @@ public class EventController {
         return ResponseEntity.ok(eventService.getVisibleEvents(user));
     }
 
+    /**
+     * Endpoint for event deletion.
+     *
+     * @param eventId ID of the Event instance.
+     * @param user    Current User.
+     * @author Oleksandr Braiko
+     */
+    @Operation(summary = "Delete event")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @DeleteMapping(value = "/delete/{eventId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId,
+        @Parameter(hidden = true) @CurrentUser UserVO user) {
+        eventService.deleteEvent(eventId, user);
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    /**
+     * Helper method to validate {@link AddEventDtoRequest}.
+     *
+     * @param addEventDtoRequest DTO under validation.
+     * @author Kateryna Holtvianska
+     */
     private void validateEventRequest(AddEventDtoRequest addEventDtoRequest) {
         if (addEventDtoRequest.getTitle() == null || addEventDtoRequest.getTitle().isBlank()) {
             throw new BadRequestException("Title is required.");
@@ -84,6 +119,12 @@ public class EventController {
         }
     }
 
+    /**
+     * Helper method to validate quantity of uploaded images.
+     *
+     * @param images Images for the Event.
+     * @author Oleksandr Obydalo
+     */
     private void validateImages(MultipartFile[] images) throws IOException {
         if (images != null) {
             if (images.length > 5) {
@@ -95,6 +136,12 @@ public class EventController {
         }
     }
 
+    /**
+     * Helper method to validate a single image.
+     *
+     * @param image Image under validation.
+     * @author Oleksandr Obydalo
+     */
     private void validateImage(MultipartFile image) throws IOException {
         // Use Apache Tika to detect actual file type based on content
         String detectedType = tika.detect(image.getInputStream());
@@ -108,6 +155,16 @@ public class EventController {
         }
     }
 
+    /**
+     * Endpoint for events organized by the authenticated user.
+     *
+     * @param currentUser   User that is currently logged in.
+     * @param pageable      Pageable.
+     * @param eventType     Type of the event.
+     * @param userLatitude  User coordinates.
+     * @param userLongitude User coordinates.
+     * @author Oleksandr Obydalo.
+     */
     @GetMapping("/myEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
@@ -136,6 +193,12 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
+    /**
+     * Method to validate authentication of the User.
+     *
+     * @param currentUser User that is currently logged in.
+     * @author Oleksandr Obydalo
+     */
     private void validateUser(UserVO currentUser) {
         if (currentUser == null) {
             throw new BadRequestException("User must be authenticated.");
