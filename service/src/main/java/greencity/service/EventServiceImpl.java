@@ -1,11 +1,13 @@
 package greencity.service;
 
+import greencity.dto.user.UserVO;
 import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
+import greencity.enums.Role;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,7 +19,6 @@ import greencity.entity.*;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.exception.exceptions.NotFoundException;
 import org.springframework.web.multipart.MultipartFile;
-import org.modelmapper.ModelMapper;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,7 +31,7 @@ public class EventServiceImpl implements EventService {
     private final EventImageRepo eventImageRepository;
     private final EventAttenderRepo eventAttenderRepo;
     private final ImageStorageService imageStorageService;
-    private final ModelMapper mapper;
+    private final UserService userService;
 
     @Override
     @Transactional
@@ -105,6 +106,22 @@ public class EventServiceImpl implements EventService {
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
+    @Override
+    @Transactional
+    public Page<EventPreviewDto> getMyCreatedEvents(Long userId, Pageable pageable) {
+        Page<Event> events = eventRepository.findByOrganizerIdOrderByNearestStart(userId, pageable);
+
+        // Get current user to check roles
+        UserVO currentUser = userService.findById(userId);
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+
+        List<EventPreviewDto> eventPreviews = events.getContent().stream()
+            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+            .collect(Collectors.toList());
+
+        return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
+    }
+
     private EventPreviewDto toEventPreviewDto(Event event) {
         // Find the nearest start date
         OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
@@ -155,6 +172,60 @@ public class EventServiceImpl implements EventService {
             .build();
     }
 
+    private EventPreviewDto toEventPreviewDtoWithCanEdit(Event event, Long currentUserId, boolean isAdmin) {
+        // Find the nearest start date
+        OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
+            .map(EventDateTimeLocation::getStartDate)
+            .min(OffsetDateTime::compareTo)
+            .orElse(null);
+
+        // Find the corresponding finish date for the nearest start date
+        OffsetDateTime nearestFinish = event.getDateTimeLocations().stream()
+            .filter(loc -> loc.getStartDate().equals(nearestStart))
+            .findFirst()
+            .map(EventDateTimeLocation::getFinishDate)
+            .orElse(null);
+
+        // Determine event status using actual finish date
+        EventStatus status = determineEventStatus(nearestStart, nearestFinish);
+
+        // Get the first date location for coordinates and online link
+        EventDateTimeLocation firstLocation = event.getDateTimeLocations().stream()
+            .findFirst()
+            .orElse(null);
+
+        // Get main image
+        String titleImage = event.getImages().stream()
+            .filter(EventImage::isMain)
+            .findFirst()
+            .map(EventImage::getImagePath)
+            .orElse(null);
+
+        // Determine canEdit: true if user is organizer or admin
+        boolean canEdit = event.getOrganizerId().equals(currentUserId) || isAdmin;
+
+        return EventPreviewDto.builder()
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .open(event.isOpen())
+            .organizerId(event.getOrganizerId())
+            .titleImage(titleImage)
+            .createdAt(event.getCreatedAt())
+            .updatedAt(event.getUpdatedAt())
+            .status(status)
+            .nearestStart(nearestStart)
+            .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
+            .canEdit(canEdit)
+            .isFavourite(false) // TODO: Implement when favorites feature is added
+            .isSubscribed(false) // TODO: Implement when subscription feature is added
+            .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
+            .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
+            .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
+            .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
+            .build();
+    }
+
     private EventStatus determineEventStatus(OffsetDateTime nearestStart, OffsetDateTime finishDate) {
         if (nearestStart == null) {
             return EventStatus.PASSED;
@@ -179,6 +250,24 @@ public class EventServiceImpl implements EventService {
             .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
         return toEventDto(event);
+    }
+
+    @Override
+    @Transactional
+    public List<EventDto> getVisibleEvents(UserVO userVO) {
+        List<Event> allEvents = eventRepository.findAll();
+
+        return allEvents.stream()
+            .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
+            .map(this::toEventDto)
+            .collect(Collectors.toList());
+    }
+
+    private boolean isFriend(Long organizerId, UserVO userVO) {
+        // We need FriendService for this method to check friendship, but the
+        // FriendService is not ready yet.
+        // It is temporary solution
+        return Objects.equals(userVO.getId(), organizerId);
     }
 
     private EventDto toEventDto(Event event) {

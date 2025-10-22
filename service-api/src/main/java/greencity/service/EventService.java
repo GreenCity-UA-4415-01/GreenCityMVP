@@ -6,7 +6,9 @@ import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import greencity.dto.user.UserVO;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 public interface EventService {
     /**
@@ -20,6 +22,15 @@ public interface EventService {
     EventDto createEvent(AddEventDtoRequest request, MultipartFile[] images, Long organizerId);
 
     /**
+     * Returns all events visible to the given user. Open events are visible to
+     * everyone, closed — only to organizer’s friends.
+     *
+     * @param userVO current authenticated user
+     * @return list of visible events
+     */
+    List<EventDto> getVisibleEvents(UserVO userVO);
+
+    /**
      * Method that gets user's joined events with paging and sorting.
      *
      * @param userId        user ID
@@ -31,6 +42,17 @@ public interface EventService {
      */
     Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, Double userLatitude,
         Double userLongitude, Pageable pageable);
+
+    /**
+     * Method that gets events created by the current user with capability flags for
+     * editing. Returns events with canEdit flag set to true for organizers and
+     * admins. Default sorting by nearestStart.
+     *
+     * @param userId   user ID of the current user
+     * @param pageable paging parameters
+     * @return page of created events {@link EventPreviewDto} with canEdit flags
+     */
+    Page<EventPreviewDto> getMyCreatedEvents(Long userId, Pageable pageable);
 
     /**
      * Get event by ID with computed status (LIVE/UPCOMING/PASSED). Status is
