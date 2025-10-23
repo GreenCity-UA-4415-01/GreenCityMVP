@@ -63,11 +63,12 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <exclude>**/config/*</exclude>
-                                <exclude>**/enums/*</exclude>
-                                <exclude>**/exceptions/*</exclude>
-                                <exclude>**/entity/*</exclude>
-                                <exclude>**/generated/**/*</exclude>
+                                <!-- prepare-agent requires FQCN patterns (*.package.*) to match classes. -->
+                                <exclude>*.config.*</exclude>
+                                <exclude>*.enums.*</exclude>
+                                <exclude>*.exceptions.*</exclude>
+                                <exclude>*.entity.*</exclude>
+                                <exclude>*.generated.*</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -79,6 +80,8 @@
                         </goals>
                         <configuration>
                             <excludes>
+                                <!-- The report goal is more flexible and supports Ant-style paths/globs,
+                                     so these patterns are retained. -->
                                 <exclude>**/config/*</exclude>
                                 <exclude>**/enums/*</exclude>
                                 <exclude>**/exceptions/*</exclude>
