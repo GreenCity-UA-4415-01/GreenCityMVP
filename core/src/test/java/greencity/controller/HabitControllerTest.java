@@ -280,7 +280,7 @@ public class HabitControllerTest {
                         .param("size", String.valueOf(pageable.getPageSize()))
                 )
                 .andExpect(status().isBadRequest())
-                .andExpect(xpath("/ExceptionResponse/message").string("No message available"));
+                .andExpect(xpath("/ExceptionResponse/message").string("You should enter at least one parameter"));
     }
 
     @Test
