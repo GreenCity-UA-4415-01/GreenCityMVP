@@ -78,6 +78,7 @@ public final class ErrorMessage {
     public static final String DUPLICATED_USER_SHOPPING_LIST_ITEM = "UserShoppingListItems should be unique";
     public static final String USER_CANT_UPDATE_HIMSELF = "User can't update yourself";
     public static final String IMPOSSIBLE_UPDATE_USER_STATUS = "Impossible to update status of admin or moderator";
+    public static final String INVALID_STORAGE_PATH = "Attempted to delete a file outside the designated storage path";
     public static final String PROFILE_PICTURE_NOT_FOUND_BY_ID = "Profile picture not found by id : ";
     public static final String IMAGE_EXISTS = "Image should be download, PNG or JPEG ";
     public static final String OWN_USER_ID = "You can not perform actions with your own id : ";
@@ -90,11 +91,13 @@ public final class ErrorMessage {
     public static final String CUSTOM_SHOPPING_LIST_ITEM_NOT_FOUND =
         "The user doesn't have any custom shopping list item.";
     public static final String USER_HAS_NO_PERMISSION = "Current user has no permission for this action";
+    public static final String EVENT_NOT_FOUND_BY_ID = "Event doesn't exist by this id: ";
     public static final String ECO_NEWS_NOT_FOUND_BY_ID = "Eco news doesn't exist by this id: ";
     public static final String ECO_NEWS_NOT_FOUND = "Eco news haven't been found";
     public static final String ECO_NEWS_NOT_SAVED = "Eco news haven't been saved because of constraint violation";
     public static final String USER_CANNOT_ADD_MORE_THAN_5_SOCIAL_NETWORK_LINKS =
         "User cannot add more than 5 social network links";
+    public static final String DELETE_FILE_FAILURE = "Failed to delete file: ";
     public static final String INVALID_URI = "The string could not be parsed as a URI reference.";
     public static final String MALFORMED_URL = "Malformed URL. The string could not be parsed.";
     public static final String USER_CANNOT_ADD_SAME_SOCIAL_NETWORK_LINKS =
