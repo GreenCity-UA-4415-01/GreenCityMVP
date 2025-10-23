@@ -61,8 +61,7 @@ jobs:
           mvn clean install verify sonar:sonar -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP -Dsonar.organization=greencity-ua-4415-01
 
       - name: Test Reporter
-#        uses: dorny/test-reporter@v1.5.0
-        uses: dorny/test-reporter@4914313f8373322f98f625902b934091c784e1b8
+        uses: dorny/test-reporter@v1.5.0
         if: success() || failure()
         with:
           name: Tests Report
@@ -76,15 +75,13 @@ jobs:
         run: echo "GITHUB_SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 
       - name: Docker Login
-#        uses: docker/login-action@v3
-        uses: docker/login-action@0d42c3c59a356075f778393e5066c1f1f2e13271
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker images
-#        uses: docker/build-push-action@v5
-        uses: docker/build-push-action@f2a1d5e85a0378d388339c9f0c2394d0c1537237
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: Dockerfile
@@ -111,8 +108,7 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Deploy 🚀
         if: ${{ github.event_name == 'push' }}
-#        uses: JamesIves/github-pages-deploy-action@v4
-        uses: JamesIves/github-pages-deploy-action@83b9e4a3c1f93f1853d9d300d869769a9b2b5278
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GH_USER_TOKEN }}
           BRANCH: gh-pages
