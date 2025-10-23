@@ -17,9 +17,14 @@ import java.util.UUID;
 @Service
 @Slf4j
 public class ImageStorageServiceImpl implements ImageStorageService {
+    private final AWSCloudStorageService awsCloudStorageService;
     private final Path storage;
+    private final String folder = "event-images/";
 
-    public ImageStorageServiceImpl(@Value("${events.images.dir:./event-images}") String dir) throws IOException {
+    public ImageStorageServiceImpl(
+        AWSCloudStorageService awsCloudStorageService,
+        @Value("${events.images.dir:./event-images}") String dir) throws IOException {
+        this.awsCloudStorageService = awsCloudStorageService;
         this.storage = Paths.get(dir).toAbsolutePath().normalize();
         Files.createDirectories(this.storage);
     }
@@ -50,9 +55,15 @@ public class ImageStorageServiceImpl implements ImageStorageService {
     public String storeImage(MultipartFile image, Long eventId) {
         try {
             String ext = getExtension(image.getOriginalFilename());
-            String filename = "event-" + eventId + "-" + Instant.now().toEpochMilli() + "-" + UUID.randomUUID() + ext;
-            Path target = storage.resolve(filename);
-            Files.copy(image.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+            String filename =
+                folder + "event-" + eventId + "-" + Instant.now().toEpochMilli() + "-" + UUID.randomUUID() + ext;
+            // Wrap the file with the new filename so S3 stores it with the correct path
+            MultipartFile fileWithPath = new MultipartFileImpl(
+                image.getName(),
+                filename,
+                image.getContentType(),
+                image.getBytes());
+            awsCloudStorageService.uploadFile(fileWithPath);
             return filename;
         } catch (IOException e) {
             throw new RuntimeException("Failed to store image", e);

@@ -23,7 +23,20 @@
         <google.maps.version>2.2.0</google.maps.version>
         <slf4.version>2.0.12</slf4.version>
         <apache.http.client.version>4.5.14</apache.http.client.version>
+        <aws.sdk.version>2.28.19</aws.sdk.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -157,6 +170,12 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${apache.http.client.version}</version>
+        </dependency>
+
+        <!-- AWS SDK for Java 2.x - S3 -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
         </dependency>
     </dependencies>
 
