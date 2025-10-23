@@ -100,9 +100,9 @@ public class SecurityConfig {
                 .sendError(SC_UNAUTHORIZED, "Authorize first."))
                 .accessDeniedHandler((req, resp, exc) -> resp.sendError(SC_FORBIDDEN, "You don't have authorities.")))
             .authorizeHttpRequests(req -> req.dispatcherTypeMatchers(
-                    DispatcherType.ERROR,
-                    DispatcherType.FORWARD)
-                    .permitAll()
+                DispatcherType.ERROR,
+                DispatcherType.FORWARD)
+                .permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/", "/management/", "/management/login").permitAll()
                 .requestMatchers("/v2/api-docs/**", "/v3/api-docs/**", "/swagger.json",

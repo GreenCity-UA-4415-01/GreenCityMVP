@@ -29,18 +29,18 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
                  THEN (SELECT MIN(6371 * acos(cos(radians(:userLatitude)) * cos(radians(loc.latitude)) *
                        cos(radians(loc.longitude) - radians(:userLongitude)) +
                        sin(radians(:userLatitude)) * sin(radians(loc.latitude))))
-                       FROM EventDateTimeLocation loc WHERE loc.event.id = e.id 
+                       FROM EventDateTimeLocation loc WHERE loc.event.id = e.id
                        AND loc.startDate >= :currentTime
                        AND loc.latitude IS NOT NULL AND loc.longitude IS NOT NULL)
                  ELSE e.id END ASC
         """)
     Page<Event> findJoinedEventsWithSorting(
-            @Param("userId") Long userId,
-            @Param("currentTime") OffsetDateTime currentTime,
-            @Param("eventType") String eventType,
-            @Param("userLatitude") Double userLatitude,
-            @Param("userLongitude") Double userLongitude,
-            Pageable pageable);
+        @Param("userId") Long userId,
+        @Param("currentTime") OffsetDateTime currentTime,
+        @Param("eventType") String eventType,
+        @Param("userLatitude") Double userLatitude,
+        @Param("userLongitude") Double userLongitude,
+        Pageable pageable);
 
     @Query("""
         SELECT DISTINCT e FROM Event e
@@ -51,7 +51,7 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
         ORDER BY e.id ASC
         """)
     Page<Event> findJoinedEventsDefaultSorting(
-            @Param("userId") Long userId,
-            @Param("currentTime") OffsetDateTime currentTime,
-            Pageable pageable);
+        @Param("userId") Long userId,
+        @Param("currentTime") OffsetDateTime currentTime,
+        Pageable pageable);
 }

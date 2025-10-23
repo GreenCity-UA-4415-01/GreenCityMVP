@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -24,14 +23,14 @@ public class AWSCloudStorageService {
 
     public void uploadFile(MultipartFile file) throws IOException {
         PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(file.getOriginalFilename())
-                .contentType(file.getContentType())
-                .build();
+            .bucket(bucketName)
+            .key(file.getOriginalFilename())
+            .contentType(file.getContentType())
+            .build();
         s3Client.putObject(request, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
     }
 
-    public void uploadFiles(List<MultipartFile> files) throws IOException  {
+    public void uploadFiles(List<MultipartFile> files) throws IOException {
         for (MultipartFile file : files) {
             uploadFile(file);
         }
