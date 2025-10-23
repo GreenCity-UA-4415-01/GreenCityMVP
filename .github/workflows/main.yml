@@ -56,8 +56,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_USER_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_USER }}
+#       Fetch full history for SonarQube analysis (blame, history)
         run: |
-        # Fetch full history for SonarQube analysis (blame, history)
           git fetch --unshallow
           mvn clean install verify sonar:sonar -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP -Dsonar.organization=greencity-ua-4415-01
 
