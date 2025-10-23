@@ -29,14 +29,43 @@ public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationE
      * @return page of events created by the organizer
      */
     @Query(
-        value = """
+            value = """
             SELECT e FROM Event e
             WHERE e.organizerId = :organizerId
             ORDER BY (SELECT MIN(l.startDate) FROM e.dateTimeLocations l) ASC
             """,
-        countQuery = """
+            countQuery = """
                SELECT COUNT(e) FROM Event e
                WHERE e.organizerId = :organizerId
             """)
     Page<Event> findByOrganizerIdOrderByNearestStart(@Param("organizerId") Long organizerId, Pageable pageable);
+
+    /**
+     * Find all events related to a user (both created and joined).
+     * Returns union of events created by user and events user has joined.
+     * Duplicates are automatically removed by UNION.
+     *
+     * @param userId   the ID of the user
+     * @param pageable pagination parameters
+     * @return page of events related to the user
+     */
+    @Query(
+            value = """
+            SELECT e FROM Event e
+            WHERE e.id IN (
+                SELECT e2.id FROM Event e2 WHERE e2.organizerId = :userId
+                UNION
+                SELECT ea.eventId FROM EventAttender ea WHERE ea.userId = :userId
+            )
+            ORDER BY (SELECT MIN(l.startDate) FROM e.dateTimeLocations l) ASC
+            """,
+            countQuery = """
+            SELECT COUNT(e.id) FROM Event e
+            WHERE e.id IN (
+                SELECT e2.id FROM Event e2 WHERE e2.organizerId = :userId
+                UNION
+                SELECT ea.eventId FROM EventAttender ea WHERE ea.userId = :userId
+            )
+            """)
+    Page<Event> findRelatedEventsByUserId(@Param("userId") Long userId, Pageable pageable);
 }
