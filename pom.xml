@@ -135,10 +135,6 @@
                 </executions>
                 <configuration>
                     <configLocation>checkstyle.xml</configLocation>
-                    <excludes>
-                        **/target/generated-sources/**/*,
-                        **/target/generated-test-sources/**/*
-                    </excludes>
 
                     <sourceDirectories>
                         <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
