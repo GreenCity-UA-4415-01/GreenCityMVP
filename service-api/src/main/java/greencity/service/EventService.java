@@ -58,7 +58,7 @@ public interface EventService {
      * @return page of joined events {@link EventPreviewDto}
      */
     Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, Double userLatitude,
-        Double userLongitude, Pageable pageable);
+                                      Double userLongitude, Pageable pageable);
 
     /**
      * Method that gets events created by the current user with capability flags for
@@ -82,4 +82,16 @@ public interface EventService {
      * @return event DTO with computed status, nearestStart, and nearestFinish
      */
     EventDto getEventById(Long eventId);
+
+    /**
+     * Method that gets all events related to the user (both created and joined).
+     * Returns de-duplicated union of events created by user and events user has joined.
+     * For events where user is both organizer and attendee, organizer view is preferred
+     * (canEdit flag is set to true).
+     *
+     * @param userId   user ID of the current user
+     * @param pageable paging parameters
+     * @return page of related events {@link EventPreviewDto} with appropriate flags
+     */
+    Page<EventPreviewDto> getRelatedEvents(Long userId, Pageable pageable);
 }
