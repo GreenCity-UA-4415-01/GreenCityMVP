@@ -67,8 +67,7 @@
                                 <exclude>**/enums/*</exclude>
                                 <exclude>**/exceptions/*</exclude>
                                 <exclude>**/entity/*</exclude>
-                                <exclude>**/target/generated-sources/**/*</exclude>
-                                <exclude>**/target/generated-test-sources/**/*</exclude>
+                                <exclude>**/generated/**/*</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -84,8 +83,7 @@
                                 <exclude>**/enums/*</exclude>
                                 <exclude>**/exceptions/*</exclude>
                                 <exclude>**/entity/*</exclude>
-                                <exclude>**/target/generated-sources/**/*</exclude>
-                                <exclude>**/target/generated-test-sources/**/*</exclude>
+                                <exclude>**/generated/**/*</exclude>
                             </excludes>
                         </configuration>
                     </execution>
