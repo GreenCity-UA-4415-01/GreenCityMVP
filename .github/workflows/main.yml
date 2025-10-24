@@ -66,7 +66,6 @@ jobs:
 #       2. Run the Sonar scanner, adding coverage path and PR analysis properties.
 #       3. Only run Sonar on PR events or when pushing to master/dev_java21
         run: |
-          git fetch --unshallow
           mvn clean install verify
           mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP \
