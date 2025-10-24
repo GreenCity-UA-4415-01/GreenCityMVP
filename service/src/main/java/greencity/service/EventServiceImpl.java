@@ -103,8 +103,14 @@ public class EventServiceImpl implements EventService {
         Page<Event> events;
 
         if (eventType != null && eventType != EventType.BOTH) {
+            // Use dummy coordinates (0.0) when not provided to avoid PostgreSQL casting errors
+            // For ONLINE events: dummy coordinates are ignored by the CASE statement (eventType != 'PLACE')
+            // For PLACE events without coordinates: will filter correctly but sort by distance from (0,0)
+            Double latitude = (userLatitude != null) ? userLatitude : 0.0;
+            Double longitude = (userLongitude != null) ? userLongitude : 0.0;
+
             events = eventAttenderRepo.findJoinedEventsWithSorting(
-                    userId, currentTime, eventType.name(), userLatitude, userLongitude, pageable);
+                    userId, currentTime, eventType.name(), latitude, longitude, pageable);
         } else {
             events = eventAttenderRepo.findJoinedEventsDefaultSorting(
                     userId, currentTime, pageable);
