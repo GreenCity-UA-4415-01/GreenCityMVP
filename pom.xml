@@ -70,7 +70,7 @@
                             </excludes>
                         </configuration>
                     </execution>
-                    <!-- 2. MERGE: Collects all individual jacoco.exec files from all sub-modules
+                    <!-- Collects all individual jacoco.exec files from all sub-modules
                          and merges them into a single jacoco.exec in the root target directory. -->
                     <execution>
                         <id>merge-exec-files</id>
@@ -90,6 +90,20 @@
                             </fileSets>
                             <!-- Output file for the merged data -->
                             <destFile>${project.build.directory}/jacoco.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <!-- This execution runs the report-aggregate goal on the merged jacoco.exec file
+                         to produce the target/site/jacoco-aggregate/jacoco.xml file expected by Sonar. -->
+                    <execution>
+                        <id>report-aggregate</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-aggregate</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the output directory to match the Sonar property in the workflow -->
+                            <outputDirectory>${project.build.directory}/site/jacoco-aggregate</outputDirectory>
+                            <outputEncoding>UTF-8</outputEncoding>
                         </configuration>
                     </execution>
                     <!-- Keep the default report execution (can be useful for local module reports) -->
