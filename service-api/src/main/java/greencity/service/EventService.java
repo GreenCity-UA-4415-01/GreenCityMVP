@@ -4,6 +4,7 @@ import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDto;
 import greencity.dto.user.UserVO;
 import greencity.dto.event.EventPreviewDto;
+import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,13 +53,14 @@ public interface EventService {
      *
      * @param userId        user ID
      * @param eventType     type of events to filter (ONLINE, PLACE, BOTH)
+     * @param status        event status to filter by (UPCOMING, LIVE, PASSED)
      * @param userLatitude  user's latitude for distance sorting
      * @param userLongitude user's longitude for distance sorting
      * @param pageable      paging parameters
      * @return page of joined events {@link EventPreviewDto}
      */
-    Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, Double userLatitude,
-                                      Double userLongitude, Pageable pageable);
+    Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, EventStatus status,
+                                      Double userLatitude, Double userLongitude, Pageable pageable);
 
     /**
      * Method that gets events created by the current user with capability flags for
@@ -66,10 +68,11 @@ public interface EventService {
      * admins. Default sorting by nearestStart.
      *
      * @param userId   user ID of the current user
+     * @param status   event status to filter by (UPCOMING, LIVE, PASSED)
      * @param pageable paging parameters
      * @return page of created events {@link EventPreviewDto} with canEdit flags
      */
-    Page<EventPreviewDto> getMyCreatedEvents(Long userId, Pageable pageable);
+    Page<EventPreviewDto> getMyCreatedEvents(Long userId, EventStatus status, Pageable pageable);
 
     /**
      * Get event by ID with computed status (LIVE/UPCOMING/PASSED). Status is
@@ -90,8 +93,9 @@ public interface EventService {
      * (canEdit flag is set to true).
      *
      * @param userId   user ID of the current user
+     * @param status   event status to filter by (UPCOMING, LIVE, PASSED)
      * @param pageable paging parameters
      * @return page of related events {@link EventPreviewDto} with appropriate flags
      */
-    Page<EventPreviewDto> getRelatedEvents(Long userId, Pageable pageable);
+    Page<EventPreviewDto> getRelatedEvents(Long userId, EventStatus status, Pageable pageable);
 }

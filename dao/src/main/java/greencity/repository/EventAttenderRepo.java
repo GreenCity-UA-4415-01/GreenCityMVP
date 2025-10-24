@@ -20,7 +20,6 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
             FROM EventAttender ea
             JOIN EventDateTimeLocation edtl ON edtl.event.id = ea.eventId
             WHERE ea.userId = :userId
-            AND edtl.startDate >= :currentTime
             AND (:eventType = 'BOTH' OR
                  (:eventType = 'ONLINE' AND edtl.onlineLink IS NOT NULL) OR
                  (:eventType = 'PLACE' AND edtl.latitude IS NOT NULL AND edtl.longitude IS NOT NULL))
@@ -49,7 +48,7 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
         JOIN e.dateTimeLocations edtl
         JOIN EventAttender ea ON ea.eventId = e.id
         WHERE ea.userId = :userId
-        AND edtl.startDate >= :currentTime
+        AND edtl.startDate >= :currentTime OR edtl.startDate < :currentTime
         ORDER BY e.id ASC
         """)
     Page<Event> findJoinedEventsDefaultSorting(

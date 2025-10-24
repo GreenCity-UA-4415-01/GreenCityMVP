@@ -6,6 +6,7 @@ import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDto;
 import greencity.dto.event.EventPreviewDto;
 import greencity.dto.user.UserVO;
+import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.service.EventService;
@@ -161,6 +162,7 @@ public class EventController {
      * @param currentUser   User that is currently logged in.
      * @param pageable      Pageable.
      * @param eventType     Type of the event.
+     * @param status        Event status filter (UPCOMING, LIVE, PASSED).
      * @param userLatitude  User coordinates.
      * @param userLongitude User coordinates.
      * @author Oleksandr Obydalo.
@@ -171,12 +173,13 @@ public class EventController {
             @Parameter(hidden = true) @CurrentUser UserVO currentUser,
             @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
             @RequestParam(value = "eventType", required = false) EventType eventType,
+            @RequestParam(value = "status", required = false) EventStatus status,
             @RequestParam(value = "userLatitude", required = false) Double userLatitude,
             @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
-                currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+                currentUser.getId(), eventType, status, userLatitude, userLongitude, pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -185,10 +188,11 @@ public class EventController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
             @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
+            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(value = "status", required = false) EventStatus status) {
         validateUser(currentUser);
 
-        Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), pageable);
+        Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), status, pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -200,16 +204,18 @@ public class EventController {
      *
      * @param currentUser User that is currently logged in.
      * @param pageable    Pageable.
+     * @param status      Event status filter (UPCOMING, LIVE, PASSED).
      * @author Oleksandr Obydalo.
      */
     @GetMapping("/myEvents/relatedEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getRelatedEvents(
             @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
+            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+            @RequestParam(value = "status", required = false) EventStatus status) {
         validateUser(currentUser);
 
-        Page<EventPreviewDto> events = eventService.getRelatedEvents(currentUser.getId(), pageable);
+        Page<EventPreviewDto> events = eventService.getRelatedEvents(currentUser.getId(), status, pageable);
 
         return ResponseEntity.ok(events);
     }
