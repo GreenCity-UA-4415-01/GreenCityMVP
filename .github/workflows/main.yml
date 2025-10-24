@@ -29,7 +29,7 @@ jobs:
     # Add permissions to allow the GITHUB_TOKEN to write Check Runs
     permissions:
       checks: write
-      contents: write
+      contents: read
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     # Fetch depth 0 is needed for correct Sonar analysis
@@ -38,6 +38,7 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
+          token: ${{ secrets.GH_USER_TOKEN }}
 
     # Checks-out your greencity.repository under $GITHUB_WORKSPACE, so your job can access it
 
