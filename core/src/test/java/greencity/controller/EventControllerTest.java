@@ -719,6 +719,45 @@ class EventControllerTest {
     }
 
     @Test
+    void getMyEventsWithOnlineTypeNoCoordinates_ShouldReturn200Ok() throws Exception {
+
+        EventPreviewDto eventPreview = EventPreviewDto.builder()
+                .id(1L)
+                .title("Online Event")
+                .description("Test Online Event")
+                .open(true)
+                .organizerId(1L)
+                .titleImage("online-event.jpg")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .status(EventStatus.UPCOMING)
+                .nearestStart(OffsetDateTime.now().plusDays(1))
+                .canCancelJoin(true)
+                .isFavourite(false)
+                .isSubscribed(false)
+                .visibility("PUBLIC")
+                .latitude(null)
+                .longitude(null)
+                .onlineLink("https://example.com/meeting")
+                .build();
+
+        Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
+
+        when(eventService.getMyEvents(eq(5L), eq(EventType.ONLINE), eq(null), eq(null), any(Pageable.class)))
+                .thenReturn(eventPage);
+
+        mockMvc.perform(get("/events/myEvents")
+                        .param("eventType", "ONLINE")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content[0].id").value(1))
+                .andExpect(jsonPath("$.content[0].title").value("Online Event"))
+                .andExpect(jsonPath("$.content[0].onlineLink").value("https://example.com/meeting"))
+                .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
     void getMyCreatedEvents_ShouldReturn200Ok() throws Exception {
 
         EventPreviewDto eventPreview = EventPreviewDto.builder()
@@ -747,7 +786,7 @@ class EventControllerTest {
         when(eventService.getMyCreatedEvents(eq(5L), any(Pageable.class)))
                 .thenReturn(eventPage);
 
-        mockMvc.perform(get("/events/myCreatedEvents")
+        mockMvc.perform(get("/events/myEvents/createdEvents")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -828,7 +867,7 @@ class EventControllerTest {
         when(eventService.getMyCreatedEvents(eq(5L), any(Pageable.class)))
                 .thenReturn(eventPage);
 
-        mockMvc.perform(get("/events/myCreatedEvents")
+        mockMvc.perform(get("/events/myEvents/createdEvents")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
