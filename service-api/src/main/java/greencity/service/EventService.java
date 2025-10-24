@@ -8,7 +8,6 @@ import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import greencity.dto.user.UserVO;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
@@ -88,9 +87,9 @@ public interface EventService {
 
     /**
      * Method that gets all events related to the user (both created and joined).
-     * Returns de-duplicated union of events created by user and events user has joined.
-     * For events where user is both organizer and attendee, organizer view is preferred
-     * (canEdit flag is set to true).
+     * Returns de-duplicated union of events created by user and events user has
+     * joined. For events where user is both organizer and attendee, organizer view
+     * is preferred (canEdit flag is set to true).
      *
      * @param userId   user ID of the current user
      * @param status   event status to filter by (UPCOMING, LIVE, PASSED)

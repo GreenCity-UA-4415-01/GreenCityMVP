@@ -46,16 +46,16 @@ public class EventController {
      * @author Kateryna Holtvianska & Oleksandr Obydalo.
      */
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+        produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
     })
     public ResponseEntity<EventDto> createEvent(
-            @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
-            @RequestPart(value = "images", required = false) MultipartFile[] images,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
+        @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
+        @RequestPart(value = "images", required = false) MultipartFile[] images,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
         validateUser(currentUser);
         validateEventRequest(addEventDtoRequest);
         validateImages(images);
@@ -67,8 +67,8 @@ public class EventController {
     @GetMapping("/visible")
     @Operation(summary = "Get events visible to the current user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     public ResponseEntity<List<EventDto>> getVisibleEvents(@AuthenticationPrincipal UserVO user) {
         return ResponseEntity.ok(eventService.getVisibleEvents(user));
@@ -83,14 +83,14 @@ public class EventController {
      */
     @Operation(summary = "Delete event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
-            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
     @DeleteMapping(value = "/delete/{eventId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId,
-                                            @Parameter(hidden = true) @CurrentUser UserVO user) {
+        @Parameter(hidden = true) @CurrentUser UserVO user) {
         eventService.deleteEvent(eventId, user);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -109,13 +109,13 @@ public class EventController {
             throw new BadRequestException("Title length must not exceed 70 characters.");
         }
         if (addEventDtoRequest.getDescription() == null
-                || addEventDtoRequest.getDescription().length() < 20
-                || addEventDtoRequest.getDescription().length() > 63206) {
+            || addEventDtoRequest.getDescription().length() < 20
+            || addEventDtoRequest.getDescription().length() > 63206) {
             throw new BadRequestException("Description must be between 20 and 63,206 characters.");
         }
         if (addEventDtoRequest.getDatesLocations() == null
-                || addEventDtoRequest.getDatesLocations().isEmpty()
-                || addEventDtoRequest.getDatesLocations().size() > 7) {
+            || addEventDtoRequest.getDatesLocations().isEmpty()
+            || addEventDtoRequest.getDatesLocations().size() > 7) {
             throw new BadRequestException("Event must contain between 1 and 7 date/location entries.");
         }
     }
@@ -198,9 +198,9 @@ public class EventController {
     }
 
     /**
-     * Endpoint for getting all events related to the authenticated user.
-     * Returns union of events created by user and events user has joined.
-     * Duplicates are removed, preferring organizer view when user is both creator and attendee.
+     * Endpoint for getting all events related to the authenticated user. Returns
+     * union of events created by user and events user has joined. Duplicates are
+     * removed, preferring organizer view when user is both creator and attendee.
      *
      * @param currentUser User that is currently logged in.
      * @param pageable    Pageable.
