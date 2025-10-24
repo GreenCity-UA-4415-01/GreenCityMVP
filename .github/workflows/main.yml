@@ -26,6 +26,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # This token is used to download all actions and for all subsequent GitHub API calls.
+    token: ${{ secrets.GH_USER_TOKEN }}
+
     # Add permissions to allow the GITHUB_TOKEN to write Check Runs
     permissions:
       checks: write
@@ -38,7 +41,6 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-          token: ${{ secrets.GH_USER_TOKEN }}
 
     # Checks-out your greencity.repository under $GITHUB_WORKSPACE, so your job can access it
 
