@@ -73,6 +73,7 @@ jobs:
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml \
              \
             -Dsonar.qualitygate.wait=true \
+            -Dsonar.ws.timeout=120 \
              \
             -Dsonar.pullrequest.key=$PR_KEY \
             -Dsonar.pullrequest.branch=$PR_BRANCH \
