@@ -103,8 +103,17 @@ public class EventServiceImpl implements EventService {
         Page<Event> events;
 
         if (eventType != null && eventType != EventType.BOTH) {
+            // Use dummy coordinates (0.0) when not provided to avoid PostgreSQL casting
+            // errors
+            // For ONLINE events: dummy coordinates are ignored by the CASE statement
+            // (eventType != 'PLACE')
+            // For PLACE events without coordinates: will filter correctly but sort by
+            // distance from (0,0)
+            Double latitude = (userLatitude != null) ? userLatitude : 0.0;
+            Double longitude = (userLongitude != null) ? userLongitude : 0.0;
+
             events = eventAttenderRepo.findJoinedEventsWithSorting(
-                userId, currentTime, eventType.name(), userLatitude, userLongitude, pageable);
+                userId, currentTime, eventType.name(), latitude, longitude, pageable);
         } else {
             events = eventAttenderRepo.findJoinedEventsDefaultSorting(
                 userId, currentTime, pageable);
@@ -121,6 +130,22 @@ public class EventServiceImpl implements EventService {
     @Transactional
     public Page<EventPreviewDto> getMyCreatedEvents(Long userId, Pageable pageable) {
         Page<Event> events = eventRepository.findByOrganizerIdOrderByNearestStart(userId, pageable);
+
+        // Get current user to check roles
+        UserVO currentUser = userService.findById(userId);
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+
+        List<EventPreviewDto> eventPreviews = events.getContent().stream()
+            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+            .collect(Collectors.toList());
+
+        return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
+    }
+
+    @Override
+    @Transactional
+    public Page<EventPreviewDto> getRelatedEvents(Long userId, Pageable pageable) {
+        Page<Event> events = eventRepository.findRelatedEventsByUserId(userId, pageable);
 
         // Get current user to check roles
         UserVO currentUser = userService.findById(userId);

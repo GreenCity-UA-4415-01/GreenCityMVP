@@ -16,7 +16,8 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
     @Query("""
         SELECT e FROM Event e
         WHERE e.id IN (
-            SELECT DISTINCT ea.eventId FROM EventAttender ea
+            SELECT DISTINCT ea.eventId
+            FROM EventAttender ea
             JOIN EventDateTimeLocation edtl ON edtl.event.id = ea.eventId
             WHERE ea.userId = :userId
             AND edtl.startDate >= :currentTime
@@ -26,10 +27,11 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
         )
         ORDER BY
             CASE WHEN :eventType = 'PLACE' AND :userLatitude IS NOT NULL AND :userLongitude IS NOT NULL
-                 THEN (SELECT MIN(6371 * acos(cos(radians(:userLatitude)) * cos(radians(loc.latitude)) *
-                       cos(radians(loc.longitude) - radians(:userLongitude)) +
-                       sin(radians(:userLatitude)) * sin(radians(loc.latitude))))
-                       FROM EventDateTimeLocation loc WHERE loc.event.id = e.id
+                 THEN (SELECT MIN(6371 * acos(cos(radians(CAST(:userLatitude AS double))) * cos(radians(loc.latitude)) *
+                       cos(radians(loc.longitude) - radians(CAST(:userLongitude AS double))) +
+                       sin(radians(CAST(:userLatitude AS double))) * sin(radians(loc.latitude))))
+                       FROM EventDateTimeLocation loc
+                       WHERE loc.event.id = e.id
                        AND loc.startDate >= :currentTime
                        AND loc.latitude IS NOT NULL AND loc.longitude IS NOT NULL)
                  ELSE e.id END ASC

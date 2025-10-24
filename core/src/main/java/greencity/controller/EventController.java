@@ -181,7 +181,7 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
-    @GetMapping("/myCreatedEvents")
+    @GetMapping("/myEvents/createdEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
         @Parameter(hidden = true) @CurrentUser UserVO currentUser,
@@ -189,6 +189,27 @@ public class EventController {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), pageable);
+
+        return ResponseEntity.ok(events);
+    }
+
+    /**
+     * Endpoint for getting all events related to the authenticated user. Returns
+     * union of events created by user and events user has joined. Duplicates are
+     * removed, preferring organizer view when user is both creator and attendee.
+     *
+     * @param currentUser User that is currently logged in.
+     * @param pageable    Pageable.
+     * @author Oleksandr Obydalo.
+     */
+    @GetMapping("/myEvents/relatedEvents")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<EventPreviewDto>> getRelatedEvents(
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
+        validateUser(currentUser);
+
+        Page<EventPreviewDto> events = eventService.getRelatedEvents(currentUser.getId(), pageable);
 
         return ResponseEntity.ok(events);
     }
