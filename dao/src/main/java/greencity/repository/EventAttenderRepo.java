@@ -14,19 +14,24 @@ import java.time.OffsetDateTime;
 @Repository
 public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAttenderId> {
     @Query("""
-        SELECT DISTINCT e FROM Event e
-        JOIN e.dateTimeLocations edtl
-        JOIN EventAttender ea ON ea.eventId = e.id
-        WHERE ea.userId = :userId
-        AND edtl.startDate >= :currentTime
-        AND (:eventType = 'BOTH' OR
-             (:eventType = 'ONLINE' AND edtl.onlineLink IS NOT NULL) OR
-             (:eventType = 'PLACE' AND edtl.latitude IS NOT NULL AND edtl.longitude IS NOT NULL))
+        SELECT e FROM Event e
+        WHERE e.id IN (
+            SELECT DISTINCT ea.eventId FROM EventAttender ea
+            JOIN EventDateTimeLocation edtl ON edtl.event.id = ea.eventId
+            WHERE ea.userId = :userId
+            AND edtl.startDate >= :currentTime
+            AND (:eventType = 'BOTH' OR
+                 (:eventType = 'ONLINE' AND edtl.onlineLink IS NOT NULL) OR
+                 (:eventType = 'PLACE' AND edtl.latitude IS NOT NULL AND edtl.longitude IS NOT NULL))
+        )
         ORDER BY
             CASE WHEN :eventType = 'PLACE' AND :userLatitude IS NOT NULL AND :userLongitude IS NOT NULL
-                 THEN (6371 * acos(cos(radians(:userLatitude)) * cos(radians(edtl.latitude)) *
-                       cos(radians(edtl.longitude) - radians(:userLongitude)) +
-                       sin(radians(:userLatitude)) * sin(radians(edtl.latitude))))
+                 THEN (SELECT MIN(6371 * acos(cos(radians(:userLatitude)) * cos(radians(loc.latitude)) *
+                       cos(radians(loc.longitude) - radians(:userLongitude)) +
+                       sin(radians(:userLatitude)) * sin(radians(loc.latitude))))
+                       FROM EventDateTimeLocation loc WHERE loc.event.id = e.id
+                       AND loc.startDate >= :currentTime
+                       AND loc.latitude IS NOT NULL AND loc.longitude IS NOT NULL)
                  ELSE e.id END ASC
         """)
     Page<Event> findJoinedEventsWithSorting(

@@ -4,6 +4,7 @@ import greencity.security.filters.AccessTokenAuthenticationFilter;
 import greencity.security.jwt.JwtTool;
 import greencity.security.providers.JwtAuthenticationProvider;
 import greencity.service.UserService;
+import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -98,7 +99,10 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception.authenticationEntryPoint((req, resp, exc) -> resp
                 .sendError(SC_UNAUTHORIZED, "Authorize first."))
                 .accessDeniedHandler((req, resp, exc) -> resp.sendError(SC_FORBIDDEN, "You don't have authorities.")))
-            .authorizeHttpRequests(req -> req
+            .authorizeHttpRequests(req -> req.dispatcherTypeMatchers(
+                DispatcherType.ERROR,
+                DispatcherType.FORWARD)
+                .permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/", "/management/", "/management/login").permitAll()
                 .requestMatchers("/v2/api-docs/**", "/v3/api-docs/**", "/swagger.json",
@@ -192,6 +196,7 @@ public class SecurityConfig {
                     "/factoftheday/",
                     "/factoftheday/all",
                     "/user/shopping-list-items/{userId}/get-all-inprogress",
+                    "/events/myEvents",
                     "/habit/assign/{habitAssignId}/allUserAndCustomList",
                     "/habit/assign/allUserAndCustomShoppingListsInprogress",
                     "/habit/assign/{habitAssignId}",
@@ -218,6 +223,7 @@ public class SecurityConfig {
                     USER_SHOPPING_LIST,
                     "/user/{userId}/habit",
                     "/habit/custom",
+                    "/events/create",
                     "/custom/shopping-list-items/{userId}/{habitId}/custom-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PUT,
@@ -251,6 +257,7 @@ public class SecurityConfig {
                     CUSTOM_SHOPPING_LIST_URL,
                     "/favorite_place/{placeId}",
                     "/social-networks",
+                    "/events/delete/{eventId}",
                     USER_CUSTOM_SHOPPING_LIST_ITEMS,
                     USER_SHOPPING_LIST + "/user-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
