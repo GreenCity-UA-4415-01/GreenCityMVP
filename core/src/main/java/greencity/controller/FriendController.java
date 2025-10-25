@@ -33,7 +33,7 @@ public class FriendController {
 
     // ------------ ЕНДПОІНТИ ---------------
 
-    /** GET /friends — всі друзі поточного користувача (поки що повертаємо Page<Long> з id) */
+    /** GET /friends — всі друзча (пі поточного користуваоки що повертаємо Page<Long> з id) */
     @GetMapping
     public Page<Long> findMyFriends(Pageable pageable, HttpServletRequest req) {
         Long me = currentUserId(req);

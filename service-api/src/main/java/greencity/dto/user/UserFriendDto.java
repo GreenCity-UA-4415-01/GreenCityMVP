@@ -1,6 +1,6 @@
 package greencity.dto.user;
-import greencity.enums.FriendshipStatus;
 
+import greencity.enums.FriendshipStatus;
 import lombok.*;
 
 @Getter
