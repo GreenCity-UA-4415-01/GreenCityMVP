@@ -173,15 +173,26 @@ public class EventController {
             @Parameter(hidden = true) @CurrentUser UserVO currentUser,
             @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
             @RequestParam(value = "eventType", required = false) EventType eventType,
-            @RequestParam(value = "status", required = false) EventStatus status,
+            @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "userLatitude", required = false) Double userLatitude,
             @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
-                currentUser.getId(), eventType, status, userLatitude, userLongitude, pageable);
+                currentUser.getId(), eventType, parseEventStatus(status), userLatitude, userLongitude, pageable);
 
         return ResponseEntity.ok(events);
+    }
+
+    private EventStatus parseEventStatus(String status) {
+        if (status == null) {
+            return null;
+        }
+        try {
+            return EventStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid event status: " + status + ". Allowed values are UPCOMING, LIVE, PASSED.");
+        }
     }
 
     @GetMapping("/myEvents/createdEvents")
@@ -189,10 +200,10 @@ public class EventController {
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
             @Parameter(hidden = true) @CurrentUser UserVO currentUser,
             @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam(value = "status", required = false) EventStatus status) {
+            @RequestParam(value = "status", required = false) String status) {
         validateUser(currentUser);
 
-        Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), status, pageable);
+        Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), parseEventStatus(status), pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -212,10 +223,10 @@ public class EventController {
     public ResponseEntity<Page<EventPreviewDto>> getRelatedEvents(
             @Parameter(hidden = true) @CurrentUser UserVO currentUser,
             @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam(value = "status", required = false) EventStatus status) {
+            @RequestParam(value = "status", required = false) String status) {
         validateUser(currentUser);
 
-        Page<EventPreviewDto> events = eventService.getRelatedEvents(currentUser.getId(), status, pageable);
+        Page<EventPreviewDto> events = eventService.getRelatedEvents(currentUser.getId(), parseEventStatus(status), pageable);
 
         return ResponseEntity.ok(events);
     }
