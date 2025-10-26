@@ -20,7 +20,6 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
             FROM EventAttender ea
             JOIN EventDateTimeLocation edtl ON edtl.event.id = ea.eventId
             WHERE ea.userId = :userId
-            AND edtl.startDate >= :currentTime
             AND (:eventType = 'BOTH' OR
                  (:eventType = 'ONLINE' AND edtl.onlineLink IS NOT NULL) OR
                  (:eventType = 'PLACE' AND edtl.latitude IS NOT NULL AND edtl.longitude IS NOT NULL))
@@ -37,23 +36,41 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
                  ELSE e.id END ASC
         """)
     Page<Event> findJoinedEventsWithSorting(
-        @Param("userId") Long userId,
-        @Param("currentTime") OffsetDateTime currentTime,
-        @Param("eventType") String eventType,
-        @Param("userLatitude") Double userLatitude,
-        @Param("userLongitude") Double userLongitude,
-        Pageable pageable);
+            @Param("userId") Long userId,
+            @Param("currentTime") OffsetDateTime currentTime,
+            @Param("eventType") String eventType,
+            @Param("userLatitude") Double userLatitude,
+            @Param("userLongitude") Double userLongitude,
+            Pageable pageable);
 
     @Query("""
         SELECT DISTINCT e FROM Event e
         JOIN e.dateTimeLocations edtl
         JOIN EventAttender ea ON ea.eventId = e.id
         WHERE ea.userId = :userId
-        AND edtl.startDate >= :currentTime
+        AND edtl.startDate >= :currentTime OR edtl.startDate < :currentTime
         ORDER BY e.id ASC
         """)
     Page<Event> findJoinedEventsDefaultSorting(
-        @Param("userId") Long userId,
-        @Param("currentTime") OffsetDateTime currentTime,
-        Pageable pageable);
+            @Param("userId") Long userId,
+            @Param("currentTime") OffsetDateTime currentTime,
+            Pageable pageable);
+
+    /**
+     * Check if a user is an attender of a specific event.
+     *
+     * @param eventId the ID of the event
+     * @param userId  the ID of the user
+     * @return true if the user is an attender, false otherwise
+     */
+    boolean existsByEventIdAndUserId(Long eventId, Long userId);
+
+    /**
+     * Delete an attender from an event.
+     *
+     * @param eventId the ID of the event
+     * @param userId  the ID of the user
+     * @return number of deleted records
+     */
+    int deleteByEventIdAndUserId(Long eventId, Long userId);
 }
