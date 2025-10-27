@@ -49,28 +49,28 @@ public class EventServiceImpl implements EventService {
     public EventDto createEvent(AddEventDtoRequest dto, MultipartFile[] images, Long organizerId) {
         validateEvent(dto, images);
         Event event = Event.builder()
-                .title(dto.getTitle().trim())
-                .description(dto.getDescription().trim())
-                .open(dto.isOpen())
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .title(dto.getTitle().trim())
+            .description(dto.getDescription().trim())
+            .open(dto.isOpen())
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         event = eventRepository.save(event);
 
         Event finalEvent = event;
         List<EventDateTimeLocation> dateLocations = dto.getDatesLocations().stream()
-                .map(d -> EventDateTimeLocation.builder()
-                        .event(finalEvent)
-                        .startDate(d.getStartDate())
-                        .finishDate(d.getFinishDate())
-                        .latitude(d.getLatitude())
-                        .longitude(d.getLongitude())
-                        .onlineLink(d.getOnlineLink())
-                        .createdAt(OffsetDateTime.now())
-                        .updatedAt(null)
-                        .build())
-                .collect(Collectors.toList());
+            .map(d -> EventDateTimeLocation.builder()
+                .event(finalEvent)
+                .startDate(d.getStartDate())
+                .finishDate(d.getFinishDate())
+                .latitude(d.getLatitude())
+                .longitude(d.getLongitude())
+                .onlineLink(d.getOnlineLink())
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(null)
+                .build())
+            .collect(Collectors.toList());
 
         dateTimeLocationRepository.saveAll(dateLocations);
         event.setDateTimeLocations(dateLocations);
@@ -80,11 +80,11 @@ public class EventServiceImpl implements EventService {
 
         for (int i = 0; i < imagePaths.size(); i++) {
             EventImage img = EventImage.builder()
-                    .event(event)
-                    .imagePath(imagePaths.get(i))
-                    .main(i == 0) // перше зображення — головне
-                    .createdAt(OffsetDateTime.now())
-                    .build();
+                .event(event)
+                .imagePath(imagePaths.get(i))
+                .main(i == 0) // перше зображення — головне
+                .createdAt(OffsetDateTime.now())
+                .build();
             eventImages.add(img);
         }
 
@@ -97,28 +97,31 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional()
     public Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, Double userLatitude,
-                                             Double userLongitude, Pageable pageable) {
+        Double userLongitude, Pageable pageable) {
         OffsetDateTime currentTime = OffsetDateTime.now();
 
         Page<Event> events;
 
         if (eventType != null && eventType != EventType.BOTH) {
-            // Use dummy coordinates (0.0) when not provided to avoid PostgreSQL casting errors
-            // For ONLINE events: dummy coordinates are ignored by the CASE statement (eventType != 'PLACE')
-            // For PLACE events without coordinates: will filter correctly but sort by distance from (0,0)
+            // Use dummy coordinates (0.0) when not provided to avoid PostgreSQL casting
+            // errors
+            // For ONLINE events: dummy coordinates are ignored by the CASE statement
+            // (eventType != 'PLACE')
+            // For PLACE events without coordinates: will filter correctly but sort by
+            // distance from (0,0)
             Double latitude = (userLatitude != null) ? userLatitude : 0.0;
             Double longitude = (userLongitude != null) ? userLongitude : 0.0;
 
             events = eventAttenderRepo.findJoinedEventsWithSorting(
-                    userId, currentTime, eventType.name(), latitude, longitude, pageable);
+                userId, currentTime, eventType.name(), latitude, longitude, pageable);
         } else {
             events = eventAttenderRepo.findJoinedEventsDefaultSorting(
-                    userId, currentTime, pageable);
+                userId, currentTime, pageable);
         }
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(this::toEventPreviewDto)
-                .collect(Collectors.toList());
+            .map(this::toEventPreviewDto)
+            .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -133,8 +136,8 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
-                .collect(Collectors.toList());
+            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+            .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -149,8 +152,8 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
-                .collect(Collectors.toList());
+            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+            .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -158,105 +161,105 @@ public class EventServiceImpl implements EventService {
     private EventPreviewDto toEventPreviewDto(Event event) {
         // Find the nearest start date
         OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
-                .map(EventDateTimeLocation::getStartDate)
-                .min(OffsetDateTime::compareTo)
-                .orElse(null);
+            .map(EventDateTimeLocation::getStartDate)
+            .min(OffsetDateTime::compareTo)
+            .orElse(null);
 
         // Find the corresponding finish date for the nearest start date
         OffsetDateTime nearestFinish = event.getDateTimeLocations().stream()
-                .filter(loc -> loc.getStartDate().equals(nearestStart))
-                .findFirst()
-                .map(EventDateTimeLocation::getFinishDate)
-                .orElse(null);
+            .filter(loc -> loc.getStartDate().equals(nearestStart))
+            .findFirst()
+            .map(EventDateTimeLocation::getFinishDate)
+            .orElse(null);
 
         // Determine event status using actual finish date
         EventStatus status = determineEventStatus(nearestStart, nearestFinish);
 
         // Get the first date location for coordinates and online link
         EventDateTimeLocation firstLocation = event.getDateTimeLocations().stream()
-                .findFirst()
-                .orElse(null);
+            .findFirst()
+            .orElse(null);
 
         // Get main image
         String titleImage = event.getImages().stream()
-                .filter(EventImage::isMain)
-                .findFirst()
-                .map(EventImage::getImagePath)
-                .orElse(null);
+            .filter(EventImage::isMain)
+            .findFirst()
+            .map(EventImage::getImagePath)
+            .orElse(null);
 
         return EventPreviewDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .description(event.getDescription())
-                .open(event.isOpen())
-                .organizerId(event.getOrganizerId())
-                .titleImage(titleImage)
-                .createdAt(event.getCreatedAt())
-                .updatedAt(event.getUpdatedAt())
-                .status(status)
-                .nearestStart(nearestStart)
-                .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
-                .isFavourite(false) // TODO: Implement when favorites feature is added
-                .isSubscribed(false) // TODO: Implement when subscription feature is added
-                .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
-                .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
-                .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
-                .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
-                .build();
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .open(event.isOpen())
+            .organizerId(event.getOrganizerId())
+            .titleImage(titleImage)
+            .createdAt(event.getCreatedAt())
+            .updatedAt(event.getUpdatedAt())
+            .status(status)
+            .nearestStart(nearestStart)
+            .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
+            .isFavourite(false) // TODO: Implement when favorites feature is added
+            .isSubscribed(false) // TODO: Implement when subscription feature is added
+            .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
+            .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
+            .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
+            .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
+            .build();
     }
 
     private EventPreviewDto toEventPreviewDtoWithCanEdit(Event event, Long currentUserId, boolean isAdmin) {
         // Find the nearest start date
         OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
-                .map(EventDateTimeLocation::getStartDate)
-                .min(OffsetDateTime::compareTo)
-                .orElse(null);
+            .map(EventDateTimeLocation::getStartDate)
+            .min(OffsetDateTime::compareTo)
+            .orElse(null);
 
         // Find the corresponding finish date for the nearest start date
         OffsetDateTime nearestFinish = event.getDateTimeLocations().stream()
-                .filter(loc -> loc.getStartDate().equals(nearestStart))
-                .findFirst()
-                .map(EventDateTimeLocation::getFinishDate)
-                .orElse(null);
+            .filter(loc -> loc.getStartDate().equals(nearestStart))
+            .findFirst()
+            .map(EventDateTimeLocation::getFinishDate)
+            .orElse(null);
 
         // Determine event status using actual finish date
         EventStatus status = determineEventStatus(nearestStart, nearestFinish);
 
         // Get the first date location for coordinates and online link
         EventDateTimeLocation firstLocation = event.getDateTimeLocations().stream()
-                .findFirst()
-                .orElse(null);
+            .findFirst()
+            .orElse(null);
 
         // Get main image
         String titleImage = event.getImages().stream()
-                .filter(EventImage::isMain)
-                .findFirst()
-                .map(EventImage::getImagePath)
-                .orElse(null);
+            .filter(EventImage::isMain)
+            .findFirst()
+            .map(EventImage::getImagePath)
+            .orElse(null);
 
         // Determine canEdit: true if user is organizer or admin
         boolean canEdit = event.getOrganizerId().equals(currentUserId) || isAdmin;
 
         return EventPreviewDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .description(event.getDescription())
-                .open(event.isOpen())
-                .organizerId(event.getOrganizerId())
-                .titleImage(titleImage)
-                .createdAt(event.getCreatedAt())
-                .updatedAt(event.getUpdatedAt())
-                .status(status)
-                .nearestStart(nearestStart)
-                .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
-                .canEdit(canEdit)
-                .isFavourite(false) // TODO: Implement when favorites feature is added
-                .isSubscribed(false) // TODO: Implement when subscription feature is added
-                .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
-                .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
-                .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
-                .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
-                .build();
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .open(event.isOpen())
+            .organizerId(event.getOrganizerId())
+            .titleImage(titleImage)
+            .createdAt(event.getCreatedAt())
+            .updatedAt(event.getUpdatedAt())
+            .status(status)
+            .nearestStart(nearestStart)
+            .canCancelJoin(status != EventStatus.LIVE && status != EventStatus.PASSED)
+            .canEdit(canEdit)
+            .isFavourite(false) // TODO: Implement when favorites feature is added
+            .isSubscribed(false) // TODO: Implement when subscription feature is added
+            .visibility(event.isOpen() ? "PUBLIC" : "PRIVATE")
+            .latitude(firstLocation != null ? firstLocation.getLatitude() : null)
+            .longitude(firstLocation != null ? firstLocation.getLongitude() : null)
+            .onlineLink(firstLocation != null ? firstLocation.getOnlineLink() : null)
+            .build();
     }
 
     private EventStatus determineEventStatus(OffsetDateTime nearestStart, OffsetDateTime finishDate) {
@@ -285,7 +288,7 @@ public class EventServiceImpl implements EventService {
      */
     public EventDto getEventById(Long eventId) {
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
+            .orElseThrow(() -> new NotFoundException("Event with id " + eventId + " not found"));
 
         return toEventDto(event);
     }
@@ -301,9 +304,9 @@ public class EventServiceImpl implements EventService {
         List<Event> allEvents = eventRepository.findAll();
 
         return allEvents.stream()
-                .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
-                .map(this::toEventDto)
-                .collect(Collectors.toList());
+            .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
+            .map(this::toEventDto)
+            .collect(Collectors.toList());
     }
 
     /**
@@ -325,42 +328,42 @@ public class EventServiceImpl implements EventService {
      */
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
-                .map(loc -> EventDateLocationDto.builder()
-                        .startDate(loc.getStartDate())
-                        .finishDate(loc.getFinishDate())
-                        .latitude(loc.getLatitude())
-                        .longitude(loc.getLongitude())
-                        .onlineLink(loc.getOnlineLink())
-                        .build())
-                .collect(Collectors.toList());
+            .map(loc -> EventDateLocationDto.builder()
+                .startDate(loc.getStartDate())
+                .finishDate(loc.getFinishDate())
+                .latitude(loc.getLatitude())
+                .longitude(loc.getLongitude())
+                .onlineLink(loc.getOnlineLink())
+                .build())
+            .collect(Collectors.toList());
 
         List<String> imageUrls = event.getImages().stream()
-                .map(EventImage::getImagePath)
-                .collect(Collectors.toList());
+            .map(EventImage::getImagePath)
+            .collect(Collectors.toList());
 
         // Compute event status based on date/time occurrences
         EventStatusCalculator.EventStatusResult statusResult =
-                EventStatusCalculator.computeStatus(event.getDateTimeLocations(), OffsetDateTime.now());
+            EventStatusCalculator.computeStatus(event.getDateTimeLocations(), OffsetDateTime.now());
 
         return EventDto.builder()
-                .id(event.getId())
-                .title(event.getTitle())
-                .description(event.getDescription())
-                .open(event.isOpen())
-                .organizerId(event.getOrganizerId())
-                .titleImage(event.getImages().stream()
-                        .filter(EventImage::isMain)
-                        .findFirst()
-                        .map(EventImage::getImagePath)
-                        .orElse(null))
-                .createdAt(event.getCreatedAt())
-                .updatedAt(event.getUpdatedAt())
-                .datesLocations(dateDtos)
-                .imageUrls(imageUrls)
-                .status(statusResult.getStatus())
-                .nearestStart(statusResult.getNearestStart())
-                .nearestFinish(statusResult.getNearestFinish())
-                .build();
+            .id(event.getId())
+            .title(event.getTitle())
+            .description(event.getDescription())
+            .open(event.isOpen())
+            .organizerId(event.getOrganizerId())
+            .titleImage(event.getImages().stream()
+                .filter(EventImage::isMain)
+                .findFirst()
+                .map(EventImage::getImagePath)
+                .orElse(null))
+            .createdAt(event.getCreatedAt())
+            .updatedAt(event.getUpdatedAt())
+            .datesLocations(dateDtos)
+            .imageUrls(imageUrls)
+            .status(statusResult.getStatus())
+            .nearestStart(statusResult.getNearestStart())
+            .nearestFinish(statusResult.getNearestFinish())
+            .build();
     }
 
     /**
@@ -374,8 +377,8 @@ public class EventServiceImpl implements EventService {
         }
 
         if (dto.getDescription() == null
-                || dto.getDescription().length() < 20
-                || dto.getDescription().length() > 63206) {
+            || dto.getDescription().length() < 20
+            || dto.getDescription().length() > 63206) {
             throw new BadRequestException("Description must be between 20 and 63,206 characters");
         }
 
@@ -447,8 +450,8 @@ public class EventServiceImpl implements EventService {
         eventRepository.deleteById(id);
 
         List<String> imagesToDelete = eventDto.getImageUrls() != null
-                ? new ArrayList<>(eventDto.getImageUrls())
-                : Collections.emptyList();
+            ? new ArrayList<>(eventDto.getImageUrls())
+            : Collections.emptyList();
 
         imagesToDelete.forEach(imageStorageService::deleteImage);
     }
@@ -461,8 +464,8 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDto findById(Long id) {
         Event event = eventRepository
-                .findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id));
+            .findById(id)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id));
         return toEventDto(event);
     }
 
@@ -474,7 +477,7 @@ public class EventServiceImpl implements EventService {
     public boolean addAttender(Long eventId, UserVO user) {
         // Check if event exists
         eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
 
         // Check if user is already an attender
         if (eventAttenderRepo.existsByEventIdAndUserId(eventId, user.getId())) {
@@ -483,10 +486,10 @@ public class EventServiceImpl implements EventService {
 
         // Create new attender record
         EventAttender attender = EventAttender.builder()
-                .eventId(eventId)
-                .userId(user.getId())
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .eventId(eventId)
+            .userId(user.getId())
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         eventAttenderRepo.save(attender);
         return true;
@@ -500,7 +503,7 @@ public class EventServiceImpl implements EventService {
     public boolean removeAttender(Long eventId, UserVO user) {
         // Check if event exists
         Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
 
         // Check if event status is PASSED - disallow cancellation
         EventDto eventDto = toEventDto(event);

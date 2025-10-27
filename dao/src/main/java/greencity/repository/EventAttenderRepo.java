@@ -36,12 +36,12 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
                  ELSE e.id END ASC
         """)
     Page<Event> findJoinedEventsWithSorting(
-            @Param("userId") Long userId,
-            @Param("currentTime") OffsetDateTime currentTime,
-            @Param("eventType") String eventType,
-            @Param("userLatitude") Double userLatitude,
-            @Param("userLongitude") Double userLongitude,
-            Pageable pageable);
+        @Param("userId") Long userId,
+        @Param("currentTime") OffsetDateTime currentTime,
+        @Param("eventType") String eventType,
+        @Param("userLatitude") Double userLatitude,
+        @Param("userLongitude") Double userLongitude,
+        Pageable pageable);
 
     @Query("""
         SELECT DISTINCT e FROM Event e
@@ -52,9 +52,9 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
         ORDER BY e.id ASC
         """)
     Page<Event> findJoinedEventsDefaultSorting(
-            @Param("userId") Long userId,
-            @Param("currentTime") OffsetDateTime currentTime,
-            Pageable pageable);
+        @Param("userId") Long userId,
+        @Param("currentTime") OffsetDateTime currentTime,
+        Pageable pageable);
 
     /**
      * Check if a user is an attender of a specific event.

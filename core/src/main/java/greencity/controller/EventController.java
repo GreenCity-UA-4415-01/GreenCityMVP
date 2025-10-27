@@ -47,16 +47,16 @@ public class EventController {
      * @author Kateryna Holtvianska & Oleksandr Obydalo.
      */
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+        produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
     })
     public ResponseEntity<EventDto> createEvent(
-            @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
-            @RequestPart(value = "images", required = false) MultipartFile[] images,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
+        @RequestPart("addEventDtoRequest") @Valid AddEventDtoRequest addEventDtoRequest,
+        @RequestPart(value = "images", required = false) MultipartFile[] images,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
         validateUser(currentUser);
         validateEventRequest(addEventDtoRequest);
         validateImages(images);
@@ -68,8 +68,8 @@ public class EventController {
     @GetMapping("/visible")
     @Operation(summary = "Get events visible to the current user")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     public ResponseEntity<List<EventDto>> getVisibleEvents(@AuthenticationPrincipal UserVO user) {
         return ResponseEntity.ok(eventService.getVisibleEvents(user));
@@ -84,14 +84,14 @@ public class EventController {
      */
     @Operation(summary = "Delete event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
-            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
     @DeleteMapping(value = "/delete/{eventId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId,
-                                            @Parameter(hidden = true) @CurrentUser UserVO user) {
+        @Parameter(hidden = true) @CurrentUser UserVO user) {
         eventService.deleteEvent(eventId, user);
         return ResponseEntity.status(HttpStatus.OK).build();
     }
@@ -110,13 +110,13 @@ public class EventController {
             throw new BadRequestException("Title length must not exceed 70 characters.");
         }
         if (addEventDtoRequest.getDescription() == null
-                || addEventDtoRequest.getDescription().length() < 20
-                || addEventDtoRequest.getDescription().length() > 63206) {
+            || addEventDtoRequest.getDescription().length() < 20
+            || addEventDtoRequest.getDescription().length() > 63206) {
             throw new BadRequestException("Description must be between 20 and 63,206 characters.");
         }
         if (addEventDtoRequest.getDatesLocations() == null
-                || addEventDtoRequest.getDatesLocations().isEmpty()
-                || addEventDtoRequest.getDatesLocations().size() > 7) {
+            || addEventDtoRequest.getDatesLocations().isEmpty()
+            || addEventDtoRequest.getDatesLocations().size() > 7) {
             throw new BadRequestException("Event must contain between 1 and 7 date/location entries.");
         }
     }
@@ -170,15 +170,15 @@ public class EventController {
     @GetMapping("/myEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-            @RequestParam(value = "eventType", required = false) EventType eventType,
-            @RequestParam(value = "userLatitude", required = false) Double userLatitude,
-            @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+        @RequestParam(value = "eventType", required = false) EventType eventType,
+        @RequestParam(value = "userLatitude", required = false) Double userLatitude,
+        @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
-                currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+            currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -186,8 +186,8 @@ public class EventController {
     @GetMapping("/myEvents/createdEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), pageable);
@@ -196,9 +196,9 @@ public class EventController {
     }
 
     /**
-     * Endpoint for getting all events related to the authenticated user.
-     * Returns union of events created by user and events user has joined.
-     * Duplicates are removed, preferring organizer view when user is both creator and attendee.
+     * Endpoint for getting all events related to the authenticated user. Returns
+     * union of events created by user and events user has joined. Duplicates are
+     * removed, preferring organizer view when user is both creator and attendee.
      *
      * @param currentUser User that is currently logged in.
      * @param pageable    Pageable.
@@ -207,8 +207,8 @@ public class EventController {
     @GetMapping("/myEvents/relatedEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getRelatedEvents(
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-            @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser,
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getRelatedEvents(currentUser.getId(), pageable);
@@ -228,14 +228,14 @@ public class EventController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Remove an attender from the event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
-            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
     public ResponseEntity<Map<String, Object>> removeAttender(
-            @PathVariable Long eventId,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        @PathVariable Long eventId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         validateUser(currentUser);
 
         boolean removed = eventService.removeAttender(eventId, currentUser);
@@ -258,14 +258,14 @@ public class EventController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Add an attender to the event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
-            @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
     public ResponseEntity<Map<String, Object>> addAttender(
-            @PathVariable Long eventId,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        @PathVariable Long eventId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         validateUser(currentUser);
 
         boolean added = eventService.addAttender(eventId, currentUser);
