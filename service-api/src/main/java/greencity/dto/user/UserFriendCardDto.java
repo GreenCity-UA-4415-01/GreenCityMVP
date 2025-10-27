@@ -8,11 +8,12 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserFriendCardDto {
-    private Long id; // candidate user id
-    private String name; // display name
-    private String profilePicture; // users.profile_picture
-    private String city; // users.city
-    private Double personalRate; // users.rating
-    private Long mutualFriends; // computed later
-    private Boolean requestSent; // true if there is a pending request from me to this user
+    private Long id;              // candidate user id
+    private String name;          // display name
+    private String username;      // optional if present in model
+    private String avatar;        // avatar url/path
+    private String city;          // city name
+    private Integer personalRate; // personal rating
+    private Integer mutualFriends;// how many mutual friends with me
+    private boolean requestSent;  // have I already sent a pending request to this user
 }
