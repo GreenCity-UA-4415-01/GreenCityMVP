@@ -468,4 +468,56 @@ public class EventServiceImpl implements EventService {
             .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + id));
         return toEventDto(event);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public boolean addAttender(Long eventId, UserVO user) {
+        // Check if event exists
+        eventRepository.findById(eventId)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+
+        // Check if user is already an attender
+        if (eventAttenderRepo.existsByEventIdAndUserId(eventId, user.getId())) {
+            return false; // Already an attender
+        }
+
+        // Create new attender record
+        EventAttender attender = EventAttender.builder()
+            .eventId(eventId)
+            .userId(user.getId())
+            .createdAt(OffsetDateTime.now())
+            .build();
+
+        eventAttenderRepo.save(attender);
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public boolean removeAttender(Long eventId, UserVO user) {
+        // Check if event exists
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+
+        // Check if event status is PASSED - disallow cancellation
+        EventDto eventDto = toEventDto(event);
+        if (eventDto.getStatus() == EventStatus.PASSED) {
+            throw new BadRequestException("Cannot cancel attendance for events that have already passed");
+        }
+
+        // Check if user is an attender
+        if (!eventAttenderRepo.existsByEventIdAndUserId(eventId, user.getId())) {
+            return false; // Not an attender
+        }
+
+        // Remove attender
+        int deletedCount = eventAttenderRepo.deleteByEventIdAndUserId(eventId, user.getId());
+        return deletedCount > 0;
+    }
 }
