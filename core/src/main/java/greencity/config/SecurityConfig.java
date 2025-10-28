@@ -91,7 +91,7 @@ public class SecurityConfig {
             config.setMaxAge(3600L);
             return config;
         }))
-            .csrf(AbstractHttpConfigurer::disable) //NOSONAR
+            .csrf(AbstractHttpConfigurer::disable) // NOSONAR
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .addFilterBefore(
                 new AccessTokenAuthenticationFilter(jwtTool, authenticationManager(), userService),
