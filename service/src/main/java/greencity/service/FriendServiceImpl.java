@@ -1,11 +1,14 @@
 package greencity.service;
 
+import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.user.UserFriendCardDto;
 import greencity.entity.User;
+import greencity.exception.exceptions.FriendExistsException;
+import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.SelfFriendException;
 import greencity.repository.FriendshipRequestRepo;
 import greencity.repository.UserRepo;
-import greencity.repository.UserSearchRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class FriendServiceImpl implements FriendService {
-    private final UserSearchRepo userSearchRepo;
     private final UserRepo userRepo;
     private final FriendshipRequestRepo friendshipRequestRepo;
 
@@ -25,40 +27,41 @@ public class FriendServiceImpl implements FriendService {
         Page<User> page = userRepo.searchCandidates(me, query, pageable);
 
         var cards = page.map(u -> UserFriendCardDto.builder()
-                .id(u.getId())
-                .name(u.getName())
-                .city(u.getCity())
-                .profilePicture(u.getProfilePicturePath())
-                .personalRate(u.getRating())
-                .mutualFriends(0L)     // TODO: add calculation later
-                .requestSent(false)    // TODO: we can insert friendship_requests
-                .build()
-        ).getContent();
+            .id(u.getId())
+            .name(u.getName())
+            .city(u.getCity())
+            .profilePicture(u.getProfilePicturePath())
+            .personalRate(u.getRating())
+            .mutualFriends(0L) // TODO: add calculation later
+            .requestSent(false) // TODO: we can insert friendship_requests
+            .build()).getContent();
 
         return new PageableDto<>(
-                cards,
-                page.getTotalElements(),
-                page.getNumber(),
-                page.getTotalPages()
-        );
+            cards,
+            page.getTotalElements(),
+            page.getNumber(),
+            page.getTotalPages());
     }
 
     @Override
     @Transactional
     public void sendFriendRequest(Long me, Long friendId) {
         if (me.equals(friendId)) {
-            throw new IllegalArgumentException("You cannot add yourself to friends.");
+            throw new SelfFriendException(ErrorMessage.USER_CANT_SELF_FRIEND);
         }
         // check both users exist
-        userRepo.findById(me).orElseThrow(() -> new IllegalArgumentException("User 'me' not found: " + me));
-        userRepo.findById(friendId).orElseThrow(() -> new IllegalArgumentException("Friend not found: " + friendId));
+        userRepo.findById(me).orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + me));
+        userRepo.findById(friendId)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + friendId));
 
         // friends already?
         if (friendshipRequestRepo.areAlreadyFriends(me, friendId)) {
-            return; // throw exception
+            throw new FriendExistsException(ErrorMessage.FRIENDSHIP_ALREADY_EXISTS);
         }
         // have pending status already?
-        if (!friendshipRequestRepo.existsPending(me, friendId)) {
+        if (friendshipRequestRepo.existsPending(me, friendId)) {
+            throw new FriendExistsException(ErrorMessage.FRIENDSHIP_REQUEST_ALREADY_EXISTS);
+        } else {
             friendshipRequestRepo.insertPending(me, friendId);
         }
     }

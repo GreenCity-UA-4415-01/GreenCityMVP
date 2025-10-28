@@ -1,7 +1,6 @@
 package greencity.entity;
 
 import lombok.*;
-
 import java.io.Serializable;
 
 @Getter

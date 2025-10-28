@@ -7,18 +7,14 @@ import greencity.constant.HttpStatuses;
 import greencity.dto.PageableDto;
 import greencity.dto.user.UserFriendCardDto;
 import greencity.dto.user.UserVO;
-import greencity.security.jwt.JwtTool;
 import greencity.service.FriendService;
-import greencity.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.*;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Locale;
 
 @RestController
@@ -28,48 +24,45 @@ public class FriendController {
     private final FriendService friendService;
 
     @Operation(summary = "Find all users that are not friend for current user")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @GetMapping("/not-friends-yet")
     @ApiPageableWithLocale
     public ResponseEntity<PageableDto<UserFriendCardDto>> findNotFriendsYet(
-            @RequestParam(defaultValue = "") String name,
-            @ValidLanguage Locale locale,
-            Pageable pageable,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
-
+        @RequestParam(defaultValue = "") String name,
+        @ValidLanguage Locale locale,
+        Pageable pageable,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         PageableDto<UserFriendCardDto> result = friendService.search(currentUser.getId(), name, pageable);
         return ResponseEntity.ok(result);
     }
 
     @Operation(summary = "Add new user friend (send request)")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @PostMapping("/{friendId}")
     public ResponseEntity<Void> sendFriendRequest(
-            @PathVariable Long friendId,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        @PathVariable Long friendId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         friendService.sendFriendRequest(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Cancel friend request")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @DeleteMapping("/{friendId}/cancel-request")
     public ResponseEntity<Void> cancelRequest(
-            @PathVariable Long friendId,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        @PathVariable Long friendId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         friendService.cancelFriendRequest(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }
-
-
 }

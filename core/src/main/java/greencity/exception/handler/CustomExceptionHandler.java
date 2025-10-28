@@ -184,6 +184,40 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
+     * Method intercept exception {@link FriendExistsException}.
+     *
+     * @param ex      Exception witch should be intercepted.
+     * @param request contain detail about occur exception
+     * @return ResponseEntity witch contain http status and body with message of
+     *         exception.
+     * @author Oleksandr Braiko
+     */
+    @ExceptionHandler(FriendExistsException.class)
+    public final ResponseEntity<Object> handleFriendExistsException(FriendExistsException ex, WebRequest request) {
+        log.info(ex.getMessage());
+        ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
+        exceptionResponse.setMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
+    }
+
+    /**
+     * Method intercept exception {@link SelfFriendException}.
+     *
+     * @param ex      Exception witch should be intercepted.
+     * @param request contain detail about occur exception
+     * @return ResponseEntity witch contain http status and body with message of
+     *         exception.
+     * @author Oleksandr Braiko
+     */
+    @ExceptionHandler(SelfFriendException.class)
+    public final ResponseEntity<Object> handleSelfFriendException(SelfFriendException ex, WebRequest request) {
+        log.info(ex.getMessage());
+        ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
+        exceptionResponse.setMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
+    }
+
+    /**
      * Method intercept exception {@link BadRequestException}.
      *
      * @param ex      Exception witch should be intercepted.

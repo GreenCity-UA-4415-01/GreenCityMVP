@@ -62,6 +62,9 @@ public final class ErrorMessage {
     public static final String USER_ALREADY_HAS_ASSIGNED_HABIT = "Current user already has assigned habit with id: ";
     public static final String USER_SUSPENDED_ASSIGNED_HABIT_FOR_CURRENT_DAY_ALREADY =
         "User already assigned and suspended this habit for today with id: ";
+    public static final String USER_CANT_SELF_FRIEND = "You cannot add yourself to friends.";
+    public static final String FRIENDSHIP_ALREADY_EXISTS = "Friendship with this user already exists.";
+    public static final String FRIENDSHIP_REQUEST_ALREADY_EXISTS = "Friendship request for this user already exists.";
     public static final String HABIT_FACT_NOT_FOUND_BY_ID = "The habitfact does not exist by id: ";
     public static final String HABIT_FACT_NOT_DELETED_BY_ID = "The habitfact does not deleted by id: ";
     public static final String SPECIFICATION_VALUE_NOT_FOUND_BY_ID =
