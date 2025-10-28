@@ -1,8 +1,6 @@
 package greencity.repository;
 
-
 import greencity.entity.User;
-import greencity.entity.Friendship;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,41 +10,48 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserSearchRepo extends JpaRepository<User, Long> {
-    /**
-     * Базовий пошук користувачів за name або username.
-     * Повертає будь-яких користувачів без відсікання друзів/себе.
-     */
-    @Query("""
-        select u
-        from User u
-        where (:q is null or :q = ''
-               or lower(u.name) like lower(concat('%', :q, '%'))
-               or lower(u.username) like lower(concat('%', :q, '%')))
-    """)
-    Page<User> search(@Param("q") String q, Pageable pageable);
 
     /**
-     * Пошук "кандидатів у друзі":
-     *  - виключає поточного користувача (:me)
-     *  - виключає вже існуючих друзів (обидва напрямки у таблиці friendships)
-     *  - фільтрує за name/username (нечутливо до регістру)
+     * Пошук кандидатів у друзі: виключає поточного користувача та тих, хто вже у friends
+     * (у будь-якому напрямі). Пошук по name, case-insensitive, у будь-якому місці рядка.
+     * За замовчуванням q може бути NULL/порожній.
+     *
+     * Таблиці: users, friendships (з нашої нової міграції).
      */
-    @Query("""
-        select u
-        from User u
-        where u.id <> :me
-          and (:q is null or :q = ''
-               or lower(u.name) like lower(concat('%', :q, '%'))
-               or lower(u.username) like lower(concat('%', :q, '%')))
-          and u.id not in (
-                select f.friend.id from Friendship f where f.user.id = :me
-          )
-          and u.id not in (
-                select f.user.id from Friendship f where f.friend.id = :me
-          )
-    """)
+    @Query(
+            value = """
+                SELECT u.*
+                FROM users u
+                WHERE u.id <> :me
+                  AND (
+                        :q IS NULL OR :q = '' OR
+                        LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%'))
+                      )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM friendships f
+                      WHERE (f.user_id = :me AND f.friend_id = u.id)
+                         OR (f.user_id = u.id AND f.friend_id = :me)
+                  )
+                """,
+            countQuery = """
+                SELECT COUNT(*)
+                FROM users u
+                WHERE u.id <> :me
+                  AND (
+                        :q IS NULL OR :q = '' OR
+                        LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%'))
+                      )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM friendships f
+                      WHERE (f.user_id = :me AND f.friend_id = u.id)
+                         OR (f.user_id = u.id AND f.friend_id = :me)
+                  )
+                """,
+            nativeQuery = true
+    )
     Page<User> searchCandidates(@Param("me") Long me,
                                 @Param("q") String q,
                                 Pageable pageable);
 }
-
