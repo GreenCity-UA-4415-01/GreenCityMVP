@@ -3,10 +3,12 @@ package greencity.service;
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.user.UserFriendCardDto;
+import greencity.entity.Friendship;
 import greencity.entity.User;
 import greencity.exception.exceptions.FriendExistsException;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.SelfFriendException;
+import greencity.repository.FriendshipRepo;
 import greencity.repository.FriendshipRequestRepo;
 import greencity.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class FriendServiceImpl implements FriendService {
     private final UserRepo userRepo;
     private final FriendshipRequestRepo friendshipRequestRepo;
+    private final FriendshipRepo friendshipRepo;
 
     @Override
     @Transactional(readOnly = true)
@@ -70,5 +73,38 @@ public class FriendServiceImpl implements FriendService {
     @Transactional
     public void cancelFriendRequest(Long me, Long friendId) {
         friendshipRequestRepo.deletePending(me, friendId);
+    }
+
+    /**
+     * Method to delete {@link Friendship} between Users.
+     *
+     * @param userId   Current User Id.
+     * @param friendId Target User Id.
+     * @author Oleksandr Braiko
+     */
+    @Override
+    @Transactional
+    public void unfriendUser(Long userId, Long friendId) {
+        validateUsersPair(userId, friendId);
+        if (!friendshipRepo.existsByUserIdAndFriendId(userId, friendId)) {
+            throw new NotFoundException(ErrorMessage.FRIENDSHIP_NOT_FOUND);
+        }
+        friendshipRepo.deleteByUserIdAndFriendId(userId, friendId);
+    }
+
+    /**
+     * Helper method to ensure two users are not equal and both exist.
+     *
+     * @param userId   Current User Id.
+     * @param friendId Target User Id.
+     * @author Oleksandr Braiko
+     */
+    private void validateUsersPair(Long userId, Long friendId) {
+        if (userId.equals(friendId)) {
+            throw new SelfFriendException(ErrorMessage.USER_CANT_SELF_FRIEND);
+        }
+        userRepo.findById(userId).orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId));
+        userRepo.findById(friendId)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + friendId));
     }
 }

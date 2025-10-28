@@ -1,14 +1,15 @@
 package greencity.repository;
 
+import greencity.entity.FriendRequest;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public interface FriendshipRequestRepo extends CrudRepository<Object, Long> {
+public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Long> {
     @Modifying
     @Transactional
     @Query(

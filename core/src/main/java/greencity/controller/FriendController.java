@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.Locale;
 
@@ -63,6 +64,22 @@ public class FriendController {
         @PathVariable Long friendId,
         @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         friendService.cancelFriendRequest(currentUser.getId(), friendId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Unfriend another user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    @DeleteMapping("/{friendId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> unfriendUser(
+        @PathVariable Long friendId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        friendService.unfriendUser(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }
 }
