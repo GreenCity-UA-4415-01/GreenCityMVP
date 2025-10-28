@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class FriendSearchServiceImpl implements FriendSearchService {
+public class FriendServiceImpl implements FriendService {
     private final UserSearchRepo userSearchRepo;
     private final UserRepo userRepo;
     private final FriendshipRequestRepo friendshipRequestRepo;
@@ -22,7 +22,7 @@ public class FriendSearchServiceImpl implements FriendSearchService {
     @Override
     @Transactional(readOnly = true)
     public PageableDto<UserFriendCardDto> search(Long me, String query, Pageable pageable) {
-        Page<User> page = userSearchRepo.searchCandidates(me, query, pageable);
+        Page<User> page = userRepo.searchCandidates(me, query, pageable);
 
         var cards = page.map(u -> UserFriendCardDto.builder()
                 .id(u.getId())
@@ -30,8 +30,8 @@ public class FriendSearchServiceImpl implements FriendSearchService {
                 .city(u.getCity())
                 .profilePicture(u.getProfilePicturePath())
                 .personalRate(u.getRating())
-                .mutualFriends(0L)     // TODO: добавим расчёт позже
-                .requestSent(false)    // TODO: можно подставлять из friendship_requests
+                .mutualFriends(0L)     // TODO: add calculation later
+                .requestSent(false)    // TODO: we can insert friendship_requests
                 .build()
         ).getContent();
 
@@ -49,15 +49,15 @@ public class FriendSearchServiceImpl implements FriendSearchService {
         if (me.equals(friendId)) {
             throw new IllegalArgumentException("You cannot add yourself to friends.");
         }
-        // проверим, что оба пользователя существуют
+        // check both users exist
         userRepo.findById(me).orElseThrow(() -> new IllegalArgumentException("User 'me' not found: " + me));
         userRepo.findById(friendId).orElseThrow(() -> new IllegalArgumentException("Friend not found: " + friendId));
 
-        // уже друзья?
+        // friends already?
         if (friendshipRequestRepo.areAlreadyFriends(me, friendId)) {
-            return; // или бросаем исключение — на твой вкус
+            return; // throw exception
         }
-        // уже есть pending?
+        // have pending status already?
         if (!friendshipRequestRepo.existsPending(me, friendId)) {
             friendshipRequestRepo.insertPending(me, friendId);
         }

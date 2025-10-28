@@ -1,14 +1,17 @@
 package greencity.controller;
 
 import greencity.annotations.ApiPageableWithLocale;
+import greencity.annotations.CurrentUser;
 import greencity.annotations.ValidLanguage;
 import greencity.constant.HttpStatuses;
 import greencity.dto.PageableDto;
 import greencity.dto.user.UserFriendCardDto;
+import greencity.dto.user.UserVO;
 import greencity.security.jwt.JwtTool;
-import greencity.service.FriendSearchService;
+import greencity.service.FriendService;
 import greencity.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -21,16 +24,8 @@ import java.util.Locale;
 @RestController
 @RequestMapping("/friends")
 @RequiredArgsConstructor
-public class FriendSearchController {
-    private final FriendSearchService friendSearchService;
-    private final JwtTool jwtTool;
-    private final UserService userService;
-
-    private Long currentUserId(HttpServletRequest req) {
-        String token = jwtTool.getTokenFromHttpServletRequest(req);
-        String email = jwtTool.getEmailOutOfAccessToken(token);
-        return userService.findIdByEmail(email);
-    }
+public class FriendController {
+    private final FriendService friendService;
 
     @Operation(summary = "Find all users that are not friend for current user")
     @ApiResponses({
@@ -43,10 +38,9 @@ public class FriendSearchController {
             @RequestParam(defaultValue = "") String name,
             @ValidLanguage Locale locale,
             Pageable pageable,
-            HttpServletRequest request) {
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
 
-        Long me = currentUserId(request);
-        PageableDto<UserFriendCardDto> result = friendSearchService.search(me, name, pageable);
+        PageableDto<UserFriendCardDto> result = friendService.search(currentUser.getId(), name, pageable);
         return ResponseEntity.ok(result);
     }
 
@@ -59,9 +53,8 @@ public class FriendSearchController {
     @PostMapping("/{friendId}")
     public ResponseEntity<Void> sendFriendRequest(
             @PathVariable Long friendId,
-            HttpServletRequest request) {
-        Long me = currentUserId(request);
-        friendSearchService.sendFriendRequest(me, friendId);
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        friendService.sendFriendRequest(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }
 
@@ -73,9 +66,10 @@ public class FriendSearchController {
     @DeleteMapping("/{friendId}/cancel-request")
     public ResponseEntity<Void> cancelRequest(
             @PathVariable Long friendId,
-            HttpServletRequest request) {
-        Long me = currentUserId(request);
-        friendSearchService.cancelFriendRequest(me, friendId);
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        friendService.cancelFriendRequest(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }
+
+
 }
