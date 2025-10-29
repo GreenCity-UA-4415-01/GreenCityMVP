@@ -97,7 +97,7 @@ public class EventServiceImpl implements EventService {
     @Override
     @Transactional()
     public Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, EventStatus status,
-                                             Double userLatitude, Double userLongitude, Pageable pageable) {
+        Double userLatitude, Double userLongitude, Pageable pageable) {
         OffsetDateTime currentTime = OffsetDateTime.now();
 
         Page<Event> events;
@@ -120,9 +120,9 @@ public class EventServiceImpl implements EventService {
         }
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(this::toEventPreviewDto)
-                .filter(event -> status == null || event.getStatus() == status)
-                .collect(Collectors.toList());
+            .map(this::toEventPreviewDto)
+            .filter(event -> status == null || event.getStatus() == status)
+            .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -137,9 +137,9 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
-                .filter(event -> status == null || event.getStatus() == status)
-                .collect(Collectors.toList());
+            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+            .filter(event -> status == null || event.getStatus() == status)
+            .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -154,9 +154,9 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
-                .filter(event -> status == null || event.getStatus() == status)
-                .collect(Collectors.toList());
+            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+            .filter(event -> status == null || event.getStatus() == status)
+            .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -240,9 +240,10 @@ public class EventServiceImpl implements EventService {
             .map(EventImage::getImagePath)
             .orElse(null);
 
-        // Determine canEdit: true if user is organizer or admin, but false for PASSED events
+        // Determine canEdit: true if user is organizer or admin, but false for PASSED
+        // events
         boolean canEdit = (event.getOrganizerId().equals(currentUserId) || isAdmin)
-                && status != EventStatus.PASSED;
+            && status != EventStatus.PASSED;
 
         return EventPreviewDto.builder()
             .id(event.getId())

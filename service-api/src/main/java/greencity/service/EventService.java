@@ -59,7 +59,7 @@ public interface EventService {
      * @return page of joined events {@link EventPreviewDto}
      */
     Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, EventStatus status,
-                                      Double userLatitude, Double userLongitude, Pageable pageable);
+        Double userLatitude, Double userLongitude, Pageable pageable);
 
     /**
      * Method that gets events created by the current user with capability flags for
@@ -97,7 +97,7 @@ public interface EventService {
      * @return page of related events {@link EventPreviewDto} with appropriate flags
      */
     Page<EventPreviewDto> getRelatedEvents(Long userId, EventStatus status, Pageable pageable);
-  
+
     /**
      * Add an attender to an event.
      *
