@@ -271,7 +271,11 @@ public class SecurityConfig {
 
                 .requestMatchers(HttpMethod.DELETE, "/friends/*/cancel-request")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
-                .requestMatchers(HttpMethod.GET,
+
+                    .requestMatchers(HttpMethod.POST, "/friends/requests/*/accept", "/friends/requests/*/reject")
+                    .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
+
+                    .requestMatchers(HttpMethod.GET,
                     "/newsSubscriber",
                     "/comments",
                     "/comments/{id}",

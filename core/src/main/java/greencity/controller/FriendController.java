@@ -79,4 +79,31 @@ public class FriendController {
         friendService.unfriendUser(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Accept friend request from requesterId")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
+    @PostMapping("/requests/{requesterId}/accept")
+    public ResponseEntity<Void> accept(
+            @PathVariable Long requesterId,
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        friendService.acceptFriendRequest(currentUser.getId(), requesterId);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Reject friend request from requesterId")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
+    @PostMapping("/requests/{requesterId}/reject")
+    public ResponseEntity<Void> reject(
+            @PathVariable Long requesterId,
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        friendService.rejectFriendRequest(currentUser.getId(), requesterId);
+        return ResponseEntity.ok().build();
+    }
 }
