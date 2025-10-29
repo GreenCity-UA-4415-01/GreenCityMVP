@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd">
+
+    <!-- Create PostgreSQL function for event status calculation -->
+    <changeSet id="add-event-status-calculation-function" author="Obydalo">
+        <sql splitStatements="false"><![CDATA[
+            CREATE OR REPLACE FUNCTION calculate_event_status(
+                p_event_id BIGINT,
+                p_now TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+            )
+            RETURNS TABLE (
+                status VARCHAR(20),
+                nearest_start TIMESTAMP WITH TIME ZONE,
+                nearest_finish TIMESTAMP WITH TIME ZONE
+            )
+            LANGUAGE plpgsql
+            AS $$
+            DECLARE
+            v_has_live BOOLEAN;
+                v_has_future BOOLEAN;
+                v_nearest_start TIMESTAMP WITH TIME ZONE;
+                v_nearest_finish TIMESTAMP WITH TIME ZONE;
+                v_status VARCHAR(20);
+            BEGIN
+                -- Check if there's a LIVE occurrence: now is between start and finish of any date occurrence
+            SELECT EXISTS(
+                SELECT 1
+                FROM event_date_time_locations
+                WHERE event_id = p_event_id
+                  AND p_now >= start_date
+                  AND p_now <= finish_date
+            ) INTO v_has_live;
+
+            IF v_has_live THEN
+                    -- If LIVE, find the current occurrence
+            SELECT start_date, finish_date
+            INTO v_nearest_start, v_nearest_finish
+            FROM event_date_time_locations
+            WHERE event_id = p_event_id
+              AND p_now >= start_date
+              AND p_now <= finish_date
+            ORDER BY start_date ASC
+                LIMIT 1;
+
+            v_status := 'LIVE';
+            ELSE
+                    -- Check if there are any future occurrences
+            SELECT EXISTS(
+                SELECT 1
+                FROM event_date_time_locations
+                WHERE event_id = p_event_id
+                  AND start_date > p_now
+            ) INTO v_has_future;
+
+            IF v_has_future THEN
+                        -- If UPCOMING, find the nearest future occurrence
+            SELECT start_date, finish_date
+            INTO v_nearest_start, v_nearest_finish
+            FROM event_date_time_locations
+            WHERE event_id = p_event_id
+              AND start_date > p_now
+            ORDER BY start_date ASC
+                LIMIT 1;
+
+            v_status := 'UPCOMING';
+            ELSE
+                        -- All occurrences are PASSED
+                        v_status := 'PASSED';
+                        v_nearest_start := NULL;
+                        v_nearest_finish := NULL;
+            END IF;
+            END IF;
+
+            RETURN QUERY SELECT v_status, v_nearest_start, v_nearest_finish;
+            END;
+            $$;
+            ]]></sql>
+
+        <rollback>
+            DROP FUNCTION IF EXISTS calculate_event_status(BIGINT, TIMESTAMP WITH TIME ZONE);
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
+

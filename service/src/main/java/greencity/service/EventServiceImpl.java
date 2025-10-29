@@ -96,8 +96,8 @@ public class EventServiceImpl implements EventService {
 
     @Override
     @Transactional()
-    public Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, Double userLatitude,
-        Double userLongitude, Pageable pageable) {
+    public Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, EventStatus status,
+                                             Double userLatitude, Double userLongitude, Pageable pageable) {
         OffsetDateTime currentTime = OffsetDateTime.now();
 
         Page<Event> events;
@@ -120,15 +120,16 @@ public class EventServiceImpl implements EventService {
         }
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-            .map(this::toEventPreviewDto)
-            .collect(Collectors.toList());
+                .map(this::toEventPreviewDto)
+                .filter(event -> status == null || event.getStatus() == status)
+                .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
     @Override
     @Transactional
-    public Page<EventPreviewDto> getMyCreatedEvents(Long userId, Pageable pageable) {
+    public Page<EventPreviewDto> getMyCreatedEvents(Long userId, EventStatus status, Pageable pageable) {
         Page<Event> events = eventRepository.findByOrganizerIdOrderByNearestStart(userId, pageable);
 
         // Get current user to check roles
@@ -136,15 +137,16 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
-            .collect(Collectors.toList());
+                .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+                .filter(event -> status == null || event.getStatus() == status)
+                .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
     @Override
     @Transactional
-    public Page<EventPreviewDto> getRelatedEvents(Long userId, Pageable pageable) {
+    public Page<EventPreviewDto> getRelatedEvents(Long userId, EventStatus status, Pageable pageable) {
         Page<Event> events = eventRepository.findRelatedEventsByUserId(userId, pageable);
 
         // Get current user to check roles
@@ -152,8 +154,9 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-            .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
-            .collect(Collectors.toList());
+                .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
+                .filter(event -> status == null || event.getStatus() == status)
+                .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
@@ -237,8 +240,9 @@ public class EventServiceImpl implements EventService {
             .map(EventImage::getImagePath)
             .orElse(null);
 
-        // Determine canEdit: true if user is organizer or admin
-        boolean canEdit = event.getOrganizerId().equals(currentUserId) || isAdmin;
+        // Determine canEdit: true if user is organizer or admin, but false for PASSED events
+        boolean canEdit = (event.getOrganizerId().equals(currentUserId) || isAdmin)
+                && status != EventStatus.PASSED;
 
         return EventPreviewDto.builder()
             .id(event.getId())

@@ -72,30 +72,30 @@ class EventServiceImplTest {
 
     private UserVO createUserVO(Long id, Role role) {
         return UserVO.builder()
-            .id(id)
-            .role(role)
-            .build();
+                .id(id)
+                .role(role)
+                .build();
     }
 
     private Event createMinimalEventEntity(Long organizerId, List<String> imageUrls,
-        List<EventDateTimeLocation> dates) {
+                                           List<EventDateTimeLocation> dates) {
         List<EventImage> mockEventImages = imageUrls.stream()
-            .map(url -> EventImage.builder().imagePath(url).build())
-            .collect(Collectors.toList());
+                .map(url -> EventImage.builder().imagePath(url).build())
+                .collect(Collectors.toList());
 
         List<EventDateTimeLocation> mockDates = dates != null ? dates : Collections.emptyList();
 
         return Event.builder()
-            .id(mockEventId)
-            .organizerId(organizerId)
-            .title("Test Event")
-            .description("Test Description")
-            .open(true)
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
-            .images(mockEventImages)
-            .dateTimeLocations(mockDates)
-            .build();
+                .id(mockEventId)
+                .organizerId(organizerId)
+                .title("Test Event")
+                .description("Test Description")
+                .open(true)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .images(mockEventImages)
+                .dateTimeLocations(mockDates)
+                .build();
     }
 
     @Test
@@ -138,9 +138,9 @@ class EventServiceImplTest {
 
         // Verify the nearestStart is for a live occurrence (in the past)
         assertTrue(result.getNearestStart().isBefore(OffsetDateTime.now()) ||
-            result.getNearestStart().isEqual(OffsetDateTime.now()));
+                result.getNearestStart().isEqual(OffsetDateTime.now()));
         assertTrue(result.getNearestFinish().isAfter(OffsetDateTime.now()) ||
-            result.getNearestFinish().isEqual(OffsetDateTime.now()));
+                result.getNearestFinish().isEqual(OffsetDateTime.now()));
         verify(eventRepository).findById(eventId);
     }
 
@@ -182,10 +182,10 @@ class EventServiceImplTest {
         if (result.getStatus() == EventStatus.UPCOMING) {
             // Find the earliest start date from date locations
             OffsetDateTime earliestStart = event.getDateTimeLocations().stream()
-                .map(EventDateTimeLocation::getStartDate)
-                .filter(d -> d.isAfter(OffsetDateTime.now()))
-                .min(OffsetDateTime::compareTo)
-                .orElse(null);
+                    .map(EventDateTimeLocation::getStartDate)
+                    .filter(d -> d.isAfter(OffsetDateTime.now()))
+                    .min(OffsetDateTime::compareTo)
+                    .orElse(null);
 
             assertEquals(earliestStart, result.getNearestStart());
         }
@@ -201,8 +201,8 @@ class EventServiceImplTest {
 
         // When & Then
         NotFoundException exception = assertThrows(
-            NotFoundException.class,
-            () -> eventService.getEventById(eventId));
+                NotFoundException.class,
+                () -> eventService.getEventById(eventId));
 
         assertTrue(exception.getMessage().contains("Event with id " + eventId + " not found"));
         verify(eventRepository).findById(eventId);
@@ -288,43 +288,43 @@ class EventServiceImplTest {
     // Helper methods to create test events
     private Event createUpcomingEvent() {
         Event event = Event.builder()
-            .id(1L)
-            .title("Green City Workshop")
-            .description("Learn about sustainable living practices")
-            .open(true)
-            .organizerId(1L)
-            .titleImage("https://example.com/image.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
-            .build();
+                .id(1L)
+                .title("Green City Workshop")
+                .description("Learn about sustainable living practices")
+                .open(true)
+                .organizerId(1L)
+                .titleImage("https://example.com/image.jpg")
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
 
         // Add upcoming date locations
         List<EventDateTimeLocation> dateLocations = Arrays.asList(
-            EventDateTimeLocation.builder()
-                .id(1L)
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .createdAt(OffsetDateTime.now())
-                .build());
+                EventDateTimeLocation.builder()
+                        .id(1L)
+                        .event(event)
+                        .startDate(OffsetDateTime.now().plusDays(1))
+                        .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+                        .latitude(50.4501)
+                        .longitude(30.5234)
+                        .createdAt(OffsetDateTime.now())
+                        .build());
 
         List<EventImage> images = Arrays.asList(
-            EventImage.builder()
-                .id(1L)
-                .event(event)
-                .imagePath("https://example.com/image1.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build(),
-            EventImage.builder()
-                .id(2L)
-                .event(event)
-                .imagePath("https://example.com/image2.jpg")
-                .main(false)
-                .createdAt(OffsetDateTime.now())
-                .build());
+                EventImage.builder()
+                        .id(1L)
+                        .event(event)
+                        .imagePath("https://example.com/image1.jpg")
+                        .main(true)
+                        .createdAt(OffsetDateTime.now())
+                        .build(),
+                EventImage.builder()
+                        .id(2L)
+                        .event(event)
+                        .imagePath("https://example.com/image2.jpg")
+                        .main(false)
+                        .createdAt(OffsetDateTime.now())
+                        .build());
 
         event.setDateTimeLocations(dateLocations);
         event.setImages(images);
@@ -334,35 +334,35 @@ class EventServiceImplTest {
 
     private Event createLiveEvent() {
         Event event = Event.builder()
-            .id(1L)
-            .title("Green City Workshop")
-            .description("Learn about sustainable living practices")
-            .open(true)
-            .organizerId(1L)
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
-            .build();
+                .id(1L)
+                .title("Green City Workshop")
+                .description("Learn about sustainable living practices")
+                .open(true)
+                .organizerId(1L)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
 
         // Add live date location (currently happening)
         List<EventDateTimeLocation> dateLocations = Arrays.asList(
-            EventDateTimeLocation.builder()
-                .id(1L)
-                .event(event)
-                .startDate(OffsetDateTime.now().minusHours(1))
-                .finishDate(OffsetDateTime.now().plusHours(1))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .createdAt(OffsetDateTime.now())
-                .build());
+                EventDateTimeLocation.builder()
+                        .id(1L)
+                        .event(event)
+                        .startDate(OffsetDateTime.now().minusHours(1))
+                        .finishDate(OffsetDateTime.now().plusHours(1))
+                        .latitude(50.4501)
+                        .longitude(30.5234)
+                        .createdAt(OffsetDateTime.now())
+                        .build());
 
         List<EventImage> images = Arrays.asList(
-            EventImage.builder()
-                .id(1L)
-                .event(event)
-                .imagePath("https://example.com/image1.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build());
+                EventImage.builder()
+                        .id(1L)
+                        .event(event)
+                        .imagePath("https://example.com/image1.jpg")
+                        .main(true)
+                        .createdAt(OffsetDateTime.now())
+                        .build());
 
         event.setDateTimeLocations(dateLocations);
         event.setImages(images);
@@ -372,35 +372,35 @@ class EventServiceImplTest {
 
     private Event createPassedEvent() {
         Event event = Event.builder()
-            .id(1L)
-            .title("Green City Workshop")
-            .description("Learn about sustainable living practices")
-            .open(true)
-            .organizerId(1L)
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
-            .build();
+                .id(1L)
+                .title("Green City Workshop")
+                .description("Learn about sustainable living practices")
+                .open(true)
+                .organizerId(1L)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
 
         // Add passed date location
         List<EventDateTimeLocation> dateLocations = Arrays.asList(
-            EventDateTimeLocation.builder()
-                .id(1L)
-                .event(event)
-                .startDate(OffsetDateTime.now().minusDays(2))
-                .finishDate(OffsetDateTime.now().minusDays(1))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .createdAt(OffsetDateTime.now())
-                .build());
+                EventDateTimeLocation.builder()
+                        .id(1L)
+                        .event(event)
+                        .startDate(OffsetDateTime.now().minusDays(2))
+                        .finishDate(OffsetDateTime.now().minusDays(1))
+                        .latitude(50.4501)
+                        .longitude(30.5234)
+                        .createdAt(OffsetDateTime.now())
+                        .build());
 
         List<EventImage> images = Arrays.asList(
-            EventImage.builder()
-                .id(1L)
-                .event(event)
-                .imagePath("https://example.com/image1.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build());
+                EventImage.builder()
+                        .id(1L)
+                        .event(event)
+                        .imagePath("https://example.com/image1.jpg")
+                        .main(true)
+                        .createdAt(OffsetDateTime.now())
+                        .build());
 
         event.setDateTimeLocations(dateLocations);
         event.setImages(images);
@@ -410,44 +410,44 @@ class EventServiceImplTest {
 
     private Event createEventWithMultipleOccurrences() {
         Event event = Event.builder()
-            .id(1L)
-            .title("Green City Workshop")
-            .description("Learn about sustainable living practices")
-            .open(true)
-            .organizerId(1L)
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
-            .build();
+                .id(1L)
+                .title("Green City Workshop")
+                .description("Learn about sustainable living practices")
+                .open(true)
+                .organizerId(1L)
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(OffsetDateTime.now())
+                .build();
 
         // Add multiple date locations
         List<EventDateTimeLocation> dateLocations = Arrays.asList(
-            EventDateTimeLocation.builder()
-                .id(1L)
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .createdAt(OffsetDateTime.now())
-                .build(),
-            EventDateTimeLocation.builder()
-                .id(2L)
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(3))
-                .finishDate(OffsetDateTime.now().plusDays(3).plusHours(2))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .createdAt(OffsetDateTime.now())
-                .build());
+                EventDateTimeLocation.builder()
+                        .id(1L)
+                        .event(event)
+                        .startDate(OffsetDateTime.now().plusDays(1))
+                        .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+                        .latitude(50.4501)
+                        .longitude(30.5234)
+                        .createdAt(OffsetDateTime.now())
+                        .build(),
+                EventDateTimeLocation.builder()
+                        .id(2L)
+                        .event(event)
+                        .startDate(OffsetDateTime.now().plusDays(3))
+                        .finishDate(OffsetDateTime.now().plusDays(3).plusHours(2))
+                        .latitude(50.4501)
+                        .longitude(30.5234)
+                        .createdAt(OffsetDateTime.now())
+                        .build());
 
         List<EventImage> images = Arrays.asList(
-            EventImage.builder()
-                .id(1L)
-                .event(event)
-                .imagePath("https://example.com/image1.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build());
+                EventImage.builder()
+                        .id(1L)
+                        .event(event)
+                        .imagePath("https://example.com/image1.jpg")
+                        .main(true)
+                        .createdAt(OffsetDateTime.now())
+                        .build());
 
         event.setDateTimeLocations(dateLocations);
         event.setImages(images);
@@ -461,11 +461,11 @@ class EventServiceImplTest {
         List<String> imageUrls = Arrays.asList("path/to/img1.jpg", "path/to/img2.png");
 
         Event mockEventEntity = createMinimalEventEntity(mockOrganizerId, imageUrls,
-            Collections.singletonList(
-                EventDateTimeLocation.builder()
-                    .startDate(OffsetDateTime.now().plusDays(1))
-                    .finishDate(OffsetDateTime.now().plusDays(2))
-                    .build()));
+                Collections.singletonList(
+                        EventDateTimeLocation.builder()
+                                .startDate(OffsetDateTime.now().plusDays(1))
+                                .finishDate(OffsetDateTime.now().plusDays(2))
+                                .build()));
 
         when(eventRepository.findById(mockEventId)).thenReturn(Optional.of(mockEventEntity));
 
@@ -489,11 +489,11 @@ class EventServiceImplTest {
         List<String> imageUrls = Collections.emptyList();
 
         Event mockEventEntity = createMinimalEventEntity(mockOrganizerId, imageUrls,
-            Collections.singletonList(
-                EventDateTimeLocation.builder()
-                    .startDate(OffsetDateTime.now().plusDays(1))
-                    .finishDate(OffsetDateTime.now().plusDays(2))
-                    .build()));
+                Collections.singletonList(
+                        EventDateTimeLocation.builder()
+                                .startDate(OffsetDateTime.now().plusDays(1))
+                                .finishDate(OffsetDateTime.now().plusDays(2))
+                                .build()));
 
         when(eventRepository.findById(mockEventId)).thenReturn(Optional.of(mockEventEntity));
 
@@ -517,11 +517,11 @@ class EventServiceImplTest {
         List<String> imageUrls = Collections.emptyList();
 
         Event mockEventEntity = createMinimalEventEntity(mockOrganizerId, imageUrls,
-            Collections.singletonList(
-                EventDateTimeLocation.builder()
-                    .startDate(OffsetDateTime.now().plusDays(1))
-                    .finishDate(OffsetDateTime.now().plusDays(2))
-                    .build()));
+                Collections.singletonList(
+                        EventDateTimeLocation.builder()
+                                .startDate(OffsetDateTime.now().plusDays(1))
+                                .finishDate(OffsetDateTime.now().plusDays(2))
+                                .build()));
 
         when(eventRepository.findById(mockEventId)).thenReturn(Optional.of(mockEventEntity));
 
@@ -545,17 +545,17 @@ class EventServiceImplTest {
         List<String> imageUrls = Collections.emptyList();
 
         Event mockEventEntity = createMinimalEventEntity(mockOrganizerId, imageUrls,
-            Collections.singletonList(
-                EventDateTimeLocation.builder()
-                    .startDate(OffsetDateTime.now().plusDays(1))
-                    .finishDate(OffsetDateTime.now().plusDays(2))
-                    .build()));
+                Collections.singletonList(
+                        EventDateTimeLocation.builder()
+                                .startDate(OffsetDateTime.now().plusDays(1))
+                                .finishDate(OffsetDateTime.now().plusDays(2))
+                                .build()));
 
         when(eventRepository.findById(mockEventId)).thenReturn(Optional.of(mockEventEntity));
 
         UnauthorizedException thrown = assertThrows(UnauthorizedException.class,
-            () -> eventService.deleteEvent(mockEventId, regularUser),
-            "Expected UnauthorizedException to be thrown");
+                () -> eventService.deleteEvent(mockEventId, regularUser),
+                "Expected UnauthorizedException to be thrown");
 
         assertEquals(ErrorMessage.USER_HAS_NO_PERMISSION, thrown.getMessage());
 
@@ -575,8 +575,8 @@ class EventServiceImplTest {
         when(eventRepository.findById(mockEventId)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class,
-            () -> eventService.deleteEvent(mockEventId, user),
-            "Expected NotFoundException to be thrown when event not found");
+                () -> eventService.deleteEvent(mockEventId, user),
+                "Expected NotFoundException to be thrown when event not found");
 
         verify(eventRepository).findById(mockEventId);
 
