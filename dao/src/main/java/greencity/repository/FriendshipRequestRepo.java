@@ -12,43 +12,71 @@ public interface FriendshipRequestRepo extends CrudRepository<Object, Long> {
     @Modifying
     @Transactional
     @Query(
-        nativeQuery = true,
-        value = """
-                INSERT INTO friendship_requests (requester_id, receiver_id, status)
-                VALUES (:me, :friendId, 'PENDING')
-                ON CONFLICT (requester_id, receiver_id) DO NOTHING
-            """)
+            nativeQuery = true,
+            value = """
+            INSERT INTO friendship_requests (requester_id, receiver_id, status)
+            VALUES (:me, :friendId, 'PENDING')
+            ON CONFLICT (requester_id, receiver_id) DO NOTHING
+        """
+    )
     void insertPending(@Param("me") Long me, @Param("friendId") Long friendId);
 
     @Modifying
     @Transactional
     @Query(
-        nativeQuery = true,
-        value = """
-                DELETE FROM friendship_requests
-                WHERE requester_id = :me AND receiver_id = :friendId
-            """)
+            nativeQuery = true,
+            value = """
+            DELETE FROM friendship_requests
+            WHERE requester_id = :me AND receiver_id = :friendId
+        """
+    )
     int deletePending(@Param("me") Long me, @Param("friendId") Long friendId);
 
     @Query(
-        nativeQuery = true,
-        value = """
-                SELECT EXISTS(
-                    SELECT 1 FROM friendship_requests
-                    WHERE requester_id = :me AND receiver_id = :friendId
-                )
-            """)
+            nativeQuery = true,
+            value = """
+            SELECT EXISTS(
+                SELECT 1 FROM friendship_requests
+                WHERE requester_id = :me AND receiver_id = :friendId AND status = 'PENDING'
+            )
+        """
+    )
     boolean existsPending(@Param("me") Long me, @Param("friendId") Long friendId);
 
+    // позначити як ACCEPTED (якщо хочеш зберегти трек у таблиці реквестів)
+    @Modifying
+    @Transactional
     @Query(
-        nativeQuery = true,
-        value = """
-                SELECT EXISTS(
-                    SELECT 1 FROM friendships
-                    WHERE user_id = :me AND friend_id = :friendId
-            // WHERE (user_id = :me AND friend_id = :friendId)
-            //   OR (user_id = :friendId AND friend_id = :me)
-                )
-            """)
+            nativeQuery = true,
+            value = """
+            UPDATE friendship_requests
+            SET status = 'ACCEPTED'
+            WHERE requester_id = :requester AND receiver_id = :receiver AND status = 'PENDING'
+        """
+    )
+    int markAccepted(@Param("requester") Long requester, @Param("receiver") Long receiver);
+
+    // прибрати можливий зустрічний pending (receiver -> requester)
+    @Modifying
+    @Transactional
+    @Query(
+            nativeQuery = true,
+            value = """
+            DELETE FROM friendship_requests
+            WHERE requester_id = :a AND receiver_id = :b AND status = 'PENDING'
+        """
+    )
+    int deletePendingOneDirection(@Param("a") Long a, @Param("b") Long b);
+
+    @Query(
+            nativeQuery = true,
+            value = """
+            SELECT EXISTS(
+                SELECT 1 FROM friendships
+                WHERE (user_id = :me AND friend_id = :friendId)
+                   OR (user_id = :friendId AND friend_id = :me)
+            )
+        """
+    )
     boolean areAlreadyFriends(@Param("me") Long me, @Param("friendId") Long friendId);
 }

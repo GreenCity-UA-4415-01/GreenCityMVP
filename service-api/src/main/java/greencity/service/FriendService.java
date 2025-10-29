@@ -10,4 +10,8 @@ public interface FriendService {
     void sendFriendRequest(Long me, Long friendId); // для POST /friends/{friendId}
 
     void cancelFriendRequest(Long me, Long friendId); // опційно (кнопка “cancel request”)
+
+    void acceptFriendRequest(Long me, Long requesterId);
+    void rejectFriendRequest(Long me, Long requesterId);
+
 }
