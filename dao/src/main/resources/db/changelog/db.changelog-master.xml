@@ -181,6 +181,7 @@
     <include file="/db/changelog/logs/ch-add-columns-to-users-for-google-oauth2-Braiko.xml"/>
     <include file="db/changelog/logs/ch-fix-unique-constraint-Braiko-2.xml"/>
     <include file="db/changelog/logs/ch-add-event-status-Obydalo.xml"/>
+    <include file="/db/changelog/logs/ch-add-tables-friendships-and-requests-Moroz.xml"/>
     <include file="db/changelog/logs/ch-add-event-status-calculation-function-Obydalo.xml"/>
 </databaseChangeLog>
 

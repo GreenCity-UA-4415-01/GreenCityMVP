@@ -39,8 +39,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import org.springframework.data.domain.Page;
@@ -107,7 +105,7 @@ class EventControllerTest {
         public Object resolveArgument(MethodParameter parameter,
             ModelAndViewContainer mavContainer,
             NativeWebRequest webRequest,
-            WebDataBinderFactory binderFactory) {
+            WebDataBinderFactory binderFactory) throws Exception {
             return userVO;
         }
     }
@@ -832,7 +830,105 @@ class EventControllerTest {
     }
 
     @Test
-    void getMyCreatedEvents_ShouldReturnPassedEvents() throws Exception {
+    void removeAttender_ShouldReturn200Ok() throws Exception {
+        Long eventId = 1L;
+
+        when(eventService.removeAttender(eventId, mockUser)).thenReturn(true);
+
+        mockMvc.perform(delete("/events/removeAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.removed").value(true));
+
+        verify(eventService).removeAttender(eventId, mockUser);
+    }
+
+    @Test
+    void removeAttender_NotAttender_ShouldReturn200OkWithRemovedFalse() throws Exception {
+        Long eventId = 1L;
+
+        when(eventService.removeAttender(eventId, mockUser)).thenReturn(false);
+
+        mockMvc.perform(delete("/events/removeAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.removed").value(false));
+
+        verify(eventService).removeAttender(eventId, mockUser);
+    }
+
+    @Test
+    void removeAttender_EventNotFound_ShouldReturn404NotFound() throws Exception {
+        Long eventId = 99L;
+        String errorMessage = EVENT_NOT_FOUND_MESSAGE_PREFIX + eventId;
+
+        when(eventService.removeAttender(eventId, mockUser))
+            .thenThrow(new NotFoundException(errorMessage));
+
+        mockMvc.perform(delete("/events/removeAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    void removeAttender_EventPassed_ShouldReturn400BadRequest() throws Exception {
+        Long eventId = 1L;
+        String errorMessage = "Cannot cancel attendance for events that have already passed";
+
+        when(eventService.removeAttender(eventId, mockUser))
+            .thenThrow(new BadRequestException(errorMessage));
+
+        mockMvc.perform(delete("/events/removeAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    void addAttender_ShouldReturn200Ok() throws Exception {
+        Long eventId = 1L;
+
+        when(eventService.addAttender(eventId, mockUser)).thenReturn(true);
+
+        mockMvc.perform(post("/events/addAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.added").value(true));
+
+        verify(eventService).addAttender(eventId, mockUser);
+    }
+
+    @Test
+    void addAttender_AlreadyAttender_ShouldReturn200OkWithAddedFalse() throws Exception {
+        Long eventId = 1L;
+
+        when(eventService.addAttender(eventId, mockUser)).thenReturn(false);
+
+        mockMvc.perform(post("/events/addAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.added").value(false));
+
+        verify(eventService).addAttender(eventId, mockUser);
+    }
+
+    @Test
+    void addAttender_EventNotFound_ShouldReturn404NotFound() throws Exception {
+        Long eventId = 99L;
+        String errorMessage = EVENT_NOT_FOUND_MESSAGE_PREFIX + eventId;
+
+        when(eventService.addAttender(eventId, mockUser))
+            .thenThrow(new NotFoundException(errorMessage));
+
+        mockMvc.perform(post("/events/addAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    public void getMyCreatedEvents_ShouldReturnPassedEvents() throws Exception {
 
         EventPreviewDto passedEvent = EventPreviewDto.builder()
             .id(2L)

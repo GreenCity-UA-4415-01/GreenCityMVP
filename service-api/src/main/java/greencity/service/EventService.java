@@ -97,4 +97,22 @@ public interface EventService {
      * @return page of related events {@link EventPreviewDto} with appropriate flags
      */
     Page<EventPreviewDto> getRelatedEvents(Long userId, EventStatus status, Pageable pageable);
+  
+    /**
+     * Add an attender to an event.
+     *
+     * @param eventId the ID of the event
+     * @param user    the user to add as attender
+     * @return true if successfully added, false if already an attender
+     */
+    boolean addAttender(Long eventId, UserVO user);
+
+    /**
+     * Remove an attender from an event.
+     *
+     * @param eventId the ID of the event
+     * @param user    the user to remove as attender
+     * @return true if successfully removed, false if not an attender
+     */
+    boolean removeAttender(Long eventId, UserVO user);
 }

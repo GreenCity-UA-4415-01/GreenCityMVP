@@ -55,4 +55,22 @@ public interface EventAttenderRepo extends JpaRepository<EventAttender, EventAtt
         @Param("userId") Long userId,
         @Param("currentTime") OffsetDateTime currentTime,
         Pageable pageable);
+
+    /**
+     * Check if a user is an attender of a specific event.
+     *
+     * @param eventId the ID of the event
+     * @param userId  the ID of the user
+     * @return true if the user is an attender, false otherwise
+     */
+    boolean existsByEventIdAndUserId(Long eventId, Long userId);
+
+    /**
+     * Delete an attender from an event.
+     *
+     * @param eventId the ID of the event
+     * @param userId  the ID of the user
+     * @return number of deleted records
+     */
+    int deleteByEventIdAndUserId(Long eventId, Long userId);
 }
