@@ -67,6 +67,7 @@ jobs:
         # 3. Define the base Sonar command (always required parameters).
         # 4. Conditionally add Pull Request parameters only on pull_request events.
         # 5. Execute the final command - run the Sonar scanner conditionally (PR vs. Push).
+        # 6. Change qualitygate.wait to TRUE once we figure out how to properly incorporate incremental test reports.
         run: |
           mvn clean install verify
           echo "Generating jacoco-aggregate report required by Sonar..."
@@ -75,7 +76,6 @@ jobs:
             -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP \
             -Dsonar.organization=greencity-ua-4415-01 \
             -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml \
-#          change to true once we figure out how to properly incorporate incremental test reports.
             -Dsonar.qualitygate.wait=false \
             -Dsonar.ws.timeout=120"
           
