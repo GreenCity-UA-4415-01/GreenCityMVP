@@ -1,6 +1,7 @@
 package greencity.repository;
 
 import greencity.entity.FriendRequest;
+import greencity.entity.FriendRequestKey;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -9,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Long> {
+public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, FriendRequestKey> {
     @Modifying
     @Transactional
     @Query(
@@ -27,7 +28,9 @@ public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Long
         nativeQuery = true,
         value = """
                 DELETE FROM friendship_requests
-                WHERE requester_id = :me AND receiver_id = :friendId
+                WHERE requester_id = :me
+                            AND receiver_id = :friendId
+                            AND status = 'PENDING'
             """)
     int deletePending(@Param("me") Long me, @Param("friendId") Long friendId);
 
@@ -36,7 +39,9 @@ public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Long
         value = """
                 SELECT EXISTS(
                     SELECT 1 FROM friendship_requests
-                    WHERE requester_id = :me AND receiver_id = :friendId
+                    WHERE requester_id = :me
+                                  AND receiver_id = :friendId
+                                  AND status = 'PENDING'
                 )
             """)
     boolean existsPending(@Param("me") Long me, @Param("friendId") Long friendId);
@@ -47,8 +52,6 @@ public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Long
                 SELECT EXISTS(
                     SELECT 1 FROM friendships
                     WHERE user_id = :me AND friend_id = :friendId
-            // WHERE (user_id = :me AND friend_id = :friendId)
-            //   OR (user_id = :friendId AND friend_id = :me)
                 )
             """)
     boolean areAlreadyFriends(@Param("me") Long me, @Param("friendId") Long friendId);

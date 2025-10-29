@@ -13,11 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,7 +67,7 @@ class FriendServiceImplTest {
         verify(friendshipRepo, never()).deleteByUserIdAndFriendId(anyLong(), anyLong());
 
         String expectedMessage = ErrorMessage.USER_CANT_SELF_FRIEND;
-        assert (thrown.getMessage().contains(expectedMessage));
+        assertTrue(thrown.getMessage().contains(expectedMessage));
     }
 
     @Test
@@ -85,7 +82,7 @@ class FriendServiceImplTest {
         verify(friendshipRepo, never()).existsByUserIdAndFriendId(anyLong(), anyLong());
 
         String expectedMessage = ErrorMessage.USER_NOT_FOUND_BY_ID + userId;
-        assert(thrown.getMessage().contains(expectedMessage));
+        assertTrue(thrown.getMessage().contains(expectedMessage));
     }
 
     @Test
@@ -101,7 +98,7 @@ class FriendServiceImplTest {
         verify(friendshipRepo, never()).existsByUserIdAndFriendId(anyLong(), anyLong());
 
         String expectedMessage = ErrorMessage.USER_NOT_FOUND_BY_ID + friendId;
-        assert(thrown.getMessage().contains(expectedMessage));
+        assertTrue(thrown.getMessage().contains(expectedMessage));
     }
 
     @Test
@@ -117,7 +114,7 @@ class FriendServiceImplTest {
         verify(friendshipRepo, never()).deleteByUserIdAndFriendId(anyLong(), anyLong());
 
         String expectedMessage = ErrorMessage.FRIENDSHIP_NOT_FOUND;
-        assert(thrown.getMessage().contains(expectedMessage));
+        assertTrue(thrown.getMessage().contains(expectedMessage));
     }
 
     @Test
@@ -139,7 +136,7 @@ class FriendServiceImplTest {
 
         verify(userRepo, never()).findById(anyLong());
         String expectedMessage = ErrorMessage.USER_CANT_SELF_FRIEND;
-        assert (thrown.getMessage().contains(expectedMessage));
+        assertTrue(thrown.getMessage().contains(expectedMessage));
     }
 
     @Test
@@ -152,7 +149,7 @@ class FriendServiceImplTest {
         verify(userRepo, times(1)).findById(userId);
         verify(userRepo, never()).findById(friendId);
         String expectedMessage = ErrorMessage.USER_NOT_FOUND_BY_ID + userId;
-        assert(thrown.getMessage().contains(expectedMessage));
+        assertTrue(thrown.getMessage().contains(expectedMessage));
     }
 
     @Test
@@ -166,6 +163,6 @@ class FriendServiceImplTest {
         verify(userRepo, times(1)).findById(userId);
         verify(userRepo, times(1)).findById(friendId);
         String expectedMessage = ErrorMessage.USER_NOT_FOUND_BY_ID + friendId;
-        assert(thrown.getMessage().contains(expectedMessage));
+        assertTrue(thrown.getMessage().contains(expectedMessage));
     }
 }

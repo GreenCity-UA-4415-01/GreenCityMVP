@@ -2,7 +2,6 @@ package greencity.controller;
 
 import greencity.annotations.ApiPageableWithLocale;
 import greencity.annotations.CurrentUser;
-import greencity.annotations.ValidLanguage;
 import greencity.constant.HttpStatuses;
 import greencity.dto.PageableDto;
 import greencity.dto.user.UserFriendCardDto;
@@ -16,7 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("/friends")
@@ -33,7 +31,6 @@ public class FriendController {
     @ApiPageableWithLocale
     public ResponseEntity<PageableDto<UserFriendCardDto>> findNotFriendsYet(
         @RequestParam(defaultValue = "") String name,
-        @ValidLanguage Locale locale,
         Pageable pageable,
         @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         PageableDto<UserFriendCardDto> result = friendService.search(currentUser.getId(), name, pageable);
@@ -70,7 +67,7 @@ public class FriendController {
     @Operation(summary = "Unfriend another user")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-        @ApiResponse(responseCode = "401", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
         @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
         @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
