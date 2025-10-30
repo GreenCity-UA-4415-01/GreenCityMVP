@@ -187,7 +187,7 @@ public class EventController {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
-                currentUser.getId(), eventType, parseEventStatus(status), userLatitude, userLongitude, pageable);
+            currentUser.getId(), eventType, parseEventStatus(status), userLatitude, userLongitude, pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -199,7 +199,8 @@ public class EventController {
         try {
             return EventStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid event status: " + status + ". Allowed values are UPCOMING, LIVE, PASSED.");
+            throw new BadRequestException(
+                "Invalid event status: " + status + ". Allowed values are UPCOMING, LIVE, PASSED.");
         }
     }
 
@@ -217,7 +218,8 @@ public class EventController {
             @Parameter(description = "Filter by status: UPCOMING, LIVE, PASSED") @RequestParam(value = "status", required = false) String status) {
         validateUser(currentUser);
 
-        Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), parseEventStatus(status), pageable);
+        Page<EventPreviewDto> events =
+            eventService.getMyCreatedEvents(currentUser.getId(), parseEventStatus(status), pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -246,7 +248,8 @@ public class EventController {
             @Parameter(description = "Filter by status: UPCOMING, LIVE, PASSED") @RequestParam(value = "status", required = false) String status) {
         validateUser(currentUser);
 
-        Page<EventPreviewDto> events = eventService.getRelatedEvents(currentUser.getId(), parseEventStatus(status), pageable);
+        Page<EventPreviewDto> events =
+            eventService.getRelatedEvents(currentUser.getId(), parseEventStatus(status), pageable);
 
         return ResponseEntity.ok(events);
     }
