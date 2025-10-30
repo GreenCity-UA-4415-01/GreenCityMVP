@@ -23,6 +23,8 @@ public interface ImageStorageService {
      */
     String storeImage(MultipartFile image, Long eventId);
 
+    boolean deleteImage(String imagePath);
+
     /**
      * Deletes an image file from storage.
      *

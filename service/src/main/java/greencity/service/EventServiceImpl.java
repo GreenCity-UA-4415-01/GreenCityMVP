@@ -11,6 +11,10 @@ import greencity.enums.EventType;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
+import greencity.enums.EventStatus;
+import greencity.enums.EventType;
+import greencity.enums.Role;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +22,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
@@ -26,6 +31,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -159,6 +165,68 @@ public class EventServiceImpl implements EventService {
             .collect(Collectors.toList());
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
+    }
+
+    @Override
+    @Transactional
+    public EventDto updateEvent(Long eventId, UpdateEventDtoRequest dto, MultipartFile[] images, Long userId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new EntityNotFoundException("Event not found."));
+
+        UserVO currentUser = userService.findById(userId);
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+
+        if (!isAdmin && !event.getOrganizerId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You are not allowed to update this event");
+        }
+
+        boolean past = event.getDateTimeLocations().stream()
+            .anyMatch(d -> d.getFinishDate().isBefore(OffsetDateTime.now()));
+
+        if (past) {
+            throw new IllegalStateException("Past events cannot be edited.");
+        }
+
+        // Update basic fields
+        event.setTitle(dto.getTitle().trim());
+        event.setDescription(dto.getDescription().trim());
+        event.setUpdatedAt(OffsetDateTime.now());
+
+        // Update date/locations
+        event.getDateTimeLocations().clear();
+        dto.getDatesLocations().forEach(d -> {
+            EventDateTimeLocation dtl = EventDateTimeLocation.builder()
+                .event(event)
+                .startDate(d.getStartDate())
+                .finishDate(d.getFinishDate())
+                .latitude(d.getLatitude())
+                .longitude(d.getLongitude())
+                .onlineLink(d.getOnlineLink())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+            event.getDateTimeLocations().add(dtl);
+        });
+
+        // Update images only if new ones provided
+        if (images != null && images.length > 0) {
+            // remove old images
+            event.getImages().forEach(img -> imageStorageService.deleteImage(img.getImagePath()));
+            event.getImages().clear();
+
+            // save new images
+            List<String> newPaths = imageStorageService.storeImages(images, eventId);
+            IntStream.range(0, newPaths.size()).forEach(i -> {
+                EventImage newImg = EventImage.builder()
+                    .event(event)
+                    .imagePath(newPaths.get(i))
+                    .main(i == 0)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+                event.getImages().add(newImg);
+            });
+        }
+
+        return toEventDto(event);
     }
 
     private EventPreviewDto toEventPreviewDto(Event event) {
@@ -376,7 +444,7 @@ public class EventServiceImpl implements EventService {
      *
      * @author Kateryna Holtvianska & Oleksandr Obydalo.
      */
-    private void validateEvent(AddEventDtoRequest dto, MultipartFile[] images) {
+    private void validateEvent(EventRequest dto, MultipartFile[] images) {
         if (dto.getTitle() == null || dto.getTitle().isBlank() || dto.getTitle().length() > 70) {
             throw new BadRequestException("Title must be between 1 and 70 characters");
         }
