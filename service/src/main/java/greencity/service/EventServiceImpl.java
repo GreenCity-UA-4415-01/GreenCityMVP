@@ -428,6 +428,25 @@ public class EventServiceImpl implements EventService {
      *
      * @author Kateryna Holtvianska.
      */
+    @Override
+    public List<EventPreviewDto> searchEventsByTitle(String query) {
+        List<Event> events = eventRepository
+                .findByTitleContainingIgnoreCase(query);
+
+        if (events.isEmpty()) {
+            throw new NotFoundException("We didn't find any results matching this search.");
+        }
+
+        return events.stream()
+                .map(event -> mapper.map(event, EventPreviewDto.class))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Kateryna Holtvianska.
+     */
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
             .map(loc -> EventDateLocationDto.builder()
