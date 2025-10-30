@@ -2,9 +2,7 @@ package greencity.controller;
 
 import greencity.annotations.CurrentUser;
 import greencity.constant.HttpStatuses;
-import greencity.dto.event.AddEventDtoRequest;
-import greencity.dto.event.EventDto;
-import greencity.dto.event.EventPreviewDto;
+import greencity.dto.event.*;
 import greencity.dto.user.UserVO;
 import greencity.enums.EventType;
 import greencity.exception.exceptions.BadRequestException;
@@ -65,7 +63,29 @@ public class EventController {
         return ResponseEntity.ok(eventService.getVisibleEvents(user));
     }
 
-    private void validateEventRequest(AddEventDtoRequest addEventDtoRequest) {
+    @PutMapping(value = "/{eventId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Update events")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    public ResponseEntity<EventDto> updateEvent(
+        @PathVariable Long eventId,
+        @RequestPart("updateEventDtoRequest") @Valid UpdateEventDtoRequest dto,
+        @RequestPart(value = "images", required = false) MultipartFile[] images,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) throws IOException {
+        validateUser(currentUser);
+        validateEventRequest(dto);
+        validateImages(images);
+
+        EventDto updated = eventService.updateEvent(eventId, dto, images, currentUser.getId());
+        return ResponseEntity.ok(updated);
+    }
+
+    private void validateEventRequest(EventRequest addEventDtoRequest) {
         if (addEventDtoRequest.getTitle() == null || addEventDtoRequest.getTitle().isBlank()) {
             throw new BadRequestException("Title is required.");
         }

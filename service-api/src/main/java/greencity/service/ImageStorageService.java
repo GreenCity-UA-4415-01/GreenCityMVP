@@ -23,6 +23,8 @@ public interface ImageStorageService {
      */
     String storeImage(MultipartFile image, Long eventId);
 
+    boolean deleteImage(String imagePath);
+
     /**
      * Returns the root storage location path for event images.
      *

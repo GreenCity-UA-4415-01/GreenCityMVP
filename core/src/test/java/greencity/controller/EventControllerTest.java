@@ -3,10 +3,7 @@ package greencity.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import greencity.dto.event.AddEventDtoRequest;
-import greencity.dto.event.EventDateLocationDto;
-import greencity.dto.event.EventDto;
-import greencity.dto.event.EventPreviewDto;
+import greencity.dto.event.*;
 import greencity.dto.user.UserVO;
 import greencity.enums.EventStatus;
 import greencity.enums.EventType;
@@ -29,14 +26,12 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.List;
-
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import org.springframework.data.domain.Page;
@@ -50,6 +45,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import greencity.annotations.CurrentUser;
+import greencity.dto.event.EventDto;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -775,4 +771,169 @@ public class EventControllerTest {
             .andExpect(jsonPath("$.content[0].canEdit").value(true))
             .andExpect(jsonPath("$.totalElements").value(1));
     }
+
+    @Test
+    public void updateEvent_ShouldReturn200Ok() throws Exception {
+        UpdateEventDtoRequest updateDto = UpdateEventDtoRequest.builder()
+            .title("Updated Event")
+            .description("This is a new description with more than 20 chars")
+            .datesLocations(List.of(locationDto))
+            .build();
+
+        String json = objectMapper.writeValueAsString(updateDto);
+
+        MockMultipartFile dtoPart = new MockMultipartFile(
+            "updateEventDtoRequest",
+            "",
+            MediaType.APPLICATION_JSON_VALUE,
+            json.getBytes());
+
+        MockMultipartFile image = new MockMultipartFile(
+            "images",
+            "update.jpg",
+            MediaType.IMAGE_JPEG_VALUE,
+            createValidJpegBytes());
+
+        EventDto updatedDto = EventDto.builder()
+            .id(1L)
+            .title("Updated Event")
+            .description("This is a new description with more than 20 chars")
+            .organizerId(5L)
+            .titleImage("event-1-update.jpg")
+            .imageUrls(List.of("event-1-update.jpg"))
+            .datesLocations(List.of(locationDto))
+            .build();
+
+        when(eventService.updateEvent(eq(1L), any(UpdateEventDtoRequest.class), any(MultipartFile[].class), eq(5L)))
+            .thenReturn(updatedDto);
+
+        mockMvc.perform(multipart("/events/1")
+            .file(dtoPart)
+            .file(image)
+            .with(request -> {
+                request.setMethod("PUT");
+                return request;
+            })
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.id").value(1))
+            .andExpect(jsonPath("$.title").value("Updated Event"))
+            .andExpect(jsonPath("$.imageUrls[0]").value("event-1-update.jpg"));
+    }
+
+    @Test
+    public void updateEvent_WithoutImages_ShouldReturn200Ok() throws Exception {
+        UpdateEventDtoRequest updateDto = UpdateEventDtoRequest.builder()
+            .title("Updated Event No Images")
+            .description("Valid description without images")
+            .datesLocations(List.of(locationDto))
+            .build();
+
+        String json = objectMapper.writeValueAsString(updateDto);
+
+        MockMultipartFile dtoPart = new MockMultipartFile(
+            "updateEventDtoRequest",
+            "",
+            MediaType.APPLICATION_JSON_VALUE,
+            json.getBytes());
+
+        EventDto updatedDto = EventDto.builder()
+            .id(2L)
+            .title("Updated Event No Images")
+            .description("Valid description without images")
+            .organizerId(5L)
+            .titleImage("default-event-image.jpg")
+            .imageUrls(List.of("default-event-image.jpg"))
+            .datesLocations(List.of(locationDto))
+            .build();
+
+        when(eventService.updateEvent(eq(2L), any(UpdateEventDtoRequest.class), isNull(), eq(5L)))
+            .thenReturn(updatedDto);
+
+        mockMvc.perform(multipart("/events/2")
+            .file(dtoPart)
+            .with(request -> {
+                request.setMethod("PUT");
+                return request;
+            })
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.titleImage").value("default-event-image.jpg"))
+            .andExpect(jsonPath("$.imageUrls[0]").value("default-event-image.jpg"));
+    }
+
+    @Test
+    public void updateEvent_WithInvalidTitle_ShouldReturn400BadRequest() throws Exception {
+        UpdateEventDtoRequest updateDto = UpdateEventDtoRequest.builder()
+            .title("")
+            .description("This description is valid")
+            .datesLocations(List.of(locationDto))
+            .build();
+
+        String json = objectMapper.writeValueAsString(updateDto);
+
+        MockMultipartFile dtoPart = new MockMultipartFile(
+            "updateEventDtoRequest",
+            "",
+            MediaType.APPLICATION_JSON_VALUE,
+            json.getBytes());
+
+        when(eventService.updateEvent(eq(3L), any(UpdateEventDtoRequest.class), any(), eq(5L)))
+            .thenThrow(new BadRequestException("Title must be between 1 and 70 characters"));
+
+        mockMvc.perform(multipart("/events/3")
+            .file(dtoPart)
+            .with(request -> {
+                request.setMethod("PUT");
+                return request;
+            })
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void updateEvent_WithMoreThan5Images_ShouldReturn400BadRequest() throws Exception {
+        UpdateEventDtoRequest updateDto = UpdateEventDtoRequest.builder()
+            .title("Too many images")
+            .description("Valid description")
+            .datesLocations(List.of(locationDto))
+            .build();
+
+        String json = objectMapper.writeValueAsString(updateDto);
+
+        MockMultipartFile dtoPart = new MockMultipartFile(
+            "updateEventDtoRequest",
+            "",
+            MediaType.APPLICATION_JSON_VALUE,
+            json.getBytes());
+
+        MockMultipartFile image1 =
+            new MockMultipartFile("images", "1.jpg", MediaType.IMAGE_JPEG_VALUE, createValidJpegBytes());
+        MockMultipartFile image2 =
+            new MockMultipartFile("images", "2.jpg", MediaType.IMAGE_JPEG_VALUE, createValidJpegBytes());
+        MockMultipartFile image3 =
+            new MockMultipartFile("images", "3.jpg", MediaType.IMAGE_JPEG_VALUE, createValidJpegBytes());
+        MockMultipartFile image4 =
+            new MockMultipartFile("images", "4.jpg", MediaType.IMAGE_JPEG_VALUE, createValidJpegBytes());
+        MockMultipartFile image5 =
+            new MockMultipartFile("images", "5.jpg", MediaType.IMAGE_JPEG_VALUE, createValidJpegBytes());
+        MockMultipartFile image6 =
+            new MockMultipartFile("images", "6.jpg", MediaType.IMAGE_JPEG_VALUE, createValidJpegBytes());
+
+        mockMvc.perform(multipart("/events/4")
+            .file(dtoPart)
+            .file(image1).file(image2).file(image3).file(image4).file(image5).file(image6)
+            .with(request -> {
+                request.setMethod("PUT");
+                return request;
+            })
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest());
+    }
+
 }

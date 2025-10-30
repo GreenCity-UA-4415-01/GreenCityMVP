@@ -44,6 +44,25 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         }
     }
 
+    @Override
+    public boolean deleteImage(String imagePath) {
+        if (imagePath == null || imagePath.isBlank()) {
+            return false;
+        }
+
+        try {
+            Path target = storage.resolve(imagePath).normalize();
+            if (Files.exists(target)) {
+                Files.delete(target);
+                return true;
+            } else {
+                return false;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to delete image: " + imagePath, e);
+        }
+    }
+
     private String getExtension(String name) {
         if (name == null) {
             return ".jpg";

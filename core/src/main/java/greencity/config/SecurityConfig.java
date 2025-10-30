@@ -227,7 +227,8 @@ public class SecurityConfig {
                     "/user/profile",
                     HABIT_ASSIGN_ID + "/update-habit-duration",
                     "/habit/assign/{habitAssignId}/updateProgressNotificationHasDisplayed",
-                    HABIT_ASSIGN_ID + "/allUserAndCustomList")
+                    HABIT_ASSIGN_ID + "/allUserAndCustomList",
+                    "/events/*")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PATCH,
                     ECONEWS_COMMENTS,
