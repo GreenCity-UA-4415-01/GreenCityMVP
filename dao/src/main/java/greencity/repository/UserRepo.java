@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
@@ -140,4 +141,50 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
         + "(SELECT user_id FROM users_friends WHERE friend_id = :userId and status = 'FRIEND')"
         + "UNION (SELECT friend_id FROM users_friends WHERE user_id = :userId and status = 'FRIEND'));")
     List<User> getAllUserFriends(Long userId);
+
+    /**
+     * Пошук кандидатів у друзі: виключає поточного користувача та тих, хто вже у
+     * friends (у будь-якому напрямі). Пошук по name, case-insensitive, у будь-якому
+     * місці рядка. За замовчуванням q може бути NULL/порожній. Таблиці: users,
+     * friendships.
+     *
+     * @param userId {@link UserVO} id.
+     * @return page of {@link User}.
+     * @author Misha Moroz
+     */
+    @Query(
+        value = """
+            SELECT u.*
+            FROM users u
+            WHERE u.id <> :userId
+              AND (
+                    :q IS NULL OR :q = '' OR
+                    LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%'))
+                  )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM friendships f
+                  WHERE (f.user_id = :userId AND f.friend_id = u.id)
+                     OR (f.user_id = u.id AND f.friend_id = :userId)
+              )
+            """,
+        countQuery = """
+            SELECT COUNT(*)
+            FROM users u
+            WHERE u.id <> :userId
+              AND (
+                    :q IS NULL OR :q = '' OR
+                    LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%'))
+                  )
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM friendships f
+                  WHERE (f.user_id = :userId AND f.friend_id = u.id)
+                     OR (f.user_id = u.id AND f.friend_id = :userId)
+              )
+            """,
+        nativeQuery = true)
+    Page<User> searchCandidates(@Param("userId") Long userId,
+        @Param("q") String q,
+        Pageable pageable);
 }
