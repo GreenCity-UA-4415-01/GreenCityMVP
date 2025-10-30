@@ -6,6 +6,7 @@ import greencity.dto.event.AddEventDtoRequest;
 import greencity.dto.event.EventDto;
 import greencity.dto.event.EventPreviewDto;
 import greencity.dto.user.UserVO;
+import greencity.enums.EventStatus;
 import greencity.enums.EventType;
 import greencity.exception.exceptions.BadRequestException;
 import greencity.service.EventService;
@@ -27,7 +28,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/events")
@@ -161,6 +164,7 @@ public class EventController {
      * @param currentUser   User that is currently logged in.
      * @param pageable      Pageable.
      * @param eventType     Type of the event.
+     * @param status        Event status filter (UPCOMING, LIVE, PASSED).
      * @param userLatitude  User coordinates.
      * @param userLongitude User coordinates.
      * @author Oleksandr Obydalo.
@@ -171,24 +175,39 @@ public class EventController {
         @Parameter(hidden = true) @CurrentUser UserVO currentUser,
         @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
         @RequestParam(value = "eventType", required = false) EventType eventType,
+        @RequestParam(value = "status", required = false) String status,
         @RequestParam(value = "userLatitude", required = false) Double userLatitude,
         @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
-            currentUser.getId(), eventType, userLatitude, userLongitude, pageable);
+            currentUser.getId(), eventType, parseEventStatus(status), userLatitude, userLongitude, pageable);
 
         return ResponseEntity.ok(events);
+    }
+
+    private EventStatus parseEventStatus(String status) {
+        if (status == null) {
+            return null;
+        }
+        try {
+            return EventStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(
+                "Invalid event status: " + status + ". Allowed values are UPCOMING, LIVE, PASSED.");
+        }
     }
 
     @GetMapping("/myEvents/createdEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
         @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+        @RequestParam(value = "status", required = false) String status) {
         validateUser(currentUser);
 
-        Page<EventPreviewDto> events = eventService.getMyCreatedEvents(currentUser.getId(), pageable);
+        Page<EventPreviewDto> events =
+            eventService.getMyCreatedEvents(currentUser.getId(), parseEventStatus(status), pageable);
 
         return ResponseEntity.ok(events);
     }
@@ -200,18 +219,81 @@ public class EventController {
      *
      * @param currentUser User that is currently logged in.
      * @param pageable    Pageable.
+     * @param status      Event status filter (UPCOMING, LIVE, PASSED).
      * @author Oleksandr Obydalo.
      */
     @GetMapping("/myEvents/relatedEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getRelatedEvents(
         @Parameter(hidden = true) @CurrentUser UserVO currentUser,
-        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable) {
+        @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
+        @RequestParam(value = "status", required = false) String status) {
         validateUser(currentUser);
 
-        Page<EventPreviewDto> events = eventService.getRelatedEvents(currentUser.getId(), pageable);
+        Page<EventPreviewDto> events =
+            eventService.getRelatedEvents(currentUser.getId(), parseEventStatus(status), pageable);
 
         return ResponseEntity.ok(events);
+    }
+
+    /**
+     * Endpoint for removing an attender from an event.
+     *
+     * @param eventId     ID of the event
+     * @param currentUser Current authenticated user
+     * @return ResponseEntity with removal result
+     * @author Generated
+     */
+    @DeleteMapping("/removeAttender/{eventId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Remove an attender from the event")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    public ResponseEntity<Map<String, Object>> removeAttender(
+        @PathVariable Long eventId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        validateUser(currentUser);
+
+        boolean removed = eventService.removeAttender(eventId, currentUser);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("removed", removed);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Endpoint for adding an attender to an event.
+     *
+     * @param eventId     ID of the event
+     * @param currentUser Current authenticated user
+     * @return ResponseEntity with addition result
+     * @author Generated
+     */
+    @PostMapping("/addAttender/{eventId}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Add an attender to the event")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
+        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+    })
+    public ResponseEntity<Map<String, Object>> addAttender(
+        @PathVariable Long eventId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        validateUser(currentUser);
+
+        boolean added = eventService.addAttender(eventId, currentUser);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("added", added);
+
+        return ResponseEntity.ok(response);
     }
 
     /**

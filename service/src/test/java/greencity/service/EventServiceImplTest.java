@@ -10,6 +10,7 @@ import greencity.enums.EventStatus;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.UnauthorizedException;
+import greencity.repository.EventAttenderRepo;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
@@ -45,7 +46,13 @@ class EventServiceImplTest {
     private EventImageRepo eventImageRepository;
 
     @Mock
+    private EventAttenderRepo eventAttenderRepo;
+
+    @Mock
     private ImageStorageService imageStorageService;
+
+    @Mock
+    private UserService userService;
 
     @Mock
     private ModelMapper mapper;

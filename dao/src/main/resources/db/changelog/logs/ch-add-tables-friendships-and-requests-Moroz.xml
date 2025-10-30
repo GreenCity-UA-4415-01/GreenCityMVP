@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+
+    <!-- Create tables to handle friend flow: requests (inbox/outbox) and accepted friendships -->
+    <changeSet id="add-friendship-requests-and-friendships-tables" author="misha">
+        <comment>Create friendship_requests and friendships tables with constraints and indexes</comment>
+
+        <!-- Incoming/outgoing requests storage -->
+        <createTable tableName="friendship_requests">
+            <column name="requester_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_fr_req_requester"
+                             referencedTableName="users"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="receiver_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_fr_req_receiver"
+                             referencedTableName="users"
+                             referencedColumnNames="id"/>
+            </column>
+            <!-- Status kept in text enum; default is PENDING -->
+            <column name="status" type="VARCHAR(10)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Composite PK to keep one request per requester->receiver -->
+        <addPrimaryKey tableName="friendship_requests"
+                       constraintName="pk_friendship_requests"
+                       columnNames="requester_id, receiver_id"/>
+
+        <!-- requester must differ from receiver (via raw SQL for Liquibase 3.4) -->
+        <sql dbms="postgresql">
+            ALTER TABLE friendship_requests
+                ADD CONSTRAINT chk_fr_req_distinct
+                    CHECK (requester_id &lt;&gt; receiver_id);
+        </sql>
+
+        <!-- Allow only enum-like values (via raw SQL for Liquibase 3.4) -->
+        <sql dbms="postgresql">
+            ALTER TABLE friendship_requests
+                ADD CONSTRAINT chk_fr_req_status
+                    CHECK (status IN ('PENDING','ACCEPTED','REJECTED','BLOCKED'));
+        </sql>
+
+        <!-- Helpful indexes for inbox/outbox lookups -->
+        <createIndex tableName="friendship_requests" indexName="idx_fr_req_receiver">
+            <column name="receiver_id"/>
+        </createIndex>
+        <createIndex tableName="friendship_requests" indexName="idx_fr_req_requester">
+            <column name="requester_id"/>
+        </createIndex>
+
+        <!-- Normalized accepted friendships (directed row per relation) -->
+        <createTable tableName="friendships">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_friend_user"
+                             referencedTableName="users"
+                             referencedColumnNames="id"/>
+            </column>
+            <column name="friend_id" type="BIGINT">
+                <constraints nullable="false"
+                             foreignKeyName="fk_friend_friend"
+                             referencedTableName="users"
+                             referencedColumnNames="id"/>
+            </column>
+        </createTable>
+
+        <!-- Composite PK to ensure single row per user->friend -->
+        <addPrimaryKey tableName="friendships"
+                       constraintName="pk_friendships"
+                       columnNames="user_id, friend_id"/>
+
+        <!-- user must differ from friend (via raw SQL for Liquibase 3.4) -->
+        <sql dbms="postgresql">
+            ALTER TABLE friendships
+                ADD CONSTRAINT chk_friend_distinct
+                    CHECK (user_id &lt;&gt; friend_id);
+        </sql>
+
+        <!-- Indexes for both directions -->
+        <createIndex tableName="friendships" indexName="idx_friendships_user">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="friendships" indexName="idx_friendships_friend">
+            <column name="friend_id"/>
+        </createIndex>
+
+        <!-- Rollback: drop constraints first, then tables -->
+        <rollback>
+            <sql dbms="postgresql">
+                ALTER TABLE friendships DROP CONSTRAINT IF EXISTS chk_friend_distinct;
+            </sql>
+            <dropTable tableName="friendships"/>
+
+            <sql dbms="postgresql">
+                ALTER TABLE friendship_requests DROP CONSTRAINT IF EXISTS chk_fr_req_status;
+            </sql>
+            <sql dbms="postgresql">
+                ALTER TABLE friendship_requests DROP CONSTRAINT IF EXISTS chk_fr_req_distinct;
+            </sql>
+            <dropTable tableName="friendship_requests"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

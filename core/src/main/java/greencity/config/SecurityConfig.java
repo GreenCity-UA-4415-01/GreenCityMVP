@@ -91,7 +91,7 @@ public class SecurityConfig {
             config.setMaxAge(3600L);
             return config;
         }))
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable) // NOSONAR
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .addFilterBefore(
                 new AccessTokenAuthenticationFilter(jwtTool, authenticationManager(), userService),
@@ -259,8 +259,17 @@ public class SecurityConfig {
                     "/favorite_place/{placeId}",
                     "/social-networks",
                     "/events/delete/{eventId}",
+                    "/friends/{friendId}",
                     USER_CUSTOM_SHOPPING_LIST_ITEMS,
                     USER_SHOPPING_LIST + "/user-shopping-list-items")
+                .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
+                .requestMatchers(HttpMethod.GET, "/friends/not-friends-yet")
+                .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
+
+                .requestMatchers(HttpMethod.POST, "/friends/*")
+                .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
+
+                .requestMatchers(HttpMethod.DELETE, "/friends/*/cancel-request")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.GET,
                     "/newsSubscriber",

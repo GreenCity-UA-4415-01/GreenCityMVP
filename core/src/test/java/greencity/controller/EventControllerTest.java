@@ -39,8 +39,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import org.springframework.data.domain.Page;
@@ -107,7 +105,7 @@ class EventControllerTest {
         public Object resolveArgument(MethodParameter parameter,
             ModelAndViewContainer mavContainer,
             NativeWebRequest webRequest,
-            WebDataBinderFactory binderFactory) {
+            WebDataBinderFactory binderFactory) throws Exception {
             return userVO;
         }
     }
@@ -656,7 +654,7 @@ class EventControllerTest {
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
 
-        when(eventService.getMyEvents(eq(5L), eq(EventType.BOTH), eq(null), eq(null), any(Pageable.class)))
+        when(eventService.getMyEvents(eq(5L), eq(EventType.BOTH), eq(null), eq(null), eq(null), any(Pageable.class)))
             .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myEvents")
@@ -695,7 +693,7 @@ class EventControllerTest {
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
 
-        when(eventService.getMyEvents(eq(5L), eq(EventType.PLACE), eq(50.45), eq(30.52), any(Pageable.class)))
+        when(eventService.getMyEvents(eq(5L), eq(EventType.PLACE), eq(null), eq(50.45), eq(30.52), any(Pageable.class)))
             .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myEvents")
@@ -736,7 +734,7 @@ class EventControllerTest {
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
 
-        when(eventService.getMyEvents(eq(5L), eq(EventType.ONLINE), eq(null), eq(null), any(Pageable.class)))
+        when(eventService.getMyEvents(eq(5L), eq(EventType.ONLINE), eq(null), eq(null), eq(null), any(Pageable.class)))
             .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myEvents")
@@ -776,7 +774,7 @@ class EventControllerTest {
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
 
-        when(eventService.getMyCreatedEvents(eq(5L), any(Pageable.class)))
+        when(eventService.getMyCreatedEvents(eq(5L), eq(null), any(Pageable.class)))
             .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myEvents/createdEvents")
@@ -832,6 +830,104 @@ class EventControllerTest {
     }
 
     @Test
+    void removeAttender_ShouldReturn200Ok() throws Exception {
+        Long eventId = 1L;
+
+        when(eventService.removeAttender(eventId, mockUser)).thenReturn(true);
+
+        mockMvc.perform(delete("/events/removeAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.removed").value(true));
+
+        verify(eventService).removeAttender(eventId, mockUser);
+    }
+
+    @Test
+    void removeAttender_NotAttender_ShouldReturn200OkWithRemovedFalse() throws Exception {
+        Long eventId = 1L;
+
+        when(eventService.removeAttender(eventId, mockUser)).thenReturn(false);
+
+        mockMvc.perform(delete("/events/removeAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.removed").value(false));
+
+        verify(eventService).removeAttender(eventId, mockUser);
+    }
+
+    @Test
+    void removeAttender_EventNotFound_ShouldReturn404NotFound() throws Exception {
+        Long eventId = 99L;
+        String errorMessage = EVENT_NOT_FOUND_MESSAGE_PREFIX + eventId;
+
+        when(eventService.removeAttender(eventId, mockUser))
+            .thenThrow(new NotFoundException(errorMessage));
+
+        mockMvc.perform(delete("/events/removeAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    void removeAttender_EventPassed_ShouldReturn400BadRequest() throws Exception {
+        Long eventId = 1L;
+        String errorMessage = "Cannot cancel attendance for events that have already passed";
+
+        when(eventService.removeAttender(eventId, mockUser))
+            .thenThrow(new BadRequestException(errorMessage));
+
+        mockMvc.perform(delete("/events/removeAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
+    void addAttender_ShouldReturn200Ok() throws Exception {
+        Long eventId = 1L;
+
+        when(eventService.addAttender(eventId, mockUser)).thenReturn(true);
+
+        mockMvc.perform(post("/events/addAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.added").value(true));
+
+        verify(eventService).addAttender(eventId, mockUser);
+    }
+
+    @Test
+    void addAttender_AlreadyAttender_ShouldReturn200OkWithAddedFalse() throws Exception {
+        Long eventId = 1L;
+
+        when(eventService.addAttender(eventId, mockUser)).thenReturn(false);
+
+        mockMvc.perform(post("/events/addAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.added").value(false));
+
+        verify(eventService).addAttender(eventId, mockUser);
+    }
+
+    @Test
+    void addAttender_EventNotFound_ShouldReturn404NotFound() throws Exception {
+        Long eventId = 99L;
+        String errorMessage = EVENT_NOT_FOUND_MESSAGE_PREFIX + eventId;
+
+        when(eventService.addAttender(eventId, mockUser))
+            .thenThrow(new NotFoundException(errorMessage));
+
+        mockMvc.perform(post("/events/addAttender/{eventId}", eventId)
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value(errorMessage));
+    }
+
+    @Test
     void getMyCreatedEvents_ShouldReturnPassedEvents() throws Exception {
 
         EventPreviewDto passedEvent = EventPreviewDto.builder()
@@ -857,7 +953,7 @@ class EventControllerTest {
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(passedEvent), PageRequest.of(0, 10), 1);
 
-        when(eventService.getMyCreatedEvents(eq(5L), any(Pageable.class)))
+        when(eventService.getMyCreatedEvents(eq(5L), eq(null), any(Pageable.class)))
             .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myEvents/createdEvents")
@@ -919,7 +1015,7 @@ class EventControllerTest {
         Page<EventPreviewDto> eventPage = new PageImpl<>(
             List.of(createdEvent, joinedEvent), PageRequest.of(0, 10), 2);
 
-        when(eventService.getRelatedEvents(eq(5L), any(Pageable.class)))
+        when(eventService.getRelatedEvents(eq(5L), eq(null), any(Pageable.class)))
             .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myEvents/relatedEvents")
@@ -962,7 +1058,7 @@ class EventControllerTest {
         Page<EventPreviewDto> eventPage = new PageImpl<>(
             List.of(event), PageRequest.of(0, 5), 1);
 
-        when(eventService.getRelatedEvents(eq(5L), any(Pageable.class)))
+        when(eventService.getRelatedEvents(eq(5L), eq(null), any(Pageable.class)))
             .thenReturn(eventPage);
 
         mockMvc.perform(get("/events/myEvents/relatedEvents")
@@ -982,7 +1078,7 @@ class EventControllerTest {
         Page<EventPreviewDto> emptyPage = new PageImpl<>(
             List.of(), PageRequest.of(0, 10), 0);
 
-        when(eventService.getRelatedEvents(eq(5L), any(Pageable.class)))
+        when(eventService.getRelatedEvents(eq(5L), eq(null), any(Pageable.class)))
             .thenReturn(emptyPage);
 
         mockMvc.perform(get("/events/myEvents/relatedEvents")
@@ -991,5 +1087,157 @@ class EventControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.content", hasSize(0)))
             .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    @Test
+    void getMyEventsWithStatusFilter_ShouldReturnFilteredEvents() throws Exception {
+        EventPreviewDto upcomingEvent = EventPreviewDto.builder()
+            .id(1L)
+            .title("Upcoming Event")
+            .description("Test Description")
+            .open(true)
+            .organizerId(1L)
+            .titleImage("test-image.jpg")
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .status(EventStatus.UPCOMING)
+            .nearestStart(OffsetDateTime.now().plusDays(1))
+            .canCancelJoin(true)
+            .canEdit(false)
+            .isFavourite(false)
+            .isSubscribed(false)
+            .visibility("PUBLIC")
+            .latitude(50.45)
+            .longitude(30.52)
+            .onlineLink(null)
+            .build();
+
+        Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(upcomingEvent), PageRequest.of(0, 10), 1);
+
+        when(eventService.getMyEvents(eq(5L), eq(null), eq(EventStatus.UPCOMING), eq(null), eq(null),
+            any(Pageable.class)))
+            .thenReturn(eventPage);
+
+        mockMvc.perform(get("/events/myEvents")
+            .param("status", "UPCOMING")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
+            .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void getMyCreatedEventsWithStatusFilter_ShouldReturnFilteredEvents() throws Exception {
+        EventPreviewDto liveEvent = EventPreviewDto.builder()
+            .id(2L)
+            .title("Live Event")
+            .description("Currently happening")
+            .open(true)
+            .organizerId(5L)
+            .titleImage("live-image.jpg")
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .status(EventStatus.LIVE)
+            .nearestStart(OffsetDateTime.now().minusHours(1))
+            .canCancelJoin(false)
+            .canEdit(true)
+            .isFavourite(false)
+            .isSubscribed(false)
+            .visibility("PUBLIC")
+            .latitude(50.45)
+            .longitude(30.52)
+            .onlineLink(null)
+            .build();
+
+        Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(liveEvent), PageRequest.of(0, 10), 1);
+
+        when(eventService.getMyCreatedEvents(eq(5L), eq(EventStatus.LIVE), any(Pageable.class)))
+            .thenReturn(eventPage);
+
+        mockMvc.perform(get("/events/myEvents/createdEvents")
+            .param("status", "LIVE")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.content[0].status").value("LIVE"))
+            .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void getMyCreatedEventsWithPassedStatus_ShouldHaveCanEditFalse() throws Exception {
+        EventPreviewDto passedEvent = EventPreviewDto.builder()
+            .id(3L)
+            .title("Passed Event")
+            .description("Already finished")
+            .open(true)
+            .organizerId(5L)
+            .titleImage("passed-image.jpg")
+            .createdAt(OffsetDateTime.now().minusDays(2))
+            .updatedAt(OffsetDateTime.now().minusDays(2))
+            .status(EventStatus.PASSED)
+            .nearestStart(OffsetDateTime.now().minusDays(1))
+            .canCancelJoin(false)
+            .canEdit(false)
+            .isFavourite(false)
+            .isSubscribed(false)
+            .visibility("PUBLIC")
+            .latitude(50.45)
+            .longitude(30.52)
+            .onlineLink(null)
+            .build();
+
+        Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(passedEvent), PageRequest.of(0, 10), 1);
+
+        when(eventService.getMyCreatedEvents(eq(5L), eq(EventStatus.PASSED), any(Pageable.class)))
+            .thenReturn(eventPage);
+
+        mockMvc.perform(get("/events/myEvents/createdEvents")
+            .param("status", "PASSED")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.content[0].status").value("PASSED"))
+            .andExpect(jsonPath("$.content[0].canEdit").value(false))
+            .andExpect(jsonPath("$.content[0].canCancelJoin").value(false))
+            .andExpect(jsonPath("$.totalElements").value(1));
+    }
+
+    @Test
+    void getRelatedEventsWithStatusFilter_ShouldReturnFilteredEvents() throws Exception {
+        EventPreviewDto upcomingEvent = EventPreviewDto.builder()
+            .id(4L)
+            .title("Related Upcoming Event")
+            .description("Test Description")
+            .open(true)
+            .organizerId(5L)
+            .titleImage("test-image.jpg")
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .status(EventStatus.UPCOMING)
+            .nearestStart(OffsetDateTime.now().plusDays(2))
+            .canCancelJoin(true)
+            .canEdit(true)
+            .isFavourite(false)
+            .isSubscribed(false)
+            .visibility("PUBLIC")
+            .latitude(50.45)
+            .longitude(30.52)
+            .onlineLink(null)
+            .build();
+
+        Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(upcomingEvent), PageRequest.of(0, 10), 1);
+
+        when(eventService.getRelatedEvents(eq(5L), eq(EventStatus.UPCOMING), any(Pageable.class)))
+            .thenReturn(eventPage);
+
+        mockMvc.perform(get("/events/myEvents/relatedEvents")
+            .param("status", "UPCOMING")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
+            .andExpect(jsonPath("$.content[0].canEdit").value(true))
+            .andExpect(jsonPath("$.totalElements").value(1));
     }
 }
