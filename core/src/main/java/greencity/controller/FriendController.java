@@ -81,7 +81,7 @@ public class FriendController {
     }
 
     @Operation(summary = "Accept friend request from requesterId")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
             @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
@@ -95,7 +95,7 @@ public class FriendController {
     }
 
     @Operation(summary = "Reject friend request from requesterId")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
