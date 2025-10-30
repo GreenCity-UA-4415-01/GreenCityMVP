@@ -8,10 +8,21 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationExecutor<Event> {
+
+    /**
+     * Method that finds all {@link Event} entities whose title contains the given text,
+     * ignoring case sensitivity.
+     *
+     * @param titlePart or full title of the event to search for.
+     * @return {@link List} of {@link Event} that match the given title.
+     */
+    List<Event> findByTitleContainingIgnoreCase(String titlePart);
     /**
      * Method that finds {@link Event} by id.
      *

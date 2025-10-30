@@ -93,4 +93,13 @@ public interface EventService {
      * @return page of related events {@link EventPreviewDto} with appropriate flags
      */
     Page<EventPreviewDto> getRelatedEvents(Long userId, Pageable pageable);
+
+    /**
+     * Method that searches entities by their title, ignoring case sensitivity.
+     * Works for partial matches (e.g., searching "eco" will match "Eco Cleanup" and "Eco Festival").
+     *
+     * @param query or full title of the event to search for.
+     * @return {@link List} of {@link EventDto} containing information about matched events.
+     */
+    List<EventPreviewDto> searchEventsByTitle(String query);
 }
