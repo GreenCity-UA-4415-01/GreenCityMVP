@@ -4,8 +4,6 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.user.UserFriendCardDto;
 import greencity.entity.Friendship;
-import greencity.entity.Friendship;
-import greencity.entity.FriendshipKey;
 import greencity.entity.User;
 import greencity.exception.exceptions.FriendExistsException;
 import greencity.exception.exceptions.NotFoundException;
