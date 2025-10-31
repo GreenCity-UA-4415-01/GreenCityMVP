@@ -198,6 +198,9 @@ public class SecurityConfig {
                     "/factoftheday/all",
                     "/user/shopping-list-items/{userId}/get-all-inprogress",
                     "/events/myEvents",
+                    "/events/visible",
+                    "/events/myEvents/relatedEvents",
+                    "events/myEvents/createdEvents",
                     "/habit/assign/{habitAssignId}/allUserAndCustomList",
                     "/habit/assign/allUserAndCustomShoppingListsInprogress",
                     "/habit/assign/{habitAssignId}",
@@ -225,6 +228,7 @@ public class SecurityConfig {
                     "/user/{userId}/habit",
                     "/habit/custom",
                     "/events/create",
+                    "/events/addAttender/{eventId}",
                     "/custom/shopping-list-items/{userId}/{habitId}/custom-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PUT,
@@ -234,7 +238,8 @@ public class SecurityConfig {
                     "/user/profile",
                     HABIT_ASSIGN_ID + "/update-habit-duration",
                     "/habit/assign/{habitAssignId}/updateProgressNotificationHasDisplayed",
-                    HABIT_ASSIGN_ID + "/allUserAndCustomList")
+                    HABIT_ASSIGN_ID + "/allUserAndCustomList",
+                    "/events/{eventId}")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PATCH,
                     ECONEWS_COMMENTS,
@@ -259,6 +264,7 @@ public class SecurityConfig {
                     "/favorite_place/{placeId}",
                     "/social-networks",
                     "/events/delete/{eventId}",
+                    "/events/removeAttender/{eventId}",
                     "/friends/{friendId}",
                     USER_CUSTOM_SHOPPING_LIST_ITEMS,
                     USER_SHOPPING_LIST + "/user-shopping-list-items")

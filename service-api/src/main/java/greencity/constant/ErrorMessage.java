@@ -96,12 +96,18 @@ public final class ErrorMessage {
         "The user doesn't have any custom shopping list item.";
     public static final String USER_HAS_NO_PERMISSION = "Current user has no permission for this action";
     public static final String EVENT_NOT_FOUND_BY_ID = "Event doesn't exist by this id: ";
+    public static final String INVALID_EVENT_STATUS = "Invalid event status: ";
+    public static final String EVENT_PAST_EDIT_DENIED = "Past events cannot be edited.";
+    public static final String EVENT_CANT_UNATTEND_PAST =
+        "Cannot cancel attendance for events that have already passed";
+    public static final String EVENT_EDIT_DENIED = "You are not allowed to update this event";
     public static final String ECO_NEWS_NOT_FOUND_BY_ID = "Eco news doesn't exist by this id: ";
     public static final String ECO_NEWS_NOT_FOUND = "Eco news haven't been found";
     public static final String ECO_NEWS_NOT_SAVED = "Eco news haven't been saved because of constraint violation";
     public static final String USER_CANNOT_ADD_MORE_THAN_5_SOCIAL_NETWORK_LINKS =
         "User cannot add more than 5 social network links";
     public static final String DELETE_FILE_FAILURE = "Failed to delete file: ";
+    public static final String SAVE_FILE_FAILURE = "Failed to store file: ";
     public static final String INVALID_URI = "The string could not be parsed as a URI reference.";
     public static final String MALFORMED_URL = "Malformed URL. The string could not be parsed.";
     public static final String USER_CANNOT_ADD_SAME_SOCIAL_NETWORK_LINKS =
