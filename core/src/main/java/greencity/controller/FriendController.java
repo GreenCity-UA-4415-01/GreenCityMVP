@@ -82,27 +82,27 @@ public class FriendController {
 
     @Operation(summary = "Accept friend request from friendId")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @PatchMapping("/{friendId}/acceptFriend")
     public ResponseEntity<Void> accept(
-            @PathVariable Long friendId,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        @PathVariable Long friendId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         friendService.acceptFriendRequest(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Reject friend request from requesterId")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
     @DeleteMapping("/{friendId}/declineFriend")
     public ResponseEntity<Void> reject(
-            @PathVariable Long friendId,
-            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        @PathVariable Long friendId,
+        @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         friendService.rejectFriendRequest(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }

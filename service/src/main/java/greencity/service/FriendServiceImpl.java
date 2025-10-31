@@ -28,19 +28,21 @@ public class FriendServiceImpl implements FriendService {
     @Transactional(readOnly = true)
     public PageableDto<UserFriendCardDto> search(Long me, String query, Pageable pageable) {
         String q = query == null ? "" : query.trim();
-        if (q.length() > 30) q = q.substring(0, 30);
+        if (q.length() > 30) {
+            q = q.substring(0, 30);
+        }
 
         Page<User> page = userRepo.searchCandidates(me, q, pageable);
 
         var cards = page.map(u -> UserFriendCardDto.builder()
-                .id(u.getId())
-                .name(u.getName())
-                .city(u.getCity())
-                .profilePicture(u.getProfilePicturePath())
-                .personalRate(u.getRating())
-                .mutualFriends(0L)
-                .requestSent(friendshipRequestRepo.existsPending(me, u.getId()))
-                .build()).getContent();
+            .id(u.getId())
+            .name(u.getName())
+            .city(u.getCity())
+            .profilePicture(u.getProfilePicturePath())
+            .personalRate(u.getRating())
+            .mutualFriends(0L)
+            .requestSent(friendshipRequestRepo.existsPending(me, u.getId()))
+            .build()).getContent();
 
         return new PageableDto<>(cards, page.getTotalElements(), page.getNumber(), page.getTotalPages());
     }
@@ -100,7 +102,8 @@ public class FriendServiceImpl implements FriendService {
 
     /**
      * Method to accept friend request.
-     * @param me current user id.
+     *
+     * @param me          current user id.
      * @param requesterId id of a user requesting for friendship.
      * @author Misha Moroz
      */
@@ -125,7 +128,8 @@ public class FriendServiceImpl implements FriendService {
 
     /**
      * Method to reject friend request.
-     * @param me current user id.
+     *
+     * @param me          current user id.
      * @param requesterId id of a user requesting for friendship.
      * @author Misha Moroz
      */
