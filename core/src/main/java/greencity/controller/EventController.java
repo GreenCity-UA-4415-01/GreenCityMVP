@@ -100,15 +100,16 @@ public class EventController {
      * @param user    Current User.
      * @author Kateryna Holtvianska
      */
-    @GetMapping("/search")
     @Operation(summary = "Search events by title (case-insensitive, partial match)")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
             @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
+    @GetMapping("/search")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<EventPreviewDto>> searchEvents(
-            @AuthenticationPrincipal UserVO user,
+            @CurrentUser UserVO user,
             @RequestParam("title") String query) {
 
         validateUser(user);
