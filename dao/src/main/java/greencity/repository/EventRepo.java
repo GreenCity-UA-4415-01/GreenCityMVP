@@ -22,7 +22,8 @@ public interface EventRepo extends JpaRepository<Event, Long>, JpaSpecificationE
      * @param titlePart or full title of the event to search for.
      * @return {@link List} of {@link Event} that match the given title.
      */
-    List<Event> findByTitleContainingIgnoreCase(String titlePart);
+    @Query("SELECT e FROM Event e WHERE LOWER(e.title) LIKE LOWER(CONCAT('%', :titlePart, '%'))")
+    List<Event> findByTitleContainingIgnoreCase(@Param("titlePart") String titlePart);
     /**
      * Method that finds {@link Event} by id.
      *
