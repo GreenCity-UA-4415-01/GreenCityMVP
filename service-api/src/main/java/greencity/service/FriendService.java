@@ -34,5 +34,4 @@ public interface FriendService {
     void acceptFriendRequest(Long me, Long requesterId);
 
     void rejectFriendRequest(Long me, Long requesterId);
-
 }
