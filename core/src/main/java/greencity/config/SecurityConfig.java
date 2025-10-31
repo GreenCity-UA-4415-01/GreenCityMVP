@@ -203,6 +203,7 @@ public class SecurityConfig {
                     "/habit/assign/{habitAssignId}",
                     "/habit/tags/search",
                     "/habit/search",
+                    "/friends/not-friends-yet",
                     "/habit/{habitId}/friends/profile-pictures")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.POST,
@@ -225,6 +226,7 @@ public class SecurityConfig {
                     "/user/{userId}/habit",
                     "/habit/custom",
                     "/events/create",
+                    "/friends/{friendId}",
                     "/custom/shopping-list-items/{userId}/{habitId}/custom-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PUT,
@@ -248,6 +250,7 @@ public class SecurityConfig {
                     USER_SHOPPING_LIST + "/{shoppingListItemId}/status/{status}",
                     USER_SHOPPING_LIST + "/{userShoppingListItemId}",
                     "/user/profilePicture",
+                    "/friends/{friendId}/acceptFriend",
                     "/user/deleteProfilePicture")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.DELETE,
@@ -260,21 +263,11 @@ public class SecurityConfig {
                     "/social-networks",
                     "/events/delete/{eventId}",
                     "/friends/{friendId}",
+                    "/friends/{friendId}/cancel-request",
+                    "/friends/{friendId}/declineFriend",
                     USER_CUSTOM_SHOPPING_LIST_ITEMS,
                     USER_SHOPPING_LIST + "/user-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
-                .requestMatchers(HttpMethod.GET, "/friends/not-friends-yet")
-                .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
-
-                .requestMatchers(HttpMethod.POST, "/friends/*")
-                .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
-
-                .requestMatchers(HttpMethod.DELETE, "/friends/*/cancel-request")
-                .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
-
-                    .requestMatchers(HttpMethod.POST, "/friends/requests/*/accept", "/friends/requests/*/reject")
-                    .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
-
                     .requestMatchers(HttpMethod.GET,
                     "/newsSubscriber",
                     "/comments",
