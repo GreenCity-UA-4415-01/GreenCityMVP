@@ -23,14 +23,12 @@ public interface ImageStorageService {
      */
     String storeImage(MultipartFile image, Long eventId);
 
-    boolean deleteImage(String imagePath);
-
     /**
      * Deletes an image file from storage.
      *
-     * @param filename filename to image file
+     * @param imagePath filename to image file
      */
-    void deleteImage(String filename);
+    boolean deleteImage(String imagePath);
 
     /**
      * Returns the root storage location path for event images.

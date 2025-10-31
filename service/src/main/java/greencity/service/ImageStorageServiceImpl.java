@@ -2,6 +2,7 @@ package greencity.service;
 
 import greencity.constant.ErrorMessage;
 import greencity.exception.exceptions.DeleteFileException;
+import greencity.exception.exceptions.SaveFileException;
 import greencity.exception.exceptions.StoragePathException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +50,7 @@ public class ImageStorageServiceImpl implements ImageStorageService {
     /**
      * {@inheritDoc}
      *
-     * @author Kateryna Holtvianska.
+     * @author Kateryna Holtvianska & Oleksandr Obydalo.
      */
     @Override
     public String storeImage(MultipartFile image, Long eventId) {
@@ -66,20 +67,20 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             awsCloudStorageService.uploadFile(fileWithPath);
             return filename;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store image", e);
+            throw new SaveFileException(ErrorMessage.SAVE_FILE_FAILURE, e);
         }
     }
 
     /**
      * {@inheritDoc}
      *
-     * @author Oleksandr Braiko.
+     * @author Oleksandr Braiko & Andrii Zakordonskyi.
      */
     @Override
-    public void deleteImage(String filename) {
-        if (filename == null || filename.isEmpty()) {
+    public boolean deleteImage(String filename) {
+        if (filename == null || filename.isBlank()) {
             log.debug("Filename is null or empty");
-            return;
+            return false;
         }
 
         try {
@@ -94,6 +95,7 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             if (!deleted) {
                 log.debug("Warning: File not found or already deleted: {}", filename);
             }
+            return deleted;
         } catch (IOException e) {
             throw new DeleteFileException(ErrorMessage.DELETE_FILE_FAILURE + filename);
         }
@@ -104,25 +106,6 @@ public class ImageStorageServiceImpl implements ImageStorageService {
      *
      * @author Kateryna Holtvianska.
      */
-    @Override
-    public boolean deleteImage(String imagePath) {
-        if (imagePath == null || imagePath.isBlank()) {
-            return false;
-        }
-
-        try {
-            Path target = storage.resolve(imagePath).normalize();
-            if (Files.exists(target)) {
-                Files.delete(target);
-                return true;
-            } else {
-                return false;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to delete image: " + imagePath, e);
-        }
-    }
-
     private String getExtension(String name) {
         if (name == null) {
             return ".jpg";

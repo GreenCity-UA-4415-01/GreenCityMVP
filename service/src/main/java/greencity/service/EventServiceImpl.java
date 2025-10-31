@@ -4,6 +4,7 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.PastEventUpdateException;
 import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventAttenderRepo;
 import greencity.enums.EventStatus;
@@ -11,10 +12,6 @@ import greencity.enums.EventType;
 import greencity.repository.EventDateTimeLocationRepo;
 import greencity.repository.EventImageRepo;
 import greencity.repository.EventRepo;
-import greencity.enums.EventStatus;
-import greencity.enums.EventType;
-import greencity.enums.Role;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +19,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import greencity.dto.event.*;
 import greencity.entity.*;
@@ -30,7 +26,6 @@ import greencity.exception.exceptions.BadRequestException;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Service
@@ -76,7 +71,7 @@ public class EventServiceImpl implements EventService {
                 .createdAt(OffsetDateTime.now())
                 .updatedAt(null)
                 .build())
-            .collect(Collectors.toList());
+            .toList();
 
         dateTimeLocationRepository.saveAll(dateLocations);
         event.setDateTimeLocations(dateLocations);
@@ -100,6 +95,11 @@ public class EventServiceImpl implements EventService {
         return toEventDto(event);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
+     */
     @Override
     @Transactional()
     public Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, EventStatus status,
@@ -128,11 +128,16 @@ public class EventServiceImpl implements EventService {
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
             .map(this::toEventPreviewDto)
             .filter(event -> status == null || event.getStatus() == status)
-            .collect(Collectors.toList());
+            .toList();
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
+     */
     @Override
     @Transactional
     public Page<EventPreviewDto> getMyCreatedEvents(Long userId, EventStatus status, Pageable pageable) {
@@ -145,11 +150,16 @@ public class EventServiceImpl implements EventService {
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
             .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
             .filter(event -> status == null || event.getStatus() == status)
-            .collect(Collectors.toList());
+            .toList();
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
+     */
     @Override
     @Transactional
     public Page<EventPreviewDto> getRelatedEvents(Long userId, EventStatus status, Pageable pageable) {
@@ -162,29 +172,34 @@ public class EventServiceImpl implements EventService {
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
             .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
             .filter(event -> status == null || event.getStatus() == status)
-            .collect(Collectors.toList());
+            .toList();
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Andrii Zakordonskyi
+     */
     @Override
     @Transactional
     public EventDto updateEvent(Long eventId, UpdateEventDtoRequest dto, MultipartFile[] images, Long userId) {
         Event event = eventRepository.findById(eventId)
-            .orElseThrow(() -> new EntityNotFoundException("Event not found."));
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
 
         UserVO currentUser = userService.findById(userId);
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         if (!isAdmin && !event.getOrganizerId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("You are not allowed to update this event");
+            throw new UnauthorizedException(ErrorMessage.EVENT_EDIT_DENIED);
         }
 
         boolean past = event.getDateTimeLocations().stream()
             .anyMatch(d -> d.getFinishDate().isBefore(OffsetDateTime.now()));
 
         if (past) {
-            throw new IllegalStateException("Past events cannot be edited.");
+            throw new PastEventUpdateException(ErrorMessage.EVENT_PAST_EDIT_DENIED);
         }
 
         // Update basic fields
@@ -229,6 +244,11 @@ public class EventServiceImpl implements EventService {
         return toEventDto(event);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
+     */
     private EventPreviewDto toEventPreviewDto(Event event) {
         // Find the nearest start date
         OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
@@ -279,6 +299,11 @@ public class EventServiceImpl implements EventService {
             .build();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo.
+     */
     private EventPreviewDto toEventPreviewDtoWithCanEdit(Event event, Long currentUserId, boolean isAdmin) {
         // Find the nearest start date
         OffsetDateTime nearestStart = event.getDateTimeLocations().stream()
@@ -335,6 +360,11 @@ public class EventServiceImpl implements EventService {
             .build();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo.
+     */
     private EventStatus determineEventStatus(OffsetDateTime nearestStart, OffsetDateTime finishDate) {
         if (nearestStart == null) {
             return EventStatus.PASSED;
@@ -379,7 +409,7 @@ public class EventServiceImpl implements EventService {
         return allEvents.stream()
             .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
             .map(this::toEventDto)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     /**
@@ -408,11 +438,11 @@ public class EventServiceImpl implements EventService {
                 .longitude(loc.getLongitude())
                 .onlineLink(loc.getOnlineLink())
                 .build())
-            .collect(Collectors.toList());
+            .toList();
 
         List<String> imageUrls = event.getImages().stream()
             .map(EventImage::getImagePath)
-            .collect(Collectors.toList());
+            .toList();
 
         // Compute event status based on date/time occurrences
         EventStatusCalculator.EventStatusResult statusResult =
@@ -442,7 +472,7 @@ public class EventServiceImpl implements EventService {
     /**
      * {@inheritDoc}
      *
-     * @author Kateryna Holtvianska & Oleksandr Obydalo.
+     * @author Kateryna Holtvianska & Oleksandr Obydalo & Andrii Zakordonskyi
      */
     private void validateEvent(EventRequest dto, MultipartFile[] images) {
         if (dto.getTitle() == null || dto.getTitle().isBlank() || dto.getTitle().length() > 70) {
@@ -544,6 +574,8 @@ public class EventServiceImpl implements EventService {
 
     /**
      * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
      */
     @Override
     @Transactional
@@ -570,6 +602,8 @@ public class EventServiceImpl implements EventService {
 
     /**
      * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
      */
     @Override
     @Transactional
@@ -581,7 +615,7 @@ public class EventServiceImpl implements EventService {
         // Check if event status is PASSED - disallow cancellation
         EventDto eventDto = toEventDto(event);
         if (eventDto.getStatus() == EventStatus.PASSED) {
-            throw new BadRequestException("Cannot cancel attendance for events that have already passed");
+            throw new BadRequestException(ErrorMessage.EVENT_CANT_UNATTEND_PAST);
         }
 
         // Check if user is an attender

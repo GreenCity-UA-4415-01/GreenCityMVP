@@ -1,6 +1,7 @@
 package greencity.controller;
 
 import greencity.annotations.CurrentUser;
+import greencity.constant.ErrorMessage;
 import greencity.constant.HttpStatuses;
 import greencity.dto.event.*;
 import greencity.dto.user.UserVO;
@@ -64,6 +65,12 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
+    /**
+     * Endpoint for viewing events visible for current user.
+     *
+     * @param user current user
+     * @author Kateryna Holtvianska
+     */
     @GetMapping("/visible")
     @Operation(summary = "Get events visible to the current user")
     @ApiResponses(value = {
@@ -95,7 +102,15 @@ public class EventController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-
+    /**
+     * Endpoint for event update.
+     *
+     * @param eventId     id for event to update.
+     * @param dto         dto with updated info.
+     * @param images      optional image files to be updated.
+     * @param currentUser current user.
+     * @author Andrii Zakordonskyi.
+     */
     @PutMapping(value = "/{eventId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Update events")
@@ -207,6 +222,14 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
+    /**
+     * Helper method to ensure the status is case-independent and corresponds to
+     * enum used.
+     *
+     * @param status status to parse.
+     * @return proper {@link EventStatus} that is compatible to enum.
+     * @author Oleksandr Obydalo.
+     */
     private EventStatus parseEventStatus(String status) {
         if (status == null) {
             return null;
@@ -214,11 +237,18 @@ public class EventController {
         try {
             return EventStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException(
-                "Invalid event status: " + status + ". Allowed values are UPCOMING, LIVE, PASSED.");
+            throw new BadRequestException(ErrorMessage.INVALID_EVENT_STATUS + status);
         }
     }
 
+    /**
+     * Endpoint to get all events created by the current user.
+     *
+     * @param currentUser User that is currently logged in.
+     * @param pageable    Pageable.
+     * @param status      Event status filter (UPCOMING, LIVE, PASSED).
+     * @author Oleksandr Obydalo.
+     */
     @GetMapping("/myEvents/createdEvents")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
@@ -263,7 +293,7 @@ public class EventController {
      * @param eventId     ID of the event
      * @param currentUser Current authenticated user
      * @return ResponseEntity with removal result
-     * @author Generated
+     * @author Oleksandr Obydalo
      */
     @DeleteMapping("/removeAttender/{eventId}")
     @PreAuthorize("isAuthenticated()")
@@ -293,7 +323,7 @@ public class EventController {
      * @param eventId     ID of the event
      * @param currentUser Current authenticated user
      * @return ResponseEntity with addition result
-     * @author Generated
+     * @author Oleksandr Obydalo
      */
     @PostMapping("/addAttender/{eventId}")
     @PreAuthorize("isAuthenticated()")

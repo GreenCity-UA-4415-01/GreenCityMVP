@@ -201,6 +201,24 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     /**
+     * Method intercept exception {@link PastEventUpdateException}.
+     *
+     * @param ex      Exception witch should be intercepted.
+     * @param request contain detail about occur exception
+     * @return ResponseEntity witch contain http status and body with message of
+     *         exception.
+     * @author Oleksandr Braiko
+     */
+    @ExceptionHandler(PastEventUpdateException.class)
+    public final ResponseEntity<Object> handlePastEventUpdateException(PastEventUpdateException ex,
+        WebRequest request) {
+        log.info(ex.getMessage());
+        ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
+        exceptionResponse.setMessage(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exceptionResponse);
+    }
+
+    /**
      * Method intercept exception {@link SelfFriendException}.
      *
      * @param ex      Exception witch should be intercepted.
@@ -694,12 +712,20 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exceptionResponse);
     }
 
+    @ExceptionHandler(SaveFileException.class)
+    public final ResponseEntity<Object> handleSaveFileException(SaveFileException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
+        exceptionResponse.setMessage(ex.getMessage());
+        log.error(ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exceptionResponse);
+    }
+
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
         MethodArgumentNotValidException ex) {
         List<ValidationExceptionDto> collect =
             ex.getBindingResult().getFieldErrors().stream()
                 .map(ValidationExceptionDto::new)
-                .collect(Collectors.toList());
+                .toList();
         log.trace(ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(collect);
     }
