@@ -26,9 +26,10 @@ public interface ImageStorageService {
     /**
      * Deletes an image file from storage.
      *
-     * @param filename filename to image file
+     * @param imagePath path to the image file to delete
+     * @return true if deletion succeeded, false otherwise
      */
-    void deleteImage(String filename);
+    boolean deleteImage(String imagePath);
 
     /**
      * Returns the root storage location path for event images.

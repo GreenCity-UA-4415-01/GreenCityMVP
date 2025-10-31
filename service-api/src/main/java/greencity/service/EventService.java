@@ -5,6 +5,7 @@ import greencity.dto.event.EventDto;
 import greencity.dto.user.UserVO;
 import greencity.dto.event.EventPreviewDto;
 import greencity.enums.EventStatus;
+import greencity.dto.event.UpdateEventDtoRequest;
 import greencity.enums.EventType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +73,8 @@ public interface EventService {
      * @return page of created events {@link EventPreviewDto} with canEdit flags
      */
     Page<EventPreviewDto> getMyCreatedEvents(Long userId, EventStatus status, Pageable pageable);
+
+    EventDto updateEvent(Long eventId, UpdateEventDtoRequest dto, MultipartFile[] image, Long userId);
 
     /**
      * Get event by ID with computed status (LIVE/UPCOMING/PASSED). Status is
