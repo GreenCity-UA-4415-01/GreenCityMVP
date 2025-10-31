@@ -120,6 +120,7 @@ public class EventController {
         @ApiResponse(responseCode = "403", description = HttpStatuses.FORBIDDEN),
         @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
     })
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<EventDto> updateEvent(
         @PathVariable Long eventId,
         @RequestPart("updateEventDtoRequest") @Valid UpdateEventDtoRequest dto,

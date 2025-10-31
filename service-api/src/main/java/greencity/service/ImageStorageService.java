@@ -26,7 +26,8 @@ public interface ImageStorageService {
     /**
      * Deletes an image file from storage.
      *
-     * @param imagePath filename to image file
+     * @param imagePath path to the image file to delete
+     * @return true if deletion succeeded, false otherwise
      */
     boolean deleteImage(String imagePath);
 
