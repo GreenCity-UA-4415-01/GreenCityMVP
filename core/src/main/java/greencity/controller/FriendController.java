@@ -94,7 +94,7 @@ public class FriendController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Reject friend request from requesterId")
+    @Operation(summary = "Reject friend request from friendId")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
         @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)

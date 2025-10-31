@@ -124,6 +124,7 @@ public class FriendServiceImpl implements FriendService {
         friendshipRepo.save(new Friendship(requesterId, me));
 
         friendshipRequestRepo.deletePendingOneDirection(requesterId, me);
+        friendshipRequestRepo.deletePendingOneDirection(me, requesterId);
     }
 
     /**
