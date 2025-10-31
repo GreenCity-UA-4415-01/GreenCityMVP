@@ -27,7 +27,12 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional(readOnly = true)
     public PageableDto<UserFriendCardDto> search(Long me, String query, Pageable pageable) {
-        Page<User> page = userRepo.searchCandidates(me, query, pageable);
+        String q = query == null ? "" : query.trim();
+        if (q.length() > 30) {
+            q = q.substring(0, 30);
+        }
+
+        Page<User> page = userRepo.searchCandidates(me, q, pageable);
 
         var cards = page.map(u -> UserFriendCardDto.builder()
             .id(u.getId())
@@ -35,38 +40,25 @@ public class FriendServiceImpl implements FriendService {
             .city(u.getCity())
             .profilePicture(u.getProfilePicturePath())
             .personalRate(u.getRating())
-            .mutualFriends(0L) // TODO: add calculation later
-            .requestSent(false) // TODO: we can insert friendship_requests
+            .mutualFriends(0L)
+            .requestSent(friendshipRequestRepo.existsPending(me, u.getId()))
             .build()).getContent();
 
-        return new PageableDto<>(
-            cards,
-            page.getTotalElements(),
-            page.getNumber(),
-            page.getTotalPages());
+        return new PageableDto<>(cards, page.getTotalElements(), page.getNumber(), page.getTotalPages());
     }
 
     @Override
     @Transactional
     public void sendFriendRequest(Long me, Long friendId) {
-        if (me.equals(friendId)) {
-            throw new SelfFriendException(ErrorMessage.USER_CANT_SELF_FRIEND);
-        }
-        // check both users exist
-        userRepo.findById(me).orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + me));
-        userRepo.findById(friendId)
-            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + friendId));
+        validateUsersPair(me, friendId);
 
-        // friends already?
         if (friendshipRequestRepo.areAlreadyFriends(me, friendId)) {
             throw new FriendExistsException(ErrorMessage.FRIENDSHIP_ALREADY_EXISTS);
         }
-        // have pending status already?
         if (friendshipRequestRepo.existsPending(me, friendId)) {
             throw new FriendExistsException(ErrorMessage.FRIENDSHIP_REQUEST_ALREADY_EXISTS);
-        } else {
-            friendshipRequestRepo.insertPending(me, friendId);
         }
+        friendshipRequestRepo.insertPending(me, friendId);
     }
 
     @Override
@@ -106,5 +98,45 @@ public class FriendServiceImpl implements FriendService {
         userRepo.findById(userId).orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + userId));
         userRepo.findById(friendId)
             .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + friendId));
+    }
+
+    /**
+     * Method to accept friend request.
+     *
+     * @param me          current user id.
+     * @param requesterId id of a user requesting for friendship.
+     * @author Misha Moroz
+     */
+    @Override
+    @Transactional
+    public void acceptFriendRequest(Long me, Long requesterId) {
+        if (me.equals(requesterId)) {
+            throw new SelfFriendException(ErrorMessage.USER_CANT_SELF_FRIEND);
+        }
+        if (!friendshipRequestRepo.existsPending(requesterId, me)) {
+            throw new NotFoundException(ErrorMessage.FRIENDSHIP_REQUEST_NOT_FOUND);
+        }
+        if (friendshipRequestRepo.areAlreadyFriends(me, requesterId)) {
+            friendshipRequestRepo.deletePending(requesterId, me);
+            return;
+        }
+        friendshipRepo.save(new Friendship(me, requesterId));
+        friendshipRepo.save(new Friendship(requesterId, me));
+
+        friendshipRequestRepo.deletePendingOneDirection(requesterId, me);
+        friendshipRequestRepo.deletePendingOneDirection(me, requesterId);
+    }
+
+    /**
+     * Method to reject friend request.
+     *
+     * @param me          current user id.
+     * @param requesterId id of a user requesting for friendship.
+     * @author Misha Moroz
+     */
+    @Override
+    @Transactional
+    public void rejectFriendRequest(Long me, Long requesterId) {
+        friendshipRequestRepo.deletePending(requesterId, me);
     }
 }

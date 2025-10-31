@@ -46,6 +46,29 @@ public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Frie
             """)
     boolean existsPending(@Param("me") Long me, @Param("friendId") Long friendId);
 
+    // позначити як ACCEPTED (якщо хочеш зберегти трек у таблиці реквестів)
+    @Modifying
+    @Transactional
+    @Query(
+        nativeQuery = true,
+        value = """
+                UPDATE friendship_requests
+                SET status = 'ACCEPTED'
+                WHERE requester_id = :requester AND receiver_id = :receiver AND status = 'PENDING'
+            """)
+    int markAccepted(@Param("requester") Long requester, @Param("receiver") Long receiver);
+
+    // прибрати можливий зустрічний pending (receiver -> requester)
+    @Modifying
+    @Transactional
+    @Query(
+        nativeQuery = true,
+        value = """
+                DELETE FROM friendship_requests
+                WHERE requester_id = :a AND receiver_id = :b AND status = 'PENDING'
+            """)
+    int deletePendingOneDirection(@Param("a") Long a, @Param("b") Long b);
+
     @Query(
         nativeQuery = true,
         value = """
