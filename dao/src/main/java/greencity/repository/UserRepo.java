@@ -143,12 +143,14 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
     List<User> getAllUserFriends(Long userId);
 
     /**
-     * Пошук кандидатів у друзі: виключає поточного користувача та тих, хто вже у
-     * friends (у будь-якому напрямі). Пошук по name, case-insensitive, у будь-якому
-     * місці рядка. За замовчуванням q може бути NULL/порожній. Таблиці: users,
+     * Search for friend candidates: excludes the current user and existing friends
+     * (in both directions). Searches by name, case-insensitive, matching any part
+     * of the string. The query parameter q may be NULL or empty. Tables: users,
      * friendships.
      *
-     * @param userId {@link UserVO} id.
+     * @param userId   {@link UserVO} id.
+     * @param q        search query string (optional).
+     * @param pageable pagination parameters.
      * @return page of {@link User}.
      * @author Misha Moroz
      */

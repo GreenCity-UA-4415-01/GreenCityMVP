@@ -30,4 +30,8 @@ public interface FriendService {
      * @param friendId target user id.
      */
     void unfriendUser(Long userId, Long friendId);
+
+    void acceptFriendRequest(Long me, Long requesterId);
+
+    void rejectFriendRequest(Long me, Long requesterId);
 }
