@@ -48,11 +48,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     @Transactional
     public void sendFriendRequest(Long me, Long friendId) {
-        if (me.equals(friendId)) {
-            throw new SelfFriendException(ErrorMessage.USER_CANT_SELF_FRIEND);
-        }
-        userRepo.findById(me).orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + me));
-        userRepo.findById(friendId).orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + friendId));
+        validateUsersPair(me, friendId);
 
         if (friendshipRequestRepo.areAlreadyFriends(me, friendId)) {
             throw new FriendExistsException(ErrorMessage.FRIENDSHIP_ALREADY_EXISTS);
@@ -102,38 +98,40 @@ public class FriendServiceImpl implements FriendService {
             .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + friendId));
     }
 
-    // ===== НОВЕ =====
+    /**
+     * Method to accept friend request.
+     * @param me current user id.
+     * @param requesterId id of a user requesting for friendship.
+     * @author Misha Moroz
+     */
     @Override
     @Transactional
     public void acceptFriendRequest(Long me, Long requesterId) {
         if (me.equals(requesterId)) {
             throw new SelfFriendException(ErrorMessage.USER_CANT_SELF_FRIEND);
         }
-        // має існувати pending З БОКУ requester -> me
         if (!friendshipRequestRepo.existsPending(requesterId, me)) {
             throw new NotFoundException(ErrorMessage.FRIENDSHIP_REQUEST_NOT_FOUND);
         }
-        // якщо вже друзі — нічого не робимо / або кинути 409
         if (friendshipRequestRepo.areAlreadyFriends(me, requesterId)) {
-            friendshipRequestRepo.deletePending(requesterId, me); // підчистити, щоб не висіло
+            friendshipRequestRepo.deletePending(requesterId, me);
             return;
         }
-
-        // створюємо дві спрямовані дружби
         friendshipRepo.save(new Friendship(me, requesterId));
         friendshipRepo.save(new Friendship(requesterId, me));
 
-        // помітити як accepted (або видалити)
-        friendshipRequestRepo.markAccepted(requesterId, me);
-
-        // прибрати можливий зустрічний pending (me -> requester), якщо був
-        friendshipRequestRepo.deletePendingOneDirection(me, requesterId);
+        friendshipRequestRepo.deletePendingOneDirection(requesterId, me);
     }
 
+    /**
+     * Method to reject friend request.
+     * @param me current user id.
+     * @param requesterId id of a user requesting for friendship.
+     * @author Misha Moroz
+     */
     @Override
     @Transactional
     public void rejectFriendRequest(Long me, Long requesterId) {
-        // просто видаляємо pending (requester -> me), якщо існує
         friendshipRequestRepo.deletePending(requesterId, me);
     }
 }
