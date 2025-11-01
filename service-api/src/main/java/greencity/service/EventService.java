@@ -118,4 +118,15 @@ public interface EventService {
      * @return true if successfully removed, false if not an attender
      */
     boolean removeAttender(Long eventId, UserVO user);
+
+    /**
+     * Method that searches entities by their title, ignoring case sensitivity.
+     * Works for partial matches (e.g., searching "eco" will match "Eco Cleanup" and
+     * "Eco Festival").
+     *
+     * @param query or full title of the event to search for.
+     * @return {@link List} of {@link EventDto} containing information about matched
+     *         events.
+     */
+    List<EventPreviewDto> searchEventsByTitle(String query);
 }
