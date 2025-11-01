@@ -91,7 +91,7 @@ public class SecurityConfig {
             config.setMaxAge(3600L);
             return config;
         }))
-            .csrf(AbstractHttpConfigurer::disable)
+            .csrf(AbstractHttpConfigurer::disable) // NOSONAR
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .addFilterBefore(
                 new AccessTokenAuthenticationFilter(jwtTool, authenticationManager(), userService),
@@ -198,11 +198,15 @@ public class SecurityConfig {
                     "/factoftheday/all",
                     "/user/shopping-list-items/{userId}/get-all-inprogress",
                     "/events/myEvents",
+                    "/events/visible",
+                    "/events/myEvents/relatedEvents",
+                    "events/myEvents/createdEvents",
                     "/habit/assign/{habitAssignId}/allUserAndCustomList",
                     "/habit/assign/allUserAndCustomShoppingListsInprogress",
                     "/habit/assign/{habitAssignId}",
                     "/habit/tags/search",
                     "/habit/search",
+                    "/friends/not-friends-yet",
                     "/habit/{habitId}/friends/profile-pictures")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.POST,
@@ -225,6 +229,8 @@ public class SecurityConfig {
                     "/user/{userId}/habit",
                     "/habit/custom",
                     "/events/create",
+                    "/events/addAttender/{eventId}",
+                    "/friends/{friendId}",
                     "/custom/shopping-list-items/{userId}/{habitId}/custom-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PUT,
@@ -234,7 +240,8 @@ public class SecurityConfig {
                     "/user/profile",
                     HABIT_ASSIGN_ID + "/update-habit-duration",
                     "/habit/assign/{habitAssignId}/updateProgressNotificationHasDisplayed",
-                    HABIT_ASSIGN_ID + "/allUserAndCustomList")
+                    HABIT_ASSIGN_ID + "/allUserAndCustomList",
+                    "/events/{eventId}")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.PATCH,
                     ECONEWS_COMMENTS,
@@ -248,6 +255,7 @@ public class SecurityConfig {
                     USER_SHOPPING_LIST + "/{shoppingListItemId}/status/{status}",
                     USER_SHOPPING_LIST + "/{userShoppingListItemId}",
                     "/user/profilePicture",
+                    "/friends/{friendId}/acceptFriend",
                     "/user/deleteProfilePicture")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)
                 .requestMatchers(HttpMethod.DELETE,
@@ -259,6 +267,10 @@ public class SecurityConfig {
                     "/favorite_place/{placeId}",
                     "/social-networks",
                     "/events/delete/{eventId}",
+                    "/events/removeAttender/{eventId}",
+                    "/friends/{friendId}",
+                    "/friends/{friendId}/cancel-request",
+                    "/friends/{friendId}/declineFriend",
                     USER_CUSTOM_SHOPPING_LIST_ITEMS,
                     USER_SHOPPING_LIST + "/user-shopping-list-items")
                 .hasAnyRole(USER, ADMIN, MODERATOR, UBS_EMPLOYEE)

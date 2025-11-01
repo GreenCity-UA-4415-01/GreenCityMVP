@@ -4,6 +4,7 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.user.UserVO;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
+import greencity.exception.exceptions.PastEventUpdateException;
 import greencity.exception.exceptions.UnauthorizedException;
 import greencity.repository.EventAttenderRepo;
 import greencity.enums.EventStatus;
@@ -25,7 +26,7 @@ import greencity.exception.exceptions.BadRequestException;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -60,17 +61,17 @@ public class EventServiceImpl implements EventService {
 
         Event finalEvent = event;
         List<EventDateTimeLocation> dateLocations = dto.getDatesLocations().stream()
-                .map(d -> EventDateTimeLocation.builder()
-                        .event(finalEvent)
-                        .startDate(d.getStartDate())
-                        .finishDate(d.getFinishDate())
-                        .latitude(d.getLatitude())
-                        .longitude(d.getLongitude())
-                        .onlineLink(d.getOnlineLink())
-                        .createdAt(OffsetDateTime.now())
-                        .updatedAt(null)
-                        .build())
-                .collect(Collectors.toList());
+            .map(d -> EventDateTimeLocation.builder()
+                .event(finalEvent)
+                .startDate(d.getStartDate())
+                .finishDate(d.getFinishDate())
+                .latitude(d.getLatitude())
+                .longitude(d.getLongitude())
+                .onlineLink(d.getOnlineLink())
+                .createdAt(OffsetDateTime.now())
+                .updatedAt(null)
+                .build())
+            .toList();
 
         dateTimeLocationRepository.saveAll(dateLocations);
         event.setDateTimeLocations(dateLocations);
@@ -94,6 +95,11 @@ public class EventServiceImpl implements EventService {
         return toEventDto(event);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
+     */
     @Override
     @Transactional()
     public Page<EventPreviewDto> getMyEvents(Long userId, EventType eventType, EventStatus status,
@@ -124,13 +130,18 @@ public class EventServiceImpl implements EventService {
         boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
 
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
-                .map(event -> toEventPreviewDtoWithContext(event, userId, isAdmin, userLatitude, userLongitude, eventType))
-                .filter(event -> status == null || event.getStatus() == status)
-                .collect(Collectors.toList());
+            .map(this::toEventPreviewDto)
+            .filter(event -> status == null || event.getStatus() == status)
+            .toList();
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
+     */
     @Override
     @Transactional
     public Page<EventPreviewDto> getMyCreatedEvents(Long userId, EventStatus status, Pageable pageable) {
@@ -143,11 +154,16 @@ public class EventServiceImpl implements EventService {
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
             .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
             .filter(event -> status == null || event.getStatus() == status)
-            .collect(Collectors.toList());
+            .toList();
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
+     */
     @Override
     @Transactional
     public Page<EventPreviewDto> getRelatedEvents(Long userId, EventStatus status, Pageable pageable) {
@@ -160,15 +176,92 @@ public class EventServiceImpl implements EventService {
         List<EventPreviewDto> eventPreviews = events.getContent().stream()
             .map(event -> toEventPreviewDtoWithCanEdit(event, userId, isAdmin))
             .filter(event -> status == null || event.getStatus() == status)
-            .collect(Collectors.toList());
+            .toList();
 
         return new PageImpl<>(eventPreviews, pageable, events.getTotalElements());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Andrii Zakordonskyi
+     */
+    @Override
+    @Transactional
+    public EventDto updateEvent(Long eventId, UpdateEventDtoRequest dto, MultipartFile[] images, Long userId) {
+        Event event = eventRepository.findById(eventId)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.EVENT_NOT_FOUND_BY_ID + eventId));
+
+        UserVO currentUser = userService.findById(userId);
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+
+        if (!isAdmin && !event.getOrganizerId().equals(currentUser.getId())) {
+            throw new UnauthorizedException(ErrorMessage.EVENT_EDIT_DENIED);
+        }
+
+        boolean past = event.getDateTimeLocations().stream()
+            .anyMatch(d -> d.getFinishDate().isBefore(OffsetDateTime.now()));
+
+        if (past) {
+            throw new PastEventUpdateException(ErrorMessage.EVENT_PAST_EDIT_DENIED);
+        }
+
+        // Update basic fields
+        event.setTitle(dto.getTitle().trim());
+        event.setDescription(dto.getDescription().trim());
+        event.setUpdatedAt(OffsetDateTime.now());
+
+        // Update date/locations
+        event.getDateTimeLocations().clear();
+        dto.getDatesLocations().forEach(d -> {
+            EventDateTimeLocation dtl = EventDateTimeLocation.builder()
+                .event(event)
+                .startDate(d.getStartDate())
+                .finishDate(d.getFinishDate())
+                .latitude(d.getLatitude())
+                .longitude(d.getLongitude())
+                .onlineLink(d.getOnlineLink())
+                .updatedAt(OffsetDateTime.now())
+                .build();
+            event.getDateTimeLocations().add(dtl);
+        });
+
+        // Update images only if new ones provided
+        if (images != null && images.length > 0) {
+            // remove old images
+            event.getImages().forEach(img -> imageStorageService.deleteImage(img.getImagePath()));
+            event.getImages().clear();
+
+            // save new images
+            List<String> newPaths = imageStorageService.storeImages(images, eventId);
+            IntStream.range(0, newPaths.size()).forEach(i -> {
+                EventImage newImg = EventImage.builder()
+                    .event(event)
+                    .imagePath(newPaths.get(i))
+                    .main(i == 0)
+                    .createdAt(OffsetDateTime.now())
+                    .build();
+                event.getImages().add(newImg);
+            });
+        }
+
+        return toEventDto(event);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
+     */
     private EventPreviewDto toEventPreviewDto(Event event) {
         return toEventPreviewDtoWithContext(event, null, false, null, null, null);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo.
+     */
     private EventPreviewDto toEventPreviewDtoWithCanEdit(Event event, Long currentUserId, boolean isAdmin) {
         return toEventPreviewDtoWithContext(event, currentUserId, isAdmin, null, null, null);
     }
@@ -267,6 +360,11 @@ public class EventServiceImpl implements EventService {
         return R * c;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo.
+     */
     private EventStatus determineEventStatus(OffsetDateTime nearestStart, OffsetDateTime finishDate) {
         if (nearestStart == null) {
             return EventStatus.PASSED;
@@ -309,9 +407,9 @@ public class EventServiceImpl implements EventService {
         List<Event> allEvents = eventRepository.findAll();
 
         return allEvents.stream()
-                .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
-                .map(this::toEventDto)
-                .collect(Collectors.toList());
+            .filter(event -> event.isOpen() || isFriend(event.getOrganizerId(), userVO))
+            .map(this::toEventDto)
+            .toList();
     }
 
     /**
@@ -333,18 +431,18 @@ public class EventServiceImpl implements EventService {
      */
     private EventDto toEventDto(Event event) {
         List<EventDateLocationDto> dateDtos = event.getDateTimeLocations().stream()
-                .map(loc -> EventDateLocationDto.builder()
-                        .startDate(loc.getStartDate())
-                        .finishDate(loc.getFinishDate())
-                        .latitude(loc.getLatitude())
-                        .longitude(loc.getLongitude())
-                        .onlineLink(loc.getOnlineLink())
-                        .build())
-                .collect(Collectors.toList());
+            .map(loc -> EventDateLocationDto.builder()
+                .startDate(loc.getStartDate())
+                .finishDate(loc.getFinishDate())
+                .latitude(loc.getLatitude())
+                .longitude(loc.getLongitude())
+                .onlineLink(loc.getOnlineLink())
+                .build())
+            .toList();
 
         List<String> imageUrls = event.getImages().stream()
-                .map(EventImage::getImagePath)
-                .collect(Collectors.toList());
+            .map(EventImage::getImagePath)
+            .toList();
 
         // Compute event status based on date/time occurrences
         EventStatusCalculator.EventStatusResult statusResult =
@@ -374,9 +472,9 @@ public class EventServiceImpl implements EventService {
     /**
      * {@inheritDoc}
      *
-     * @author Kateryna Holtvianska & Oleksandr Obydalo.
+     * @author Kateryna Holtvianska & Oleksandr Obydalo & Andrii Zakordonskyi
      */
-    private void validateEvent(AddEventDtoRequest dto, MultipartFile[] images) {
+    private void validateEvent(EventRequest dto, MultipartFile[] images) {
         if (dto.getTitle() == null || dto.getTitle().isBlank() || dto.getTitle().length() > 70) {
             throw new BadRequestException("Title must be between 1 and 70 characters");
         }
@@ -476,6 +574,8 @@ public class EventServiceImpl implements EventService {
 
     /**
      * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
      */
     @Override
     @Transactional
@@ -502,6 +602,8 @@ public class EventServiceImpl implements EventService {
 
     /**
      * {@inheritDoc}
+     *
+     * @author Oleksandr Obydalo
      */
     @Override
     @Transactional
@@ -513,7 +615,7 @@ public class EventServiceImpl implements EventService {
         // Check if event status is PASSED - disallow cancellation
         EventDto eventDto = toEventDto(event);
         if (eventDto.getStatus() == EventStatus.PASSED) {
-            throw new BadRequestException("Cannot cancel attendance for events that have already passed");
+            throw new BadRequestException(ErrorMessage.EVENT_CANT_UNATTEND_PAST);
         }
 
         // Check if user is an attender

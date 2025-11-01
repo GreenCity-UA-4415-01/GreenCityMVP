@@ -62,6 +62,10 @@ public final class ErrorMessage {
     public static final String USER_ALREADY_HAS_ASSIGNED_HABIT = "Current user already has assigned habit with id: ";
     public static final String USER_SUSPENDED_ASSIGNED_HABIT_FOR_CURRENT_DAY_ALREADY =
         "User already assigned and suspended this habit for today with id: ";
+    public static final String USER_CANT_SELF_FRIEND = "You cannot add yourself to friends.";
+    public static final String FRIENDSHIP_ALREADY_EXISTS = "Friendship with this user already exists.";
+    public static final String FRIENDSHIP_NOT_FOUND = "Friendship with this user does not exist.";
+    public static final String FRIENDSHIP_REQUEST_ALREADY_EXISTS = "Friendship request for this user already exists.";
     public static final String HABIT_FACT_NOT_FOUND_BY_ID = "The habitfact does not exist by id: ";
     public static final String HABIT_FACT_NOT_DELETED_BY_ID = "The habitfact does not deleted by id: ";
     public static final String SPECIFICATION_VALUE_NOT_FOUND_BY_ID =
@@ -92,12 +96,18 @@ public final class ErrorMessage {
         "The user doesn't have any custom shopping list item.";
     public static final String USER_HAS_NO_PERMISSION = "Current user has no permission for this action";
     public static final String EVENT_NOT_FOUND_BY_ID = "Event doesn't exist by this id: ";
+    public static final String INVALID_EVENT_STATUS = "Invalid event status: ";
+    public static final String EVENT_PAST_EDIT_DENIED = "Past events cannot be edited.";
+    public static final String EVENT_CANT_UNATTEND_PAST =
+        "Cannot cancel attendance for events that have already passed";
+    public static final String EVENT_EDIT_DENIED = "You are not allowed to update this event";
     public static final String ECO_NEWS_NOT_FOUND_BY_ID = "Eco news doesn't exist by this id: ";
     public static final String ECO_NEWS_NOT_FOUND = "Eco news haven't been found";
     public static final String ECO_NEWS_NOT_SAVED = "Eco news haven't been saved because of constraint violation";
     public static final String USER_CANNOT_ADD_MORE_THAN_5_SOCIAL_NETWORK_LINKS =
         "User cannot add more than 5 social network links";
     public static final String DELETE_FILE_FAILURE = "Failed to delete file: ";
+    public static final String SAVE_FILE_FAILURE = "Failed to store file: ";
     public static final String INVALID_URI = "The string could not be parsed as a URI reference.";
     public static final String MALFORMED_URL = "Malformed URL. The string could not be parsed.";
     public static final String USER_CANNOT_ADD_SAME_SOCIAL_NETWORK_LINKS =
@@ -136,6 +146,7 @@ public final class ErrorMessage {
     public static final String FILTER_NOT_FOUND_BY_ID = "Filter not found";
     public static final String USER_HAS_NO_FRIEND_WITH_ID = "User has no friend with this id: ";
     public static final String INVALID_DURATION = "The duration for such habit is lower than previously set";
+    public static final String FRIENDSHIP_REQUEST_NOT_FOUND = "Friend request not found.";
 
     private ErrorMessage() {
     }
