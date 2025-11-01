@@ -50,7 +50,7 @@ public class EventController {
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new event")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "201", description = HttpStatuses.CREATED),
         @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
     })
     public ResponseEntity<EventDto> createEvent(
@@ -208,13 +208,23 @@ public class EventController {
      */
     @GetMapping("/myEvents")
     @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get events that the authenticated user has joined")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved events"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<Page<EventPreviewDto>> getMyEvents(
         @Parameter(hidden = true) @CurrentUser UserVO currentUser,
         @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-        @RequestParam(value = "eventType", required = false) EventType eventType,
-        @RequestParam(value = "status", required = false) String status,
-        @RequestParam(value = "userLatitude", required = false) Double userLatitude,
-        @RequestParam(value = "userLongitude", required = false) Double userLongitude) {
+        @Parameter(description = "Filter by event type: ONLINE, PLACE, BOTH") @RequestParam(value = "eventType",
+            required = false) EventType eventType,
+        @Parameter(description = "Filter by status: UPCOMING, LIVE, PASSED") @RequestParam(value = "status",
+            required = false) String status,
+        @Parameter(description = "User latitude for distance-based sorting (for PLACE events)") @RequestParam(
+            value = "userLatitude", required = false) Double userLatitude,
+        @Parameter(description = "User longitude for distance-based sorting (for PLACE events)") @RequestParam(
+            value = "userLongitude", required = false) Double userLongitude) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events = eventService.getMyEvents(
@@ -252,10 +262,17 @@ public class EventController {
      */
     @GetMapping("/myEvents/createdEvents")
     @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get events created by the authenticated user")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved events"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<Page<EventPreviewDto>> getMyCreatedEvents(
         @Parameter(hidden = true) @CurrentUser UserVO currentUser,
         @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-        @RequestParam(value = "status", required = false) String status) {
+        @Parameter(description = "Filter by status: UPCOMING, LIVE, PASSED") @RequestParam(value = "status",
+            required = false) String status) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events =
@@ -276,10 +293,17 @@ public class EventController {
      */
     @GetMapping("/myEvents/relatedEvents")
     @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get all events related to the authenticated user (created and joined)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully retrieved events"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized")
+    })
     public ResponseEntity<Page<EventPreviewDto>> getRelatedEvents(
         @Parameter(hidden = true) @CurrentUser UserVO currentUser,
         @Parameter(hidden = true) @PageableDefault(size = 10) Pageable pageable,
-        @RequestParam(value = "status", required = false) String status) {
+        @Parameter(description = "Filter by status: UPCOMING, LIVE, PASSED") @RequestParam(value = "status",
+            required = false) String status) {
         validateUser(currentUser);
 
         Page<EventPreviewDto> events =
@@ -298,15 +322,16 @@ public class EventController {
      */
     @DeleteMapping("/removeAttender/{eventId}")
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Remove an attender from the event")
+    @Operation(summary = "Remove an attender from the event",
+        description = "Cancel attendance for an upcoming or live event. Cannot cancel attendance for passed events.")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
-        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
-        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED),
-        @ApiResponse(responseCode = "404", description = HttpStatuses.NOT_FOUND)
+        @ApiResponse(responseCode = "200", description = "Successfully removed attender"),
+        @ApiResponse(responseCode = "400", description = "Bad request - event has passed or user is not an attender"),
+        @ApiResponse(responseCode = "401", description = "Unauthorized"),
+        @ApiResponse(responseCode = "404", description = "Event not found")
     })
     public ResponseEntity<Map<String, Object>> removeAttender(
-        @PathVariable Long eventId,
+        @Parameter(description = "Event ID") @PathVariable Long eventId,
         @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         validateUser(currentUser);
 

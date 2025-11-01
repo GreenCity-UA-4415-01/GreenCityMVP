@@ -1,12 +1,13 @@
 package greencity.service;
 
 import greencity.constant.ErrorMessage;
-import greencity.dto.event.EventDto;
+import greencity.dto.event.*;
 import greencity.dto.user.UserVO;
 import greencity.entity.Event;
 import greencity.entity.EventDateTimeLocation;
 import greencity.entity.EventImage;
 import greencity.enums.EventStatus;
+import greencity.enums.EventType;
 import greencity.enums.Role;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.UnauthorizedException;
@@ -20,6 +21,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.Clock;
@@ -69,6 +74,7 @@ class EventServiceImplTest {
     private final Long mockEventId = 1L;
     private final Long mockOrganizerId = 10L;
     private final Long mockOtherUserId = 20L;
+    private final Long mockUserId = 30L;
 
     private UserVO createUserVO(Long id, Role role) {
         return UserVO.builder()
@@ -582,5 +588,285 @@ class EventServiceImplTest {
 
         verify(entityManager, never()).flush();
         verify(entityManager, never()).clear();
+    }
+
+    @Test
+    void findById_WithExistingEvent_ReturnsEventDto() {
+        // Given
+        Long eventId = 1L;
+        Event event = createUpcomingEvent();
+        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
+
+        // When
+        EventDto result = eventService.findById(eventId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(eventId, result.getId());
+        assertEquals(event.getTitle(), result.getTitle());
+        verify(eventRepository, times(1)).findById(eventId);
+    }
+
+    @Test
+    void findById_WithNonExistentEvent_ThrowsNotFoundException() {
+        // Given
+        Long eventId = 999L;
+        when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(NotFoundException.class,
+            () -> eventService.findById(eventId));
+        verify(eventRepository, times(1)).findById(eventId);
+    }
+
+    @Test
+    void getVisibleEvents_ReturnsOpenEvents() {
+        // Given
+        Event openEvent = createUpcomingEvent();
+        openEvent.setOpen(true);
+
+        Event closedEvent = createUpcomingEvent();
+        closedEvent.setId(2L);
+        closedEvent.setOrganizerId(999L);
+        closedEvent.setOpen(false);
+
+        when(eventRepository.findAll()).thenReturn(Arrays.asList(openEvent, closedEvent));
+
+        UserVO user = createUserVO(mockOrganizerId, Role.ROLE_USER);
+
+        // When
+        List<EventDto> result = eventService.getVisibleEvents(user);
+
+        // Then
+        assertNotNull(result);
+        // At least the open event should be visible
+        assertTrue(result.size() >= 1);
+    }
+
+    @Test
+    void addAttender_WithValidData_ReturnsTrue() {
+        // Given
+        Long eventId = 1L;
+        Event event = createUpcomingEvent();
+        UserVO user = createUserVO(mockUserId, Role.ROLE_USER);
+
+        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
+        when(eventAttenderRepo.existsByEventIdAndUserId(eventId, mockUserId)).thenReturn(false);
+        when(eventAttenderRepo.save(any())).thenAnswer(i -> i.getArgument(0));
+
+        // When
+        boolean result = eventService.addAttender(eventId, user);
+
+        // Then
+        assertTrue(result);
+        verify(eventAttenderRepo).existsByEventIdAndUserId(eventId, mockUserId);
+        verify(eventAttenderRepo).save(any());
+    }
+
+    @Test
+    void addAttender_WhenAlreadyAttender_ReturnsFalse() {
+        // Given
+        Long eventId = 1L;
+        Event event = createUpcomingEvent();
+        UserVO user = createUserVO(mockUserId, Role.ROLE_USER);
+
+        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
+        when(eventAttenderRepo.existsByEventIdAndUserId(eventId, mockUserId)).thenReturn(true);
+
+        // When
+        boolean result = eventService.addAttender(eventId, user);
+
+        // Then
+        assertFalse(result);
+        verify(eventAttenderRepo, never()).save(any());
+    }
+
+    @Test
+    void addAttender_WithNonExistentEvent_ThrowsNotFoundException() {
+        // Given
+        Long eventId = 999L;
+        UserVO user = createUserVO(mockUserId, Role.ROLE_USER);
+
+        when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(NotFoundException.class,
+            () -> eventService.addAttender(eventId, user));
+    }
+
+    @Test
+    void removeAttender_WithUpcomingEvent_ReturnsTrue() {
+        // Given
+        Long eventId = 1L;
+        Event event = createUpcomingEvent();
+        UserVO user = createUserVO(mockUserId, Role.ROLE_USER);
+
+        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
+        when(eventAttenderRepo.existsByEventIdAndUserId(eventId, mockUserId)).thenReturn(true);
+        when(eventAttenderRepo.deleteByEventIdAndUserId(eventId, mockUserId)).thenReturn(1);
+
+        // When
+        boolean result = eventService.removeAttender(eventId, user);
+
+        // Then
+        assertTrue(result);
+        verify(eventAttenderRepo).deleteByEventIdAndUserId(eventId, mockUserId);
+    }
+
+    @Test
+    void removeAttender_WithPassedEvent_ThrowsBadRequestException() {
+        // Given
+        Long eventId = 1L;
+        Event event = createPassedEvent();
+        UserVO user = createUserVO(mockUserId, Role.ROLE_USER);
+
+        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
+        when(eventAttenderRepo.existsByEventIdAndUserId(eventId, mockUserId)).thenReturn(true);
+
+        // When & Then
+        greencity.exception.exceptions.BadRequestException exception =
+            assertThrows(greencity.exception.exceptions.BadRequestException.class,
+                () -> eventService.removeAttender(eventId, user));
+
+        assertTrue(exception.getMessage().contains("passed"));
+        verify(eventAttenderRepo, never()).deleteByEventIdAndUserId(anyLong(), anyLong());
+    }
+
+    @Test
+    void removeAttender_WhenNotAttender_ReturnsFalse() {
+        // Given
+        Long eventId = 1L;
+        Event event = createUpcomingEvent();
+        UserVO user = createUserVO(mockUserId, Role.ROLE_USER);
+
+        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
+        when(eventAttenderRepo.existsByEventIdAndUserId(eventId, mockUserId)).thenReturn(false);
+
+        // When
+        boolean result = eventService.removeAttender(eventId, user);
+
+        // Then
+        assertFalse(result);
+        verify(eventAttenderRepo, never()).deleteByEventIdAndUserId(anyLong(), anyLong());
+    }
+
+    @Test
+    void removeAttender_WithNonExistentEvent_ThrowsNotFoundException() {
+        // Given
+        Long eventId = 999L;
+        UserVO user = createUserVO(mockUserId, Role.ROLE_USER);
+
+        when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThrows(NotFoundException.class,
+            () -> eventService.removeAttender(eventId, user));
+    }
+
+    @Test
+    void getMyEvents_WithPagination_ReturnsPagedResults() {
+        // Given
+        Long userId = 100L;
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Event> events = List.of(createUpcomingEvent());
+
+        when(eventAttenderRepo.findJoinedEventsDefaultSorting(eq(userId), any(OffsetDateTime.class), eq(pageable)))
+            .thenReturn(new PageImpl<>(events, pageable, 1));
+        when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
+
+        // When
+        Page<EventPreviewDto> result = eventService.getMyEvents(userId, null, null, null, null, pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getContent().size());
+    }
+
+    @Test
+    void getMyEvents_WithEventTypeFilter_ReturnsFilteredEvents() {
+        // Given
+        Long userId = 100L;
+        Pageable pageable = PageRequest.of(0, 10);
+        List<Event> events = List.of(createUpcomingEvent());
+
+        when(eventAttenderRepo.findJoinedEventsWithSorting(
+            eq(userId), any(OffsetDateTime.class), eq(EventType.PLACE.name()), any(), any(), eq(pageable)))
+            .thenReturn(new PageImpl<>(events, pageable, 1));
+        when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
+
+        // When
+        Page<EventPreviewDto> result = eventService.getMyEvents(userId, EventType.PLACE, null, 50.0, 30.0, pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+    }
+
+    @Test
+    void getMyCreatedEvents_ReturnsCreatedEventsWithCanEditTrue() {
+        // Given
+        Long userId = 100L;
+        Pageable pageable = PageRequest.of(0, 10);
+        Event event = createUpcomingEvent();
+        event.setOrganizerId(userId);
+        Page<Event> eventPage = new PageImpl<>(Arrays.asList(event), pageable, 1);
+
+        when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(userId), eq(pageable)))
+            .thenReturn(eventPage);
+        when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
+
+        // When
+        Page<EventPreviewDto> result = eventService.getMyCreatedEvents(userId, null, pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        EventPreviewDto dto = result.getContent().get(0);
+        assertTrue(dto.isCanEdit());
+        assertTrue(dto.isOrganizer());
+    }
+
+    @Test
+    void getMyCreatedEvents_WithStatusFilter_ReturnsFilteredEvents() {
+        // Given
+        Long userId = 100L;
+        Pageable pageable = PageRequest.of(0, 10);
+        Event event = createUpcomingEvent();
+        event.setOrganizerId(userId);
+        Page<Event> eventPage = new PageImpl<>(Arrays.asList(event), pageable, 1);
+
+        when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(userId), eq(pageable)))
+            .thenReturn(eventPage);
+        when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
+
+        // When
+        Page<EventPreviewDto> result = eventService.getMyCreatedEvents(userId, EventStatus.UPCOMING, pageable);
+
+        // Then
+        assertNotNull(result);
+        result.getContent().forEach(dto -> assertEquals(EventStatus.UPCOMING, dto.getStatus()));
+    }
+
+    @Test
+    void getRelatedEvents_ReturnsUnionOfCreatedAndJoined() {
+        // Given
+        Long userId = 100L;
+        Pageable pageable = PageRequest.of(0, 10);
+        Event event = createUpcomingEvent();
+        event.setOrganizerId(userId);
+        Page<Event> eventPage = new PageImpl<>(Arrays.asList(event), pageable, 1);
+
+        when(eventRepository.findRelatedEventsByUserId(eq(userId), eq(pageable)))
+            .thenReturn(eventPage);
+        when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
+
+        // When
+        Page<EventPreviewDto> result = eventService.getRelatedEvents(userId, null, pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        verify(eventRepository).findRelatedEventsByUserId(eq(userId), eq(pageable));
     }
 }

@@ -635,21 +635,18 @@ class EventControllerTest {
         EventPreviewDto eventPreview = EventPreviewDto.builder()
             .id(1L)
             .title("Test Event")
-            .description("Test Description")
-            .open(true)
-            .organizerId(1L)
             .titleImage("test-image.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(1))
+            .nearestFinish(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(true)
+            .canEdit(false)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(false)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
@@ -674,21 +671,18 @@ class EventControllerTest {
         EventPreviewDto eventPreview = EventPreviewDto.builder()
             .id(1L)
             .title("Test Event")
-            .description("Test Description")
-            .open(true)
-            .organizerId(1L)
             .titleImage("test-image.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(1))
+            .nearestFinish(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(1.23)
+            .visibility("open")
             .canCancelJoin(true)
+            .canEdit(false)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(false)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
@@ -715,21 +709,18 @@ class EventControllerTest {
         EventPreviewDto eventPreview = EventPreviewDto.builder()
             .id(1L)
             .title("Online Event")
-            .description("Test Online Event")
-            .open(true)
-            .organizerId(1L)
             .titleImage("online-event.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(1))
+            .nearestFinish(OffsetDateTime.now().plusDays(1).plusHours(3))
+            .types(greencity.dto.event.EventTypesDto.builder().place(false).online(true).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(true)
+            .canEdit(false)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(null)
-            .longitude(null)
-            .onlineLink("https://example.com/meeting")
+            .isOrganizer(false)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
@@ -744,7 +735,6 @@ class EventControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.content[0].id").value(1))
             .andExpect(jsonPath("$.content[0].title").value("Online Event"))
-            .andExpect(jsonPath("$.content[0].onlineLink").value("https://example.com/meeting"))
             .andExpect(jsonPath("$.totalElements").value(1));
     }
 
@@ -754,22 +744,18 @@ class EventControllerTest {
         EventPreviewDto eventPreview = EventPreviewDto.builder()
             .id(1L)
             .title("My Created Event")
-            .description("Event I created")
-            .open(true)
-            .organizerId(5L) // Same as current user
             .titleImage("my-event-image.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(1))
+            .nearestFinish(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(true)
-            .canEdit(true) // Should be true for organizer
+            .canEdit(true)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(true)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(eventPreview), PageRequest.of(0, 10), 1);
@@ -783,7 +769,7 @@ class EventControllerTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.content[0].id").value(1))
             .andExpect(jsonPath("$.content[0].title").value("My Created Event"))
-            .andExpect(jsonPath("$.content[0].organizerId").value(5))
+            // unified DTO no longer exposes organizerId
             .andExpect(jsonPath("$.content[0].canEdit").value(true))
             .andExpect(jsonPath("$.content[0].status").value("UPCOMING"))
             .andExpect(jsonPath("$.totalElements").value(1));
@@ -933,22 +919,18 @@ class EventControllerTest {
         EventPreviewDto passedEvent = EventPreviewDto.builder()
             .id(2L)
             .title("Past Event")
-            .description("Event that already happened")
-            .open(true)
-            .organizerId(5L)
             .titleImage("past-event-image.jpg")
-            .createdAt(OffsetDateTime.now().minusDays(10))
-            .updatedAt(OffsetDateTime.now().minusDays(10))
             .status(EventStatus.PASSED)
             .nearestStart(OffsetDateTime.now().minusDays(5))
+            .nearestFinish(OffsetDateTime.now().minusDays(4))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(false)
-            .canEdit(true) // Should still be true for organizer
+            .canEdit(true)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(true)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(passedEvent), PageRequest.of(0, 10), 1);
@@ -973,43 +955,35 @@ class EventControllerTest {
         EventPreviewDto createdEvent = EventPreviewDto.builder()
             .id(1L)
             .title("My Created Event")
-            .description("Event I created")
-            .open(true)
-            .organizerId(5L) // Same as current user
             .titleImage("created-event.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(1))
+            .nearestFinish(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(true)
-            .canEdit(true) // Should be true for organizer
+            .canEdit(true)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(true)
             .build();
 
         EventPreviewDto joinedEvent = EventPreviewDto.builder()
             .id(2L)
             .title("Joined Event")
-            .description("Event I joined")
-            .open(true)
-            .organizerId(10L) // Different organizer
             .titleImage("joined-event.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(2))
+            .nearestFinish(OffsetDateTime.now().plusDays(2).plusHours(2))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(true)
-            .canEdit(false) // Should be false for non-organizer
+            .canEdit(false)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(false)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(
@@ -1037,22 +1011,18 @@ class EventControllerTest {
         EventPreviewDto event = EventPreviewDto.builder()
             .id(1L)
             .title("Related Event")
-            .description("Test Event")
-            .open(true)
-            .organizerId(5L)
             .titleImage("event.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(1))
+            .nearestFinish(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(true)
             .canEdit(true)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(true)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(
@@ -1094,22 +1064,18 @@ class EventControllerTest {
         EventPreviewDto upcomingEvent = EventPreviewDto.builder()
             .id(1L)
             .title("Upcoming Event")
-            .description("Test Description")
-            .open(true)
-            .organizerId(1L)
             .titleImage("test-image.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(1))
+            .nearestFinish(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(true)
             .canEdit(false)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(false)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(upcomingEvent), PageRequest.of(0, 10), 1);
@@ -1132,22 +1098,18 @@ class EventControllerTest {
         EventPreviewDto liveEvent = EventPreviewDto.builder()
             .id(2L)
             .title("Live Event")
-            .description("Currently happening")
-            .open(true)
-            .organizerId(5L)
             .titleImage("live-image.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.LIVE)
             .nearestStart(OffsetDateTime.now().minusHours(1))
+            .nearestFinish(OffsetDateTime.now().plusHours(1))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(false)
             .canEdit(true)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(true)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(liveEvent), PageRequest.of(0, 10), 1);
@@ -1169,22 +1131,18 @@ class EventControllerTest {
         EventPreviewDto passedEvent = EventPreviewDto.builder()
             .id(3L)
             .title("Passed Event")
-            .description("Already finished")
-            .open(true)
-            .organizerId(5L)
             .titleImage("passed-image.jpg")
-            .createdAt(OffsetDateTime.now().minusDays(2))
-            .updatedAt(OffsetDateTime.now().minusDays(2))
             .status(EventStatus.PASSED)
             .nearestStart(OffsetDateTime.now().minusDays(1))
+            .nearestFinish(OffsetDateTime.now().minusHours(10))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(false)
             .canEdit(false)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(true)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(passedEvent), PageRequest.of(0, 10), 1);
@@ -1208,22 +1166,18 @@ class EventControllerTest {
         EventPreviewDto upcomingEvent = EventPreviewDto.builder()
             .id(4L)
             .title("Related Upcoming Event")
-            .description("Test Description")
-            .open(true)
-            .organizerId(5L)
             .titleImage("test-image.jpg")
-            .createdAt(OffsetDateTime.now())
-            .updatedAt(OffsetDateTime.now())
             .status(EventStatus.UPCOMING)
             .nearestStart(OffsetDateTime.now().plusDays(2))
+            .nearestFinish(OffsetDateTime.now().plusDays(2).plusHours(3))
+            .types(greencity.dto.event.EventTypesDto.builder().place(true).online(false).build())
+            .distance(null)
+            .visibility("open")
             .canCancelJoin(true)
             .canEdit(true)
             .isFavourite(false)
             .isSubscribed(false)
-            .visibility("PUBLIC")
-            .latitude(50.45)
-            .longitude(30.52)
-            .onlineLink(null)
+            .isOrganizer(true)
             .build();
 
         Page<EventPreviewDto> eventPage = new PageImpl<>(List.of(upcomingEvent), PageRequest.of(0, 10), 1);
@@ -1242,7 +1196,7 @@ class EventControllerTest {
     }
 
     @Test
-    public void updateEvent_ShouldReturn200Ok() throws Exception {
+    void updateEvent_ShouldReturn200Ok() throws Exception {
         UpdateEventDtoRequest updateDto = UpdateEventDtoRequest.builder()
             .title("Updated Event")
             .description("This is a new description with more than 20 chars")
@@ -1293,7 +1247,7 @@ class EventControllerTest {
     }
 
     @Test
-    public void updateEvent_WithoutImages_ShouldReturn200Ok() throws Exception {
+    void updateEvent_WithoutImages_ShouldReturn200Ok() throws Exception {
         UpdateEventDtoRequest updateDto = UpdateEventDtoRequest.builder()
             .title("Updated Event No Images")
             .description("Valid description without images")
@@ -1335,7 +1289,7 @@ class EventControllerTest {
     }
 
     @Test
-    public void updateEvent_WithInvalidTitle_ShouldReturn400BadRequest() throws Exception {
+    void updateEvent_WithInvalidTitle_ShouldReturn400BadRequest() throws Exception {
         UpdateEventDtoRequest updateDto = UpdateEventDtoRequest.builder()
             .title("")
             .description("This description is valid")
@@ -1365,7 +1319,7 @@ class EventControllerTest {
     }
 
     @Test
-    public void updateEvent_WithMoreThan5Images_ShouldReturn400BadRequest() throws Exception {
+    void updateEvent_WithMoreThan5Images_ShouldReturn400BadRequest() throws Exception {
         UpdateEventDtoRequest updateDto = UpdateEventDtoRequest.builder()
             .title("Too many images")
             .description("Valid description")
