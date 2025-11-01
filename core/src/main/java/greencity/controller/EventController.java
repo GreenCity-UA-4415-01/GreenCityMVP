@@ -50,7 +50,7 @@ public class EventController {
         produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Create a new event")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "201", description = HttpStatuses.CREATED),
         @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST)
     })
     public ResponseEntity<EventDto> createEvent(
