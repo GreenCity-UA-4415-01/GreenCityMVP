@@ -57,30 +57,30 @@ class EventPermissionFlagsTest {
 
     private Event buildEvent(Long id, Long organizerId, OffsetDateTime start, OffsetDateTime finish) {
         Event event = Event.builder()
-                .id(id)
-                .title("Event " + id)
-                .description("Test")
-                .open(true)
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title("Event " + id)
+            .description("Test")
+            .open(true)
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation loc = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(start)
-                .finishDate(finish)
-                .latitude(50.0)
-                .longitude(30.0)
-                .build();
+            .event(event)
+            .startDate(start)
+            .finishDate(finish)
+            .latitude(50.0)
+            .longitude(30.0)
+            .build();
         event.setDateTimeLocations(List.of(loc));
 
         EventImage img = EventImage.builder()
-                .event(event)
-                .imagePath("img.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .imagePath("img.jpg")
+            .main(true)
+            .createdAt(OffsetDateTime.now())
+            .build();
         event.setImages(List.of(img));
         return event;
     }
@@ -89,12 +89,14 @@ class EventPermissionFlagsTest {
     void organizerOfUpcomingEvent_HasCanEditTrue_AndIsOrganizerTrue() {
         Long organizerId = 100L;
         Event event = buildEvent(1L, organizerId,
-                OffsetDateTime.now().plusDays(1),
-                OffsetDateTime.now().plusDays(1).plusHours(2));
+            OffsetDateTime.now().plusDays(1),
+            OffsetDateTime.now().plusDays(1).plusHours(2));
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
 
-        when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(organizerId), any(Pageable.class))).thenReturn(page);
-        when(userService.findById(organizerId)).thenReturn(UserVO.builder().id(organizerId).role(Role.ROLE_USER).build());
+        when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(organizerId), any(Pageable.class)))
+            .thenReturn(page);
+        when(userService.findById(organizerId))
+            .thenReturn(UserVO.builder().id(organizerId).role(Role.ROLE_USER).build());
 
         Page<EventPreviewDto> result = eventService.getMyCreatedEvents(organizerId, null, PageRequest.of(0, 10));
 
@@ -108,12 +110,14 @@ class EventPermissionFlagsTest {
     void organizerOfPassedEvent_HasCanEditFalse() {
         Long organizerId = 200L;
         Event event = buildEvent(2L, organizerId,
-                OffsetDateTime.now().minusDays(2),
-                OffsetDateTime.now().minusDays(1));
+            OffsetDateTime.now().minusDays(2),
+            OffsetDateTime.now().minusDays(1));
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
 
-        when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(organizerId), any(Pageable.class))).thenReturn(page);
-        when(userService.findById(organizerId)).thenReturn(UserVO.builder().id(organizerId).role(Role.ROLE_USER).build());
+        when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(organizerId), any(Pageable.class)))
+            .thenReturn(page);
+        when(userService.findById(organizerId))
+            .thenReturn(UserVO.builder().id(organizerId).role(Role.ROLE_USER).build());
 
         Page<EventPreviewDto> result = eventService.getMyCreatedEvents(organizerId, null, PageRequest.of(0, 10));
 
@@ -128,8 +132,8 @@ class EventPermissionFlagsTest {
         Long adminId = 300L;
         Long eventId = 3L;
         Event event = buildEvent(eventId, adminId,
-                OffsetDateTime.now().plusDays(1),
-                OffsetDateTime.now().plusDays(1).plusHours(2));
+            OffsetDateTime.now().plusDays(1),
+            OffsetDateTime.now().plusDays(1).plusHours(2));
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
 
         when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(adminId), any(Pageable.class))).thenReturn(page);
@@ -147,14 +151,16 @@ class EventPermissionFlagsTest {
         Long attendeeId = 400L;
         Long organizerId = 999L;
         Event event = buildEvent(4L, organizerId,
-                OffsetDateTime.now().plusDays(1),
-                OffsetDateTime.now().plusDays(1).plusHours(2));
+            OffsetDateTime.now().plusDays(1),
+            OffsetDateTime.now().plusDays(1).plusHours(2));
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
 
-        when(eventAttenderRepo.findJoinedEventsDefaultSorting(eq(attendeeId), any(), any(Pageable.class))).thenReturn(page);
+        when(eventAttenderRepo.findJoinedEventsDefaultSorting(eq(attendeeId), any(), any(Pageable.class)))
+            .thenReturn(page);
         when(userService.findById(attendeeId)).thenReturn(UserVO.builder().id(attendeeId).role(Role.ROLE_USER).build());
 
-        Page<EventPreviewDto> result = eventService.getMyEvents(attendeeId, null, null, null, null, PageRequest.of(0, 10));
+        Page<EventPreviewDto> result =
+            eventService.getMyEvents(attendeeId, null, null, null, null, PageRequest.of(0, 10));
 
         EventPreviewDto dto = result.getContent().get(0);
         assertFalse(dto.isCanEdit(), "Non-organizer should have canEdit=false");
@@ -166,12 +172,14 @@ class EventPermissionFlagsTest {
     void liveEvent_DisallowsCancelJoin() {
         Long organizerId = 500L;
         Event event = buildEvent(5L, organizerId,
-                OffsetDateTime.now().minusHours(1),
-                OffsetDateTime.now().plusHours(1));
+            OffsetDateTime.now().minusHours(1),
+            OffsetDateTime.now().plusHours(1));
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
 
-        when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(organizerId), any(Pageable.class))).thenReturn(page);
-        when(userService.findById(organizerId)).thenReturn(UserVO.builder().id(organizerId).role(Role.ROLE_USER).build());
+        when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(organizerId), any(Pageable.class)))
+            .thenReturn(page);
+        when(userService.findById(organizerId))
+            .thenReturn(UserVO.builder().id(organizerId).role(Role.ROLE_USER).build());
 
         Page<EventPreviewDto> result = eventService.getMyCreatedEvents(organizerId, null, PageRequest.of(0, 10));
 
@@ -181,4 +189,3 @@ class EventPermissionFlagsTest {
         assertTrue(dto.isCanEdit(), "Organizer can still edit live events");
     }
 }
-

@@ -54,24 +54,25 @@ class EventPreviewMappingTest {
 
     private Event buildPlaceEvent(Long id, Long organizerId, OffsetDateTime start, OffsetDateTime finish) {
         Event event = Event.builder()
-                .id(id)
-                .title("Title " + id)
-                .description("Desc")
-                .open(true)
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title("Title " + id)
+            .description("Desc")
+            .open(true)
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation loc = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(start)
-                .finishDate(finish)
-                .latitude(50.0)
-                .longitude(30.0)
-                .build();
+            .event(event)
+            .startDate(start)
+            .finishDate(finish)
+            .latitude(50.0)
+            .longitude(30.0)
+            .build();
         event.setDateTimeLocations(List.of(loc));
-        EventImage img = EventImage.builder().event(event).imagePath("main.jpg").main(true).createdAt(OffsetDateTime.now()).build();
+        EventImage img =
+            EventImage.builder().event(event).imagePath("main.jpg").main(true).createdAt(OffsetDateTime.now()).build();
         event.setImages(List.of(img));
         return event;
     }
@@ -79,7 +80,8 @@ class EventPreviewMappingTest {
     @Test
     void getMyCreatedEvents_MapsUnifiedPreviewDtoWithFlags() {
         Long userId = 100L;
-        Event ev = buildPlaceEvent(1L, userId, OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(2));
+        Event ev = buildPlaceEvent(1L, userId, OffsetDateTime.now().plusDays(1),
+            OffsetDateTime.now().plusDays(1).plusHours(2));
         Page<Event> page = new PageImpl<>(List.of(ev), PageRequest.of(0, 10), 1);
 
         when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(userId), any(Pageable.class))).thenReturn(page);
@@ -105,14 +107,17 @@ class EventPreviewMappingTest {
     @Test
     void getMyEvents_PlaceWithCoordinates_ComputesDistanceNullable() {
         Long userId = 200L;
-        Event ev = buildPlaceEvent(1L, 999L, OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1));
+        Event ev =
+            buildPlaceEvent(1L, 999L, OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusHours(1));
         Page<Event> page = new PageImpl<>(List.of(ev), PageRequest.of(0, 10), 1);
 
-        when(eventAttenderRepo.findJoinedEventsWithSorting(eq(userId), any(), eq(EventType.PLACE.name()), any(), any(), any(Pageable.class)))
-                .thenReturn(page);
+        when(eventAttenderRepo.findJoinedEventsWithSorting(eq(userId), any(), eq(EventType.PLACE.name()), any(), any(),
+            any(Pageable.class)))
+            .thenReturn(page);
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
-        Page<EventPreviewDto> result = eventService.getMyEvents(userId, EventType.PLACE, null, 50.1, 30.1, PageRequest.of(0,10));
+        Page<EventPreviewDto> result =
+            eventService.getMyEvents(userId, EventType.PLACE, null, 50.1, 30.1, PageRequest.of(0, 10));
 
         EventPreviewDto dto = result.getContent().get(0);
         assertEquals(EventStatus.UPCOMING, dto.getStatus());
@@ -123,5 +128,3 @@ class EventPreviewMappingTest {
         assertFalse(dto.isOrganizer());
     }
 }
-
-

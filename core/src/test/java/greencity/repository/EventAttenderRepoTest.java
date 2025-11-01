@@ -20,17 +20,17 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration tests for EventAttenderRepo.
- * Tests custom queries, attendance management, and event filtering.
+ * Integration tests for EventAttenderRepo. Tests custom queries, attendance
+ * management, and event filtering.
  *
  * @author Generated
  */
 @DataJpaTest
 @ContextConfiguration(classes = greencity.DaoApplication.class)
 @TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.datasource.url=jdbc:h2:mem:testdb",
-        "spring.liquibase.enabled=false"
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.liquibase.enabled=false"
 })
 class EventAttenderRepoTest {
     @Autowired
@@ -88,8 +88,7 @@ class EventAttenderRepoTest {
         // When
         Pageable pageable = PageRequest.of(0, 10);
         Page<Event> result = eventAttenderRepo.findJoinedEventsDefaultSorting(
-                999L, OffsetDateTime.now(), pageable
-        );
+            999L, OffsetDateTime.now(), pageable);
 
         // Then
         assertEquals(0, result.getTotalElements());
@@ -99,10 +98,10 @@ class EventAttenderRepoTest {
     void saveAndFind_EventAttenderPersistence() {
         // Given
         EventAttender attender = EventAttender.builder()
-                .eventId(placeEvent.getId())
-                .userId(userId1)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .eventId(placeEvent.getId())
+            .userId(userId1)
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         // When
         EventAttender saved = eventAttenderRepo.save(attender);
@@ -117,24 +116,24 @@ class EventAttenderRepoTest {
     // Helper methods to create different event types
     private Event createPlaceEvent(Long id) {
         Event event = Event.builder()
-                .id(id)
-                .title("Place Event")
-                .description("This is a test event description with enough characters.")
-                .open(true)
-                .organizerId(1L)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title("Place Event")
+            .description("This is a test event description with enough characters.")
+            .open(true)
+            .organizerId(1L)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation location = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .onlineLink(null)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .latitude(50.4501)
+            .longitude(30.5234)
+            .onlineLink(null)
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         event.setDateTimeLocations(new ArrayList<>(List.of(location)));
         return event;
@@ -142,24 +141,24 @@ class EventAttenderRepoTest {
 
     private Event createOnlineEvent(Long id) {
         Event event = Event.builder()
-                .id(id)
-                .title("Online Event")
-                .description("This is a test event description with enough characters.")
-                .open(true)
-                .organizerId(1L)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title("Online Event")
+            .description("This is a test event description with enough characters.")
+            .open(true)
+            .organizerId(1L)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation location = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .latitude(null)
-                .longitude(null)
-                .onlineLink("https://example.com/meeting")
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .latitude(null)
+            .longitude(null)
+            .onlineLink("https://example.com/meeting")
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         event.setDateTimeLocations(new ArrayList<>(List.of(location)));
         return event;
@@ -167,39 +166,36 @@ class EventAttenderRepoTest {
 
     private Event createHybridEvent(Long id) {
         Event event = Event.builder()
-                .id(id)
-                .title("Hybrid Event")
-                .description("This is a test event description with enough characters.")
-                .open(true)
-                .organizerId(1L)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title("Hybrid Event")
+            .description("This is a test event description with enough characters.")
+            .open(true)
+            .organizerId(1L)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation location1 = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .onlineLink(null)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .latitude(50.4501)
+            .longitude(30.5234)
+            .onlineLink(null)
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation location2 = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(2))
-                .finishDate(OffsetDateTime.now().plusDays(2).plusHours(2))
-                .latitude(null)
-                .longitude(null)
-                .onlineLink("https://example.com/meeting")
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(2))
+            .finishDate(OffsetDateTime.now().plusDays(2).plusHours(2))
+            .latitude(null)
+            .longitude(null)
+            .onlineLink("https://example.com/meeting")
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         event.setDateTimeLocations(new ArrayList<>(List.of(location1, location2)));
         return event;
     }
 }
-
-
-

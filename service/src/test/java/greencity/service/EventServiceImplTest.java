@@ -615,7 +615,7 @@ class EventServiceImplTest {
 
         // When & Then
         assertThrows(NotFoundException.class,
-                () -> eventService.findById(eventId));
+            () -> eventService.findById(eventId));
         verify(eventRepository, times(1)).findById(eventId);
     }
 
@@ -691,7 +691,7 @@ class EventServiceImplTest {
 
         // When & Then
         assertThrows(NotFoundException.class,
-                () -> eventService.addAttender(eventId, user));
+            () -> eventService.addAttender(eventId, user));
     }
 
     @Test
@@ -725,8 +725,8 @@ class EventServiceImplTest {
 
         // When & Then
         greencity.exception.exceptions.BadRequestException exception =
-                assertThrows(greencity.exception.exceptions.BadRequestException.class,
-                        () -> eventService.removeAttender(eventId, user));
+            assertThrows(greencity.exception.exceptions.BadRequestException.class,
+                () -> eventService.removeAttender(eventId, user));
 
         assertTrue(exception.getMessage().contains("passed"));
         verify(eventAttenderRepo, never()).deleteByEventIdAndUserId(anyLong(), anyLong());
@@ -760,7 +760,7 @@ class EventServiceImplTest {
 
         // When & Then
         assertThrows(NotFoundException.class,
-                () -> eventService.removeAttender(eventId, user));
+            () -> eventService.removeAttender(eventId, user));
     }
 
     @Test
@@ -771,7 +771,7 @@ class EventServiceImplTest {
         List<Event> events = List.of(createUpcomingEvent());
 
         when(eventAttenderRepo.findJoinedEventsDefaultSorting(eq(userId), any(OffsetDateTime.class), eq(pageable)))
-                .thenReturn(new PageImpl<>(events, pageable, 1));
+            .thenReturn(new PageImpl<>(events, pageable, 1));
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
         // When
@@ -791,8 +791,8 @@ class EventServiceImplTest {
         List<Event> events = List.of(createUpcomingEvent());
 
         when(eventAttenderRepo.findJoinedEventsWithSorting(
-                eq(userId), any(OffsetDateTime.class), eq(EventType.PLACE.name()), any(), any(), eq(pageable)))
-                .thenReturn(new PageImpl<>(events, pageable, 1));
+            eq(userId), any(OffsetDateTime.class), eq(EventType.PLACE.name()), any(), any(), eq(pageable)))
+            .thenReturn(new PageImpl<>(events, pageable, 1));
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
         // When
@@ -813,7 +813,7 @@ class EventServiceImplTest {
         Page<Event> eventPage = new PageImpl<>(Arrays.asList(event), pageable, 1);
 
         when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(userId), eq(pageable)))
-                .thenReturn(eventPage);
+            .thenReturn(eventPage);
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
         // When
@@ -837,7 +837,7 @@ class EventServiceImplTest {
         Page<Event> eventPage = new PageImpl<>(Arrays.asList(event), pageable, 1);
 
         when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(userId), eq(pageable)))
-                .thenReturn(eventPage);
+            .thenReturn(eventPage);
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
         // When
@@ -845,9 +845,7 @@ class EventServiceImplTest {
 
         // Then
         assertNotNull(result);
-        result.getContent().forEach(dto ->
-                assertEquals(EventStatus.UPCOMING, dto.getStatus())
-        );
+        result.getContent().forEach(dto -> assertEquals(EventStatus.UPCOMING, dto.getStatus()));
     }
 
     @Test
@@ -860,7 +858,7 @@ class EventServiceImplTest {
         Page<Event> eventPage = new PageImpl<>(Arrays.asList(event), pageable, 1);
 
         when(eventRepository.findRelatedEventsByUserId(eq(userId), eq(pageable)))
-                .thenReturn(eventPage);
+            .thenReturn(eventPage);
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
         // When

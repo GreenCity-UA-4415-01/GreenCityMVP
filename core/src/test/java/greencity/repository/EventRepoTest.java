@@ -22,17 +22,17 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration tests for EventRepo.
- * Tests database queries, pagination, and sorting.
+ * Integration tests for EventRepo. Tests database queries, pagination, and
+ * sorting.
  *
  * @author Generated
  */
 @DataJpaTest
 @ContextConfiguration(classes = greencity.DaoApplication.class)
 @TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.datasource.url=jdbc:h2:mem:testdb",
-        "spring.liquibase.enabled=false"
+    "spring.jpa.hibernate.ddl-auto=create-drop",
+    "spring.datasource.url=jdbc:h2:mem:testdb",
+    "spring.liquibase.enabled=false"
 })
 class EventRepoTest {
     @Autowired
@@ -134,43 +134,43 @@ class EventRepoTest {
     // Helper methods
     private Event createEvent(Long id, Long organizerId, String title) {
         Event event = Event.builder()
-                .id(id)
-                .title(title)
-                .description("This is a test event description with enough characters to be valid.")
-                .open(true)
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title(title)
+            .description("This is a test event description with enough characters to be valid.")
+            .open(true)
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         // Add date locations
         EventDateTimeLocation loc1 = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .latitude(50.4501)
+            .longitude(30.5234)
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation loc2 = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(5))
-                .finishDate(OffsetDateTime.now().plusDays(5).plusHours(3))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(5))
+            .finishDate(OffsetDateTime.now().plusDays(5).plusHours(3))
+            .latitude(50.4501)
+            .longitude(30.5234)
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         event.setDateTimeLocations(new ArrayList<>(List.of(loc1, loc2)));
 
         // Add image
         EventImage image = EventImage.builder()
-                .event(event)
-                .imagePath("event-" + id + ".jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .imagePath("event-" + id + ".jpg")
+            .main(true)
+            .createdAt(OffsetDateTime.now())
+            .build();
         event.setImages(new ArrayList<>(List.of(image)));
 
         return event;
@@ -178,32 +178,32 @@ class EventRepoTest {
 
     private Event createEventWithSpecificStart(Long id, Long organizerId, String title, OffsetDateTime startDate) {
         Event event = Event.builder()
-                .id(id)
-                .title(title)
-                .description("This is a test event description with enough characters to be valid.")
-                .open(true)
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title(title)
+            .description("This is a test event description with enough characters to be valid.")
+            .open(true)
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation location = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(startDate)
-                .finishDate(startDate.plusHours(2))
-                .latitude(50.4501)
-                .longitude(30.5234)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .startDate(startDate)
+            .finishDate(startDate.plusHours(2))
+            .latitude(50.4501)
+            .longitude(30.5234)
+            .createdAt(OffsetDateTime.now())
+            .build();
 
         event.setDateTimeLocations(new ArrayList<>(List.of(location)));
 
         EventImage image = EventImage.builder()
-                .event(event)
-                .imagePath("event-" + id + ".jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .imagePath("event-" + id + ".jpg")
+            .main(true)
+            .createdAt(OffsetDateTime.now())
+            .build();
         event.setImages(new ArrayList<>(List.of(image)));
 
         return event;

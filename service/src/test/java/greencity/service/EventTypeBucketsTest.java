@@ -30,8 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for event type buckets: place, online, both.
- * Verifies that events are correctly classified and filtered by type.
+ * Tests for event type buckets: place, online, both. Verifies that events are
+ * correctly classified and filtered by type.
  */
 @ExtendWith(SpringExtension.class)
 class EventTypeBucketsTest {
@@ -57,31 +57,31 @@ class EventTypeBucketsTest {
 
     private Event buildEvent(Long id, Long organizerId, boolean hasPlace, boolean hasOnline) {
         Event event = Event.builder()
-                .id(id)
-                .title("Event " + id)
-                .description("Test")
-                .open(true)
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title("Event " + id)
+            .description("Test")
+            .open(true)
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation loc = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .latitude(hasPlace ? 50.0 : null)
-                .longitude(hasPlace ? 30.0 : null)
-                .onlineLink(hasOnline ? "https://example.com/meeting" : null)
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .latitude(hasPlace ? 50.0 : null)
+            .longitude(hasPlace ? 30.0 : null)
+            .onlineLink(hasOnline ? "https://example.com/meeting" : null)
+            .build();
         event.setDateTimeLocations(List.of(loc));
 
         EventImage img = EventImage.builder()
-                .event(event)
-                .imagePath("img.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .imagePath("img.jpg")
+            .main(true)
+            .createdAt(OffsetDateTime.now())
+            .build();
         event.setImages(List.of(img));
         return event;
     }
@@ -122,39 +122,39 @@ class EventTypeBucketsTest {
     void hybridEvent_ReturnsBothTypesTrue() {
         Long userId = 300L;
         Event event = Event.builder()
-                .id(3L)
-                .title("Hybrid Event")
-                .description("Test")
-                .open(true)
-                .organizerId(userId)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(3L)
+            .title("Hybrid Event")
+            .description("Test")
+            .open(true)
+            .organizerId(userId)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         // Add both place and online locations
         EventDateTimeLocation placeLoc = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .latitude(50.0)
-                .longitude(30.0)
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .latitude(50.0)
+            .longitude(30.0)
+            .build();
 
         EventDateTimeLocation onlineLoc = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(OffsetDateTime.now().plusDays(1))
-                .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
-                .onlineLink("https://example.com/meeting")
-                .build();
+            .event(event)
+            .startDate(OffsetDateTime.now().plusDays(1))
+            .finishDate(OffsetDateTime.now().plusDays(1).plusHours(2))
+            .onlineLink("https://example.com/meeting")
+            .build();
 
         event.setDateTimeLocations(List.of(placeLoc, onlineLoc));
 
         EventImage img = EventImage.builder()
-                .event(event)
-                .imagePath("img.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .imagePath("img.jpg")
+            .main(true)
+            .createdAt(OffsetDateTime.now())
+            .build();
         event.setImages(List.of(img));
 
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
@@ -177,11 +177,11 @@ class EventTypeBucketsTest {
         Page<Event> page = new PageImpl<>(List.of(placeEvent, onlineEvent), PageRequest.of(0, 10), 2);
 
         when(eventAttenderRepo.findJoinedEventsWithSorting(
-                eq(userId), any(), eq(EventType.PLACE.name()), any(), any(), any(Pageable.class)
-        )).thenReturn(page);
+            eq(userId), any(), eq(EventType.PLACE.name()), any(), any(), any(Pageable.class))).thenReturn(page);
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
-        Page<EventPreviewDto> result = eventService.getMyEvents(userId, EventType.PLACE, null, null, null, PageRequest.of(0, 10));
+        Page<EventPreviewDto> result =
+            eventService.getMyEvents(userId, EventType.PLACE, null, null, null, PageRequest.of(0, 10));
 
         assertEquals(2, result.getTotalElements());
         // All returned events should have place=true (based on filtering)
@@ -195,11 +195,11 @@ class EventTypeBucketsTest {
         Page<Event> page = new PageImpl<>(List.of(placeEvent, onlineEvent), PageRequest.of(0, 10), 2);
 
         when(eventAttenderRepo.findJoinedEventsWithSorting(
-                eq(userId), any(), eq(EventType.ONLINE.name()), any(), any(), any(Pageable.class)
-        )).thenReturn(page);
+            eq(userId), any(), eq(EventType.ONLINE.name()), any(), any(), any(Pageable.class))).thenReturn(page);
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
-        Page<EventPreviewDto> result = eventService.getMyEvents(userId, EventType.ONLINE, null, null, null, PageRequest.of(0, 10));
+        Page<EventPreviewDto> result =
+            eventService.getMyEvents(userId, EventType.ONLINE, null, null, null, PageRequest.of(0, 10));
 
         assertEquals(2, result.getTotalElements());
     }
@@ -215,9 +215,9 @@ class EventTypeBucketsTest {
         when(eventAttenderRepo.findJoinedEventsDefaultSorting(eq(userId), any(), any(Pageable.class))).thenReturn(page);
         when(userService.findById(userId)).thenReturn(UserVO.builder().id(userId).role(Role.ROLE_USER).build());
 
-        Page<EventPreviewDto> result = eventService.getMyEvents(userId, EventType.BOTH, null, null, null, PageRequest.of(0, 10));
+        Page<EventPreviewDto> result =
+            eventService.getMyEvents(userId, EventType.BOTH, null, null, null, PageRequest.of(0, 10));
 
         assertEquals(3, result.getTotalElements());
     }
 }
-

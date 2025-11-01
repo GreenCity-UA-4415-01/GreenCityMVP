@@ -30,8 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for event status computation logic.
- * Tests UPCOMING, LIVE, and PASSED status determination based on event date/time occurrences.
+ * Unit tests for event status computation logic. Tests UPCOMING, LIVE, and
+ * PASSED status determination based on event date/time occurrences.
  */
 @ExtendWith(SpringExtension.class)
 class EventStatusComputationTest {
@@ -57,32 +57,32 @@ class EventStatusComputationTest {
 
     private Event buildEvent(Long id, Long organizerId, List<EventDateTimeLocation> locations) {
         Event event = Event.builder()
-                .id(id)
-                .title("Event " + id)
-                .description("Test")
-                .open(true)
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title("Event " + id)
+            .description("Test")
+            .open(true)
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
         event.setDateTimeLocations(locations);
         EventImage img = EventImage.builder()
-                .event(event)
-                .imagePath("img.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .imagePath("img.jpg")
+            .main(true)
+            .createdAt(OffsetDateTime.now())
+            .build();
         event.setImages(List.of(img));
         return event;
     }
 
     private EventDateTimeLocation buildLocation(OffsetDateTime start, OffsetDateTime finish) {
         return EventDateTimeLocation.builder()
-                .startDate(start)
-                .finishDate(finish)
-                .latitude(50.0)
-                .longitude(30.0)
-                .build();
+            .startDate(start)
+            .finishDate(finish)
+            .latitude(50.0)
+            .longitude(30.0)
+            .build();
     }
 
     @Test
@@ -90,9 +90,8 @@ class EventStatusComputationTest {
         Long userId = 100L;
         OffsetDateTime futureStart = OffsetDateTime.now().plusDays(1);
         Event event = buildEvent(1L, userId, List.of(buildLocation(
-                futureStart,
-                futureStart.plusHours(2)
-        )));
+            futureStart,
+            futureStart.plusHours(2))));
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
 
         when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(userId), any(Pageable.class))).thenReturn(page);
@@ -143,10 +142,9 @@ class EventStatusComputationTest {
         OffsetDateTime future3 = OffsetDateTime.now().plusDays(5);
 
         Event event = buildEvent(4L, userId, List.of(
-                buildLocation(future3, future3.plusHours(2)),
-                buildLocation(future1, future1.plusHours(2)),
-                buildLocation(future2, future2.plusHours(2))
-        ));
+            buildLocation(future3, future3.plusHours(2)),
+            buildLocation(future1, future1.plusHours(2)),
+            buildLocation(future2, future2.plusHours(2))));
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
 
         when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(userId), any(Pageable.class))).thenReturn(page);
@@ -167,9 +165,8 @@ class EventStatusComputationTest {
         OffsetDateTime future = OffsetDateTime.now().plusDays(1);
 
         Event event = buildEvent(5L, userId, List.of(
-                buildLocation(past, past.plusHours(2)),
-                buildLocation(future, future.plusHours(2))
-        ));
+            buildLocation(past, past.plusHours(2)),
+            buildLocation(future, future.plusHours(2))));
         Page<Event> page = new PageImpl<>(List.of(event), PageRequest.of(0, 10), 1);
 
         when(eventRepository.findByOrganizerIdOrderByNearestStart(eq(userId), any(Pageable.class))).thenReturn(page);
@@ -182,4 +179,3 @@ class EventStatusComputationTest {
         assertEquals(future, dto.getNearestStart());
     }
 }
-

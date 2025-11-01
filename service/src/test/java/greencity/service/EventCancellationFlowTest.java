@@ -26,8 +26,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Integration tests for the event cancel join (removeAttender) flow.
- * Tests successful cancellation, edge cases, and business rule enforcement.
+ * Integration tests for the event cancel join (removeAttender) flow. Tests
+ * successful cancellation, edge cases, and business rule enforcement.
  */
 @ExtendWith(SpringExtension.class)
 class EventCancellationFlowTest {
@@ -53,30 +53,30 @@ class EventCancellationFlowTest {
 
     private Event buildEvent(Long id, Long organizerId, OffsetDateTime start, OffsetDateTime finish) {
         Event event = Event.builder()
-                .id(id)
-                .title("Event " + id)
-                .description("Test")
-                .open(true)
-                .organizerId(organizerId)
-                .createdAt(OffsetDateTime.now())
-                .updatedAt(OffsetDateTime.now())
-                .build();
+            .id(id)
+            .title("Event " + id)
+            .description("Test")
+            .open(true)
+            .organizerId(organizerId)
+            .createdAt(OffsetDateTime.now())
+            .updatedAt(OffsetDateTime.now())
+            .build();
 
         EventDateTimeLocation loc = EventDateTimeLocation.builder()
-                .event(event)
-                .startDate(start)
-                .finishDate(finish)
-                .latitude(50.0)
-                .longitude(30.0)
-                .build();
+            .event(event)
+            .startDate(start)
+            .finishDate(finish)
+            .latitude(50.0)
+            .longitude(30.0)
+            .build();
         event.setDateTimeLocations(List.of(loc));
 
         EventImage img = EventImage.builder()
-                .event(event)
-                .imagePath("img.jpg")
-                .main(true)
-                .createdAt(OffsetDateTime.now())
-                .build();
+            .event(event)
+            .imagePath("img.jpg")
+            .main(true)
+            .createdAt(OffsetDateTime.now())
+            .build();
         event.setImages(List.of(img));
         return event;
     }
@@ -89,8 +89,8 @@ class EventCancellationFlowTest {
 
         UserVO attendee = UserVO.builder().id(attendeeId).role(Role.ROLE_USER).build();
         Event event = buildEvent(eventId, organizerId,
-                OffsetDateTime.now().plusDays(1),
-                OffsetDateTime.now().plusDays(1).plusHours(2));
+            OffsetDateTime.now().plusDays(1),
+            OffsetDateTime.now().plusDays(1).plusHours(2));
 
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
         when(eventAttenderRepo.existsByEventIdAndUserId(eventId, attendeeId)).thenReturn(true);
@@ -110,8 +110,8 @@ class EventCancellationFlowTest {
 
         UserVO attendee = UserVO.builder().id(attendeeId).role(Role.ROLE_USER).build();
         Event event = buildEvent(eventId, organizerId,
-                OffsetDateTime.now().minusHours(1),
-                OffsetDateTime.now().plusHours(1));
+            OffsetDateTime.now().minusHours(1),
+            OffsetDateTime.now().plusHours(1));
 
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
         when(eventAttenderRepo.existsByEventIdAndUserId(eventId, attendeeId)).thenReturn(true);
@@ -131,16 +131,15 @@ class EventCancellationFlowTest {
 
         UserVO attendee = UserVO.builder().id(attendeeId).role(Role.ROLE_USER).build();
         Event event = buildEvent(eventId, organizerId,
-                OffsetDateTime.now().minusDays(2),
-                OffsetDateTime.now().minusDays(1));
+            OffsetDateTime.now().minusDays(2),
+            OffsetDateTime.now().minusDays(1));
 
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
         when(eventAttenderRepo.existsByEventIdAndUserId(eventId, attendeeId)).thenReturn(true);
 
         BadRequestException exception = assertThrows(
-                BadRequestException.class,
-                () -> eventService.removeAttender(eventId, attendee)
-        );
+            BadRequestException.class,
+            () -> eventService.removeAttender(eventId, attendee));
 
         assertTrue(exception.getMessage().contains("passed"));
         verify(eventAttenderRepo, never()).deleteByEventIdAndUserId(anyLong(), anyLong());
@@ -154,8 +153,8 @@ class EventCancellationFlowTest {
 
         UserVO attendee = UserVO.builder().id(attendeeId).role(Role.ROLE_USER).build();
         Event event = buildEvent(eventId, organizerId,
-                OffsetDateTime.now().plusDays(1),
-                OffsetDateTime.now().plusDays(1).plusHours(2));
+            OffsetDateTime.now().plusDays(1),
+            OffsetDateTime.now().plusDays(1).plusHours(2));
 
         when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
         when(eventAttenderRepo.existsByEventIdAndUserId(eventId, attendeeId)).thenReturn(false);
@@ -176,10 +175,9 @@ class EventCancellationFlowTest {
         when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
 
         assertThrows(greencity.exception.exceptions.NotFoundException.class,
-                () -> eventService.removeAttender(eventId, attendee));
+            () -> eventService.removeAttender(eventId, attendee));
 
         verify(eventAttenderRepo, never()).existsByEventIdAndUserId(anyLong(), anyLong());
         verify(eventAttenderRepo, never()).deleteByEventIdAndUserId(anyLong(), anyLong());
     }
 }
-
