@@ -71,6 +71,15 @@ jobs:
         # 7. Change qualitygate.wait to TRUE once we figure out how to properly incorporate incremental test reports.
         run: |
           mvn clean install verify
+          echo "Forcing generation of jacoco-aggregate report..."
+          mvn jacoco:report-aggregate
+          REPORT_PATH="target/site/jacoco-aggregate/jacoco.xml"
+          if [ -f "$REPORT_PATH" ]; then
+            echo "SUCCESS: JaCoCo report found at $REPORT_PATH. Continuing to Sonar analysis."
+          else
+            echo "ERROR: JaCoCo report NOT found at $REPORT_PATH. The report generation step failed."
+            exit 1 # Fail the job if the report is missing
+          fi
           echo "--- Starting Sonar Analysis ---"
           SONAR_CMD="mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP \
