@@ -29,6 +29,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import static org.hamcrest.Matchers.hasSize;
@@ -105,7 +106,7 @@ class EventControllerTest {
         public Object resolveArgument(MethodParameter parameter,
             ModelAndViewContainer mavContainer,
             NativeWebRequest webRequest,
-            WebDataBinderFactory binderFactory) throws Exception {
+            WebDataBinderFactory binderFactory) {
             return userVO;
         }
     }
@@ -1359,4 +1360,68 @@ class EventControllerTest {
             .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void searchEvents_ShouldReturn200() throws Exception {
+        List<EventPreviewDto> previews = List.of(
+            EventPreviewDto.builder()
+                .id(1L)
+                .title("Eco Cleanup in Park")
+//                        .description("Let's make the park clean again!")
+                .visibility("open")
+                .isOrganizer(false)
+//                        .organizerId(10L)
+                .titleImage("eco-1.jpg")
+                .status(EventStatus.UPCOMING)
+                .nearestStart(OffsetDateTime.now().plusDays(1))
+                .isFavourite(false)
+                .isSubscribed(true)
+                .build(),
+            EventPreviewDto.builder()
+                .id(2L)
+                .title("Eco Festival")
+//                        .description("A green lifestyle event for everyone.")
+                .visibility("open")
+                .isOrganizer(false)
+//                        .organizerId(11L)
+                .titleImage("eco-2.jpg")
+                .status(EventStatus.UPCOMING)
+                .nearestStart(OffsetDateTime.now().plusDays(3))
+                .isFavourite(true)
+                .isSubscribed(false)
+                .build());
+
+        when(eventService.searchEventsByTitle("eco")).thenReturn(previews);
+
+        mockMvc.perform(get("/events/search")
+            .param("title", "eco")
+            .accept(MediaType.APPLICATION_JSON))
+            // .andDo(print())
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].title").value("Eco Cleanup in Park"))
+            .andExpect(jsonPath("$[1].title").value("Eco Festival"));
+    }
+
+    @Test
+    void searchEvents_ShouldReturn400_TitleTooShort() throws Exception {
+        mockMvc.perform(get("/events/search")
+            .param("title", "ec")
+            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.message").value("Search query must have at least 3 characters."));
+    }
+
+    @Test
+    void searchEvents_ShouldReturn200WithEmptyList_NoResultsFound() throws Exception {
+        when(eventService.searchEventsByTitle("unknown")).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/events/search")
+                        .param("title", "unknown")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(0));
+    }
 }

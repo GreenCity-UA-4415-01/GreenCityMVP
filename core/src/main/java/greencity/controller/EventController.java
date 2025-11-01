@@ -135,6 +135,30 @@ public class EventController {
     }
 
     /**
+     * Endpoint for searching events.
+     *
+     * @param user Current User.
+     * @author Kateryna Holtvianska
+     */
+    @Operation(summary = "Search events by title (case-insensitive, partial match)")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+        @ApiResponse(responseCode = "400", description = HttpStatuses.BAD_REQUEST),
+        @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
+    @GetMapping("/search")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<EventPreviewDto>> searchEvents(
+        @Parameter(hidden = true) @CurrentUser UserVO user,
+        @RequestParam("title") String query) {
+        validateUser(user);
+        validateSearchQuery(query);
+
+        List<EventPreviewDto> results = eventService.searchEventsByTitle(query.trim());
+        return ResponseEntity.ok(results);
+    }
+
+    /**
      * Helper method to validate {@link AddEventDtoRequest}.
      *
      * @param addEventDtoRequest DTO under validation.
@@ -382,6 +406,15 @@ public class EventController {
     private void validateUser(UserVO currentUser) {
         if (currentUser == null) {
             throw new BadRequestException("User must be authenticated.");
+        }
+    }
+
+    private void validateSearchQuery(String query) {
+        if (query == null || query.trim().length() < 3) {
+            throw new BadRequestException("Search query must have at least 3 characters.");
+        }
+        if (query.length() > 64) {
+            throw new BadRequestException("Search query cannot exceed 64 characters.");
         }
     }
 }
