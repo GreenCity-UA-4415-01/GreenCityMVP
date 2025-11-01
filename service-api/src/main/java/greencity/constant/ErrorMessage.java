@@ -66,6 +66,7 @@ public final class ErrorMessage {
     public static final String FRIENDSHIP_ALREADY_EXISTS = "Friendship with this user already exists.";
     public static final String FRIENDSHIP_NOT_FOUND = "Friendship with this user does not exist.";
     public static final String FRIENDSHIP_REQUEST_ALREADY_EXISTS = "Friendship request for this user already exists.";
+    public static final String FRIENDSHIP_REQUEST_NOT_FOUND = "Friendship request for these users does not exist.";
     public static final String HABIT_FACT_NOT_FOUND_BY_ID = "The habitfact does not exist by id: ";
     public static final String HABIT_FACT_NOT_DELETED_BY_ID = "The habitfact does not deleted by id: ";
     public static final String SPECIFICATION_VALUE_NOT_FOUND_BY_ID =
@@ -146,7 +147,6 @@ public final class ErrorMessage {
     public static final String FILTER_NOT_FOUND_BY_ID = "Filter not found";
     public static final String USER_HAS_NO_FRIEND_WITH_ID = "User has no friend with this id: ";
     public static final String INVALID_DURATION = "The duration for such habit is lower than previously set";
-    public static final String FRIENDSHIP_REQUEST_NOT_FOUND = "Friend request not found.";
 
     private ErrorMessage() {
     }
