@@ -39,7 +39,7 @@ jobs:
           fetch-depth: 0
           lfs: true
 
-    # Checks-out your greencity.repository under $GITHUB_WORKSPACE, so your job can access it
+      # Checks-out your greencity.repository under $GITHUB_WORKSPACE, so your job can access it
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -49,10 +49,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-#       - name: Set up Go
-#         uses: actions/setup-go@v3
-#         with:
-#           go-version: 1.18
+      #       - name: Set up Go
+      #         uses: actions/setup-go@v3
+      #         with:
+      #           go-version: 1.18
 
       - name: Maven Build and Sonar Analysis
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
@@ -74,6 +74,7 @@ jobs:
           mvn clean install verify
           echo "Forcing generation of jacoco-aggregate report..."
           mvn jacoco:report-aggregate
+          
           REPORT_PATH="target/site/jacoco-aggregate/jacoco.xml"
           if [ -f "$REPORT_PATH" ]; then
             echo "SUCCESS: JaCoCo report found at $REPORT_PATH. Continuing to Sonar analysis."
@@ -81,8 +82,10 @@ jobs:
             echo "ERROR: JaCoCo report NOT found at $REPORT_PATH. The report generation step failed."
             exit 1 # Fail the job if the report is missing
           fi
+          
           echo "--- Starting Sonar Analysis ---"
-          SONAR_CMD="mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+          
+          SONAR_CMD="mvn sonar:sonar \
             -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP \
             -Dsonar.organization=greencity-ua-4415-01 \
             -Dsonar.token=${SONAR_TOKEN} \
@@ -131,22 +134,22 @@ jobs:
           push: true
           tags: ${{ env.dockerRepoName }}:test-${{ env.GITHUB_SHA_SHORT }}
 
-#       - name: Kubernetes Set Context
-#         uses: Azure/k8s-set-context@v3.0
-#         with:
-#           kubeconfig: ${{ secrets.KUBE_CONFIG }}
+      #       - name: Kubernetes Set Context
+      #         uses: Azure/k8s-set-context@v3.0
+      #         with:
+      #           kubeconfig: ${{ secrets.KUBE_CONFIG }}
       
-#       - name: Set up Postgres
-#         run: kubectl scale deploy postgres --replicas=1 -n test
+      #       - name: Set up Postgres
+      #         run: kubectl scale deploy postgres --replicas=1 -n test
       
-#       - name: Kubernetes tests
-#         run: |
-#           cd chart-test
-#           go test -v ./...
+      #       - name: Kubernetes tests
+      #         run: |
+      #           cd chart-test
+      #           go test -v ./...
       
-#       - name: Post Set up Postgres
-#         if: success() || failure()
-#         run: kubectl scale deploy postgres --replicas=0 -n test
+      #       - name: Post Set up Postgres
+      #         if: success() || failure()
+      #         run: kubectl scale deploy postgres --replicas=0 -n test
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Deploy 🚀
