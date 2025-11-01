@@ -55,16 +55,10 @@
         <jjwt.version>0.12.5</jjwt.version>
         <sonar.maven.plugin.version>3.11.0.3922</sonar.maven.plugin.version>
         <sonar.sources>
-            service-api/src/main/java,
-            dao/src/main/java,
-            core/src/main/java,
-            service/src/main/java
+            src/main/java
         </sonar.sources>
         <sonar.java.binaries>
-            service-api/target/classes,
-            dao/target/classes,
-            core/target/classes,
-            service/target/classes
+            target/classes
         </sonar.java.binaries>
     </properties>
 
