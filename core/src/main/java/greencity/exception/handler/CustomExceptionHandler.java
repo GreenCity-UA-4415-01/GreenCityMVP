@@ -712,6 +712,14 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exceptionResponse);
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public final ResponseEntity<Object> handleRuntimeException(RuntimeException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
+        exceptionResponse.setMessage(ex.getMessage());
+        log.error(ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exceptionResponse);
+    }
+
     @ExceptionHandler(SaveFileException.class)
     public final ResponseEntity<Object> handleSaveFileException(SaveFileException ex, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(getErrorAttributes(request));
