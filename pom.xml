@@ -53,10 +53,25 @@
         <jacoco.maven.plugin.version>0.8.11</jacoco.maven.plugin.version>
         <net.java.dev.jna.version>5.14.0</net.java.dev.jna.version>
         <jjwt.version>0.12.5</jjwt.version>
+        <sonar.maven.plugin.version>3.11.0.3922</sonar.maven.plugin.version>
+        <sonar.sources>
+            src/main/java
+        </sonar.sources>
+        <sonar.java.binaries>
+            target/classes
+        </sonar.java.binaries>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco-aggregate/jacoco.xml
+        </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar.maven.plugin.version}</version>
+            </plugin>
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
