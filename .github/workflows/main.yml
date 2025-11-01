@@ -72,16 +72,6 @@ jobs:
         # 8. Execute the final command - run the Sonar scanner conditionally (PR vs. Push).
         run: |
           mvn clean install verify
-          echo "Forcing generation of jacoco-aggregate report..."
-          mvn jacoco:report-aggregate
-          
-          REPORT_PATH="target/site/jacoco-aggregate/jacoco.xml"
-          if [ -f "$REPORT_PATH" ]; then
-            echo "SUCCESS: JaCoCo report found at $REPORT_PATH. Continuing to Sonar analysis."
-          else
-            echo "ERROR: JaCoCo report NOT found at $REPORT_PATH. The report generation step failed."
-            exit 1 # Fail the job if the report is missing
-          fi
           
           echo "--- Starting Sonar Analysis ---"
           
@@ -89,7 +79,6 @@ jobs:
             -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP \
             -Dsonar.organization=greencity-ua-4415-01 \
             -Dsonar.token=${SONAR_TOKEN} \
-            -Dsonar.coverage.jacoco.xmlReportPaths=${REPORT_PATH} \
             -Dsonar.qualitygate.wait=false \
             -Dsonar.ws.timeout=120"
           
