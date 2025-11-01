@@ -243,7 +243,8 @@ class FriendServiceImplTest {
         when(friendshipRequestRepo.existsPending(requesterId, me)).thenReturn(true);
         when(friendshipRequestRepo.areAlreadyFriends(me, requesterId)).thenReturn(false);
 
-        when(friendshipRequestRepo.deletePendingOneDirection(anyLong(), anyLong())).thenReturn(1);
+        when(friendshipRequestRepo.deletePendingOneDirection(me, requesterId)).thenReturn(1);
+        when(friendshipRequestRepo.deletePendingOneDirection(requesterId, me)).thenReturn(1);
 
         assertDoesNotThrow(() -> friendService.acceptFriendRequest(me, requesterId));
 
