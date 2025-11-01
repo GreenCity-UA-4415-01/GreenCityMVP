@@ -37,7 +37,15 @@
         <formatter.maven.plugin.version>2.23.0</formatter.maven.plugin.version>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
-        <sonar.exclusions>**/config/*</sonar.exclusions>
+        <sonar.exclusions>
+            **/config/*,
+            **/enums/*,
+            **/dto/*,
+            **/exception/*,
+            **/exceptions/*,
+            **/entity/*,
+            **/generated/**/*
+        </sonar.exclusions>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.language>java</sonar.language>
         <test.containers.version>1.19.4</test.containers.version>
@@ -59,16 +67,6 @@
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
-                        <configuration>
-                            <excludes>
-                                <!-- prepare-agent requires FQCN patterns (*.package.*) to match classes. -->
-                                <exclude>*.config.*</exclude>
-                                <exclude>*.enums.*</exclude>
-                                <exclude>*.exceptions.*</exclude>
-                                <exclude>*.entity.*</exclude>
-                                <exclude>*.generated.*</exclude>
-                            </excludes>
-                        </configuration>
                     </execution>
                     <!-- Collects all individual jacoco.exec files from all sub-modules
                          and merges them into a single jacoco.exec in the root target directory. -->
@@ -113,17 +111,6 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
-                        <configuration>
-                            <excludes>
-                                <!-- The report goal is more flexible and supports Ant-style paths/globs,
-                                     so these patterns are retained. -->
-                                <exclude>**/config/*</exclude>
-                                <exclude>**/enums/*</exclude>
-                                <exclude>**/exceptions/*</exclude>
-                                <exclude>**/entity/*</exclude>
-                                <exclude>**/generated/**/*</exclude>
-                            </excludes>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
