@@ -431,15 +431,15 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<EventPreviewDto> searchEventsByTitle(String query) {
         List<Event> events = eventRepository
-                .findByTitleContainingIgnoreCase(query);
+            .findByTitleContainingIgnoreCase(query);
 
         if (events.isEmpty()) {
             throw new NotFoundException("We didn't find any results matching this search.");
         }
 
         return events.stream()
-                .map(event -> mapper.map(event, EventPreviewDto.class))
-                .collect(Collectors.toList());
+            .map(event -> mapper.map(event, EventPreviewDto.class))
+            .toList();
     }
 
     /**
