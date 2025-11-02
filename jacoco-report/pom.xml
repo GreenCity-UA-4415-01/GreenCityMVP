@@ -16,6 +16,11 @@
     <name>jacoco-report</name>
     <description>Dedicated module to run JaCoCo report-aggregate after all tests complete.</description>
 
+    <!-- FIX: Tell Sonar to ignore the source directory for this utility module, as it has no Java code. -->
+    <properties>
+        <sonar.sources></sonar.sources>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
