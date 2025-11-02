@@ -69,14 +69,14 @@ jobs:
         # 5. Execute the final command - run the Sonar scanner conditionally (PR vs. Push).
         run: |
           echo "--- Starting Unified Build and Sonar Analysis ---"
-      
+          
           SONAR_CMD="mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP \
             -Dsonar.organization=greencity-ua-4415-01 \
             -Dsonar.token=${SONAR_TOKEN} \
             -Dsonar.qualitygate.wait=false \
             -Dsonar.ws.timeout=120 \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml"
+            -Dsonar.coverage.jacoco.xmlReportPaths=jacoco-report/target/site/jacoco-aggregate/jacoco.xml"
           
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "--- Adding Pull Request parameters for Sonar Analysis ---"

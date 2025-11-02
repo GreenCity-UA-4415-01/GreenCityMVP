@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.2</version>
+        <version>3.2.9</version>
         <relativePath/>
     </parent>
 
@@ -21,10 +21,12 @@
         <module>dao</module>
         <module>core</module>
         <module>service</module>
+        <module>jacoco-report</module>
     </modules>
 
     <properties>
-        <spring.boot.version>3.2.2</spring.boot.version>
+        <spring.boot.version>3.2.9</spring.boot.version>
+        <spring.framework.version>6.2.7</spring.framework.version>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
@@ -60,7 +62,7 @@
         <sonar.java.binaries>
             target/classes
         </sonar.java.binaries>
-        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco-aggregate/jacoco.xml
+        <sonar.coverage.jacoco.xmlReportPaths>jacoco-report/target/site/jacoco-aggregate/jacoco.xml
         </sonar.coverage.jacoco.xmlReportPaths>
     </properties>
 
@@ -83,43 +85,6 @@
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-                    <!-- Collects all individual jacoco.exec files from all sub-modules
-                         and merges them into a single jacoco.exec in the root target directory. -->
-                    <execution>
-                        <id>merge-exec-files</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>merge</goal>
-                        </goals>
-                        <configuration>
-                            <!-- This expression finds all 'jacoco.exec' files in the reactor modules' targets -->
-                            <fileSets>
-                                <fileSet>
-                                    <directory>${project.basedir}</directory>
-                                    <includes>
-                                        <include>*/target/jacoco.exec</include>
-                                    </includes>
-                                </fileSet>
-                            </fileSets>
-                            <!-- Output file for the merged data -->
-                            <destFile>${project.build.directory}/jacoco.exec</destFile>
-                        </configuration>
-                    </execution>
-                    <!-- This execution runs the report-aggregate goal on the merged jacoco.exec file
-                         to produce the target/site/jacoco-aggregate/jacoco.xml file expected by Sonar. -->
-                    <execution>
-                        <id>report-aggregate</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>report-aggregate</goal>
-                        </goals>
-                        <configuration>
-                            <!-- Sets the output directory to match the Sonar property in the workflow -->
-                            <outputDirectory>${project.build.directory}/site/jacoco-aggregate</outputDirectory>
-                            <outputEncoding>UTF-8</outputEncoding>
-                        </configuration>
-                    </execution>
-                    <!-- Keep the default report execution (can be useful for local module reports) -->
                     <execution>
                         <id>default-report</id>
                         <phase>prepare-package</phase>
@@ -129,6 +94,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
