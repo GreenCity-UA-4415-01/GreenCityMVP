@@ -64,7 +64,8 @@ jobs:
 
       # Refactored Step 2: Use the official SonarCloud action for analysis
       - name: SonarCloud Scan
-        uses: sonarsource/sonarqube-scan-action@v2
+        # uses: sonarsource/sonarqube-scan-action@v2
+        uses: sonarsource/sonarqube-scan-action@aecaf43ae57e412bd97d70ef9ce6076e672fe0a9
         if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
 
         # The action automatically looks for the SONAR_TOKEN environment variable.
@@ -75,6 +76,7 @@ jobs:
         with:
           projectBaseDir: .
           args: >
+            -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP
             -Dsonar.organization=greencity-ua-4415-01
             -Dsonar.qualitygate.wait=false
