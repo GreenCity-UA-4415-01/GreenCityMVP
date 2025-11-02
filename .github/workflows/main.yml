@@ -71,11 +71,9 @@ jobs:
         # 7. For push analysis, we explicitly set the branch name to ensure consistency.
         # 8. Execute the final command - run the Sonar scanner conditionally (PR vs. Push).
         run: |
-          mvn clean install verify
-          
-          echo "--- Starting Sonar Analysis ---"
-          
-          SONAR_CMD="mvn sonar:sonar \
+          echo "--- Starting Unified Build and Sonar Analysis ---"
+      
+          SONAR_CMD="mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
             -Dsonar.projectKey=GreenCity-UA-4415-01_GreenCityMVP \
             -Dsonar.organization=greencity-ua-4415-01 \
             -Dsonar.token=${SONAR_TOKEN} \
