@@ -78,16 +78,17 @@ jobs:
             -Dsonar.organization=greencity-ua-4415-01 \
             -Dsonar.token=${SONAR_TOKEN} \
             -Dsonar.qualitygate.wait=false \
-            -Dsonar.ws.timeout=120"
+            -Dsonar.ws.timeout=120 \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco-aggregate/jacoco.xml"
           
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "--- Adding Pull Request parameters for Sonar Analysis ---"
-            SONAR_CMD="$SONAR_CMD -Dsonar.pullrequest.key=$PR_KEY -Dsonar.pullrequest.branch=$PR_BRANCH -Dsonar.pullrequest.base=$PR_BASE"
-          else
-            BRANCH_NAME=$(echo ${{ github.ref }} | sed 's/refs\/heads\///')
-            echo "--- Running standard Branch Analysis for Sonar on branch $BRANCH_NAME ---"
-            SONAR_CMD="$SONAR_CMD -Dsonar.branch.name=$BRANCH_NAME"
-          fi
+          #if [ "${{ github.event_name }}" = "pull_request" ]; then
+          #  echo "--- Adding Pull Request parameters for Sonar Analysis ---"
+          #  SONAR_CMD="$SONAR_CMD -Dsonar.pullrequest.key=$PR_KEY -Dsonar.pullrequest.branch=$PR_BRANCH -Dsonar.pullrequest.base=$PR_BASE"
+          #else
+          #  BRANCH_NAME=$(echo ${{ github.ref }} | sed 's/refs\/heads\///')
+          #  echo "--- Running standard Branch Analysis for Sonar on branch $BRANCH_NAME ---"
+          #  SONAR_CMD="$SONAR_CMD -Dsonar.branch.name=$BRANCH_NAME"
+          #fi
           
           eval "$SONAR_CMD"
 
