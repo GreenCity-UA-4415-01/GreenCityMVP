@@ -3,7 +3,11 @@ package greencity.repository;
 import greencity.entity.Friendship;
 import greencity.entity.FriendshipKey;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.jpa.repository.Query;
 
 @Repository
 public interface FriendshipRepo extends JpaRepository<Friendship, FriendshipKey> {
@@ -34,4 +38,13 @@ public interface FriendshipRepo extends JpaRepository<Friendship, FriendshipKey>
      * @author Misha Moroz
      */
     long countByUserId(Long userId);
+
+    @Modifying
+    @Transactional
+    @Query(value = """
+    DELETE FROM friendships
+    WHERE (user_id = :a AND friend_id = :b)
+       OR (user_id = :b AND friend_id = :a)
+    """, nativeQuery = true)
+    int deleteBothDirections(@Param("a") Long a, @Param("b") Long b);
 }

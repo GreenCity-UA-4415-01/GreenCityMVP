@@ -189,4 +189,71 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
     Page<User> searchCandidates(@Param("userId") Long userId,
         @Param("q") String q,
         Pageable pageable);
+
+    @Query(
+            value = """
+        SELECT u.* FROM users u
+        WHERE u.id IN (
+            SELECT f.friend_id FROM friendships f WHERE f.user_id = :userId
+            UNION
+            SELECT f.user_id   FROM friendships f WHERE f.friend_id = :userId
+        )
+    """,
+            countQuery = """
+        SELECT COUNT(*) FROM users u
+        WHERE u.id IN (
+            SELECT f.friend_id FROM friendships f WHERE f.user_id = :userId
+            UNION
+            SELECT f.user_id   FROM friendships f WHERE f.friend_id = :userId
+        )
+    """,
+            nativeQuery = true
+    )
+    Page<User> findFriendsPage(@Param("userId") Long userId, Pageable pageable);
+
+    @Query(value = """
+    WITH my_habits AS (
+        SELECT ha.habit_id
+        FROM habit_assign ha
+        WHERE ha.user_id = :userId
+    ),
+    my_city AS (
+        SELECT COALESCE(u.city, '') AS city FROM users u WHERE u.id = :userId
+    )
+    SELECT u.*,
+           (SELECT COUNT(*) FROM habit_assign ha
+             WHERE ha.user_id = u.id
+               AND ha.habit_id IN (SELECT habit_id FROM my_habits)
+           ) AS common_habits,
+           (CASE WHEN LOWER(u.city) = LOWER((SELECT city FROM my_city)) THEN 1 ELSE 0 END) AS same_city
+    FROM users u
+    WHERE u.id IN (
+        SELECT f.friend_id FROM friendships f WHERE f.user_id = :userId
+        UNION
+        SELECT f.user_id   FROM friendships f WHERE f.friend_id = :userId
+    )
+    ORDER BY common_habits DESC,
+             same_city DESC,
+             u.rating DESC NULLS LAST,
+             u.name ASC
+    LIMIT 6
+    """, nativeQuery = true)
+    List<User> findTopFriendsForBlock(@Param("userId") Long userId);
+
+    @Query(value = """
+    SELECT COUNT(*) FROM (
+      SELECT x.id FROM (
+        SELECT CASE WHEN f.user_id = :me THEN f.friend_id ELSE f.user_id END AS id
+        FROM friendships f
+        WHERE (f.user_id = :me OR f.friend_id = :me)
+      ) my
+      JOIN (
+        SELECT CASE WHEN f.user_id = :friend THEN f.friend_id ELSE f.user_id END AS id
+        FROM friendships f
+        WHERE (f.user_id = :friend OR f.friend_id = :friend)
+      ) fr ON fr.id = my.id
+    ) t
+    """, nativeQuery = true)
+    long countMutualFriends(@Param("me") Long me, @Param("friend") Long friend);
+
 }

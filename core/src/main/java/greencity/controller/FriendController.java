@@ -4,6 +4,7 @@ import greencity.annotations.ApiPageableWithLocale;
 import greencity.annotations.CurrentUser;
 import greencity.constant.HttpStatuses;
 import greencity.dto.PageableDto;
+import greencity.dto.user.FriendProfileDto;
 import greencity.dto.user.UserFriendCardDto;
 import greencity.dto.user.UserVO;
 import greencity.service.FriendService;
@@ -106,4 +107,49 @@ public class FriendController {
         friendService.rejectFriendRequest(currentUser.getId(), friendId);
         return ResponseEntity.ok().build();
     }
+
+    // === MY ECO FRIENDS (All friends / Top-6 / Profile) ===
+
+
+    @ApiPageableWithLocale
+    @Operation(summary = "Get paged list of my friends (tab: All friends)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
+    @GetMapping
+    public ResponseEntity<PageableDto<UserFriendCardDto>> myFriends(
+            Pageable pageable,
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        return ResponseEntity.ok(friendService.listFriends(currentUser.getId(), pageable));
+    }
+
+    // --- My Habits: Top-6 для віджету ---
+    @GetMapping("/top6")
+    @Operation(summary = "Get up to 6 most relevant friends for My Habits widget")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
+    public ResponseEntity<java.util.List<greencity.dto.user.FriendShortDto>> top6(
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        return ResponseEntity.ok(friendService.topFriends(currentUser.getId()));
+    }
+
+    @Operation(summary = "Get friend profile (for friend card/avatar click)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
+            @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
+    })
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<FriendProfileDto> friendProfile(
+            @PathVariable Long userId,
+            @Parameter(hidden = true) @CurrentUser UserVO currentUser
+    ) {
+        return ResponseEntity.ok(friendService.friendProfile(currentUser.getId(), userId));
+    }
+
+
+    // TODO: GET /friends/friendRequests
+
 }

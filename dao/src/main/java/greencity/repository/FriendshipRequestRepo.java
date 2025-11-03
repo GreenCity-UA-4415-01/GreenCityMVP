@@ -57,12 +57,13 @@ public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Frie
     int deletePendingOneDirection(@Param("a") Long a, @Param("b") Long b);
 
     @Query(
-        nativeQuery = true,
-        value = """
-                SELECT EXISTS(
-                    SELECT 1 FROM friendships
-                    WHERE user_id = :me AND friend_id = :friendId
-                )
-            """)
+            nativeQuery = true,
+            value = """
+        SELECT EXISTS(
+            SELECT 1 FROM friendships
+            WHERE (user_id = :me AND friend_id = :friendId)
+               OR (user_id = :friendId AND friend_id = :me)
+        )
+    """)
     boolean areAlreadyFriends(@Param("me") Long me, @Param("friendId") Long friendId);
 }
