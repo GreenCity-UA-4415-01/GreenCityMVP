@@ -119,7 +119,6 @@ public class FriendController {
     public ResponseEntity<PageableDto<UserFriendCardDto>> myFriends(
         Pageable pageable,
         @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
-        log.warn(pageable.toString());
         return ResponseEntity.ok(friendService.listFriends(currentUser.getId(), pageable));
     }
 
@@ -146,6 +145,7 @@ public class FriendController {
         return ResponseEntity.ok(friendService.friendProfile(currentUser.getId(), userId));
     }
 
+    @ApiPageableWithLocale
     @Operation(summary = "Get friend requests for the current user")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = HttpStatuses.OK),

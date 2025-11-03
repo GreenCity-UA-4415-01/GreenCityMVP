@@ -84,6 +84,12 @@ public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Frie
                 SELECT * FROM friendship_requests
                 WHERE receiver_id = :receiverId
                 AND status = 'PENDING'
+            """,
+        countQuery = """
+                SELECT COUNT(*)
+                FROM friendship_requests
+                WHERE receiver_id = :receiverId
+                AND status = 'PENDING'
             """)
     Page<FriendRequest> findAllPendingRequestsByReceiverId(@Param("receiverId") Long receiverId, Pageable pageable);
 }

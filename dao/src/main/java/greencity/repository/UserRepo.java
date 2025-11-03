@@ -242,17 +242,15 @@ public interface UserRepo extends JpaRepository<User, Long>, JpaSpecificationExe
 
     @Query(value = """
         SELECT COUNT(*) FROM (
-          SELECT my.id FROM (
-            SELECT CASE WHEN f.user_id = :me THEN f.friend_id ELSE f.user_id END AS id
-            FROM friendships f
-            WHERE (f.user_id = :me OR f.friend_id = :me)
-          ) my
-          JOIN (
-            SELECT CASE WHEN f.user_id = :friend THEN f.friend_id ELSE f.user_id END AS id
-            FROM friendships f
-            WHERE (f.user_id = :friend OR f.friend_id = :friend)
-          ) fr ON fr.id = my.id
-        ) t
+          SELECT DISTINCT CASE WHEN f.user_id = :me THEN f.friend_id ELSE f.user_id END AS id
+          FROM friendships f
+          WHERE f.user_id = :me OR f.friend_id = :me
+        ) my
+        JOIN (
+          SELECT DISTINCT CASE WHEN f.user_id = :friend THEN f.friend_id ELSE f.user_id END AS id
+          FROM friendships f
+          WHERE f.user_id = :friend OR f.friend_id = :friend
+        ) fr ON fr.id = my.id
         """, nativeQuery = true)
     long countMutualFriends(@Param("me") Long me, @Param("friend") Long friend);
 }
