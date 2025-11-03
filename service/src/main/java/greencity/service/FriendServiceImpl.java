@@ -2,10 +2,8 @@ package greencity.service;
 
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
-import greencity.dto.user.FriendProfileDto;
-import greencity.dto.user.FriendShortDto;
-import greencity.dto.user.UserFriendCandidateCardDto;
-import greencity.dto.user.UserFriendCardDto;
+import greencity.dto.user.*;
+import greencity.entity.FriendRequest;
 import greencity.entity.Friendship;
 import greencity.entity.User;
 import greencity.exception.exceptions.FriendExistsException;
@@ -14,15 +12,15 @@ import greencity.exception.exceptions.SelfFriendException;
 import greencity.repository.FriendshipRepo;
 import greencity.repository.FriendshipRequestRepo;
 import greencity.repository.UserRepo;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,9 +29,16 @@ public class FriendServiceImpl implements FriendService {
     private final FriendshipRequestRepo friendshipRequestRepo;
     private final FriendshipRepo friendshipRepo;
     private final UserService userService;
-    @PersistenceContext
-    private EntityManager entityManager;
 
+    /**
+     * Search for friends candidates.
+     *
+     * @param me       current user id
+     * @param query    search string (name/username), may be empty
+     * @param pageable pagination settings
+     * @return pageable dto of potential friends
+     * @author Misha Moroz
+     */
     @Override
     @Transactional(readOnly = true)
     public PageableDto<UserFriendCandidateCardDto> search(Long me, String query, Pageable pageable) {
@@ -57,6 +62,13 @@ public class FriendServiceImpl implements FriendService {
         return new PageableDto<>(cards, page.getTotalElements(), page.getNumber(), page.getTotalPages());
     }
 
+    /**
+     * Send friend request.
+     *
+     * @param me       current user id (requester)
+     * @param friendId target user id (receiver)
+     * @author Misha Moroz
+     */
     @Override
     @Transactional
     public void sendFriendRequest(Long me, Long friendId) {
@@ -71,6 +83,13 @@ public class FriendServiceImpl implements FriendService {
         friendshipRequestRepo.insertPending(me, friendId);
     }
 
+    /**
+     * Cancel friend request.
+     *
+     * @param me       current user id (requester)
+     * @param friendId target user id (receiver)
+     * @author Misha Moroz
+     */
     @Override
     @Transactional
     public void cancelFriendRequest(Long me, Long friendId) {
@@ -88,23 +107,13 @@ public class FriendServiceImpl implements FriendService {
     @Transactional
     public void unfriendUser(Long userId, Long friendId) {
         validateUsersPair(userId, friendId);
-        if (!friendshipRepo.existsByUserIdAndFriendId(userId, friendId)) {
-            throw new NotFoundException(ErrorMessage.FRIENDSHIP_NOT_FOUND);
-        }
-        friendshipRepo.deleteByUserIdAndFriendId(userId, friendId);
-    }
-/*    @Override
-    @Transactional
-    public void unfriendUser(Long userId, Long friendId) {
-        validateUsersPair(userId, friendId);
-
         boolean exists = friendshipRepo.existsByUserIdAndFriendId(userId, friendId)
-                || friendshipRepo.existsByUserIdAndFriendId(friendId, userId);
+            || friendshipRepo.existsByUserIdAndFriendId(friendId, userId);
         if (!exists) {
             throw new NotFoundException(ErrorMessage.FRIENDSHIP_NOT_FOUND);
         }
         friendshipRepo.deleteBothDirections(userId, friendId);
-    }*/
+    }
 
     /**
      * Helper method to ensure two users are not equal and both exist.
@@ -135,25 +144,20 @@ public class FriendServiceImpl implements FriendService {
         if (me.equals(requesterId)) {
             throw new SelfFriendException(ErrorMessage.USER_CANT_SELF_FRIEND);
         }
-        // перевіряємо, що справді є вхідний pending
         if (!friendshipRequestRepo.existsPending(requesterId, me)) {
             throw new NotFoundException(ErrorMessage.FRIENDSHIP_REQUEST_NOT_FOUND);
         }
 
-        // якщо вже друзі — просто прибираємо pending і виходимо
-        boolean alreadyFriends =
-                friendshipRepo.existsByUserIdAndFriendId(me, requesterId)
-                        || friendshipRepo.existsByUserIdAndFriendId(requesterId, me);
+        boolean alreadyFriends = (friendshipRepo.existsByUserIdAndFriendId(me, requesterId)
+            || friendshipRepo.existsByUserIdAndFriendId(requesterId, me));
         if (alreadyFriends) {
             friendshipRequestRepo.deletePendingOneDirection(requesterId, me);
             return;
         }
 
-        // створюємо 2 рядки дружби
         friendshipRepo.save(new Friendship(me, requesterId));
         friendshipRepo.save(new Friendship(requesterId, me));
 
-        // чистимо pending в обох напрямах (про всяк випадок)
         friendshipRequestRepo.deletePendingOneDirection(requesterId, me);
         friendshipRequestRepo.deletePendingOneDirection(me, requesterId);
     }
@@ -172,77 +176,144 @@ public class FriendServiceImpl implements FriendService {
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves a paginated list of the current user's friends, including summary
+     * information and the count of mutual friends for each.
      *
+     * @param me       The ID of the currently authenticated user.
+     * @param pageable {@link Pageable} object for pagination (page, size, sort).
+     * @return {@link PageableDto} of {@link UserFriendCardDto} containing paginated
+     *         friend data.
+     * @author Misha Moroz
      */
     @Override
     @Transactional(readOnly = true)
     public PageableDto<UserFriendCardDto> listFriends(Long me, Pageable pageable) {
         Page<User> page = userRepo.findFriendsPage(me, pageable);
         var cards = page.map(u -> UserFriendCardDto.builder()
-                .id(u.getId())
-                .name(u.getName())
-                .profilePicture(u.getProfilePicturePath())
-                .city(u.getCity())
-                .personalRate(u.getRating())
-                .mutualFriends(userRepo.countMutualFriends(me, u.getId()))
-                .requestSent(null)
-                .build()
-        ).getContent();
+            .id(u.getId())
+            .name(u.getName())
+            .profilePicture(u.getProfilePicturePath())
+            .city(u.getCity())
+            .personalRate(u.getRating())
+            .mutualFriends(userRepo.countMutualFriends(me, u.getId()))
+            .build()).getContent();
 
         return new PageableDto<>(cards, page.getTotalElements(), page.getNumber(), page.getTotalPages());
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves a list of the user's top friends. The logic for determining "top"
+     * is handled by the underlying repository query.
      *
+     * @param me The ID of the currently authenticated user.
+     * @return A {@link List} of {@link FriendShortDto} containing basic friend
+     *         information, including online status.
+     * @author Misha Moroz
      */
     @Override
     @Transactional(readOnly = true)
     public List<FriendShortDto> topFriends(Long me) {
         var list = userRepo.findTopFriendsForBlock(me);
         return list.stream().map(u -> FriendShortDto.builder()
-                .id(u.getId())
-                .name(u.getName())
-                .profilePicture(u.getProfilePicturePath())
-                .online(userService.checkIfTheUserIsOnline(u.getId()))
-                .build()
-        ).toList();
+            .id(u.getId())
+            .name(u.getName())
+            .profilePicture(u.getProfilePicturePath())
+            .online(userService.checkIfTheUserIsOnline(u.getId()))
+            .build()).toList();
     }
 
     /**
-     * {@inheritDoc}
+     * Retrieves the detailed profile information for a specified friend.
      *
+     * @param me       The ID of the currently authenticated user.
+     * @param friendId The ID of the user whose profile is being requested.
+     * @return {@link FriendProfileDto} containing the friend's full profile
+     *         details.
+     * @throws NotFoundException if the users are not friends or if the user with
+     *                           {@code friendId} does not exist.
+     * @author Misha Moroz
      */
     @Override
     @Transactional(readOnly = true)
     public FriendProfileDto friendProfile(Long me, Long friendId) {
         boolean isFriend = friendshipRepo.existsByUserIdAndFriendId(me, friendId)
-                || friendshipRepo.existsByUserIdAndFriendId(friendId, me);
+            || friendshipRepo.existsByUserIdAndFriendId(friendId, me);
         if (!isFriend) {
             throw new NotFoundException(ErrorMessage.FRIENDSHIP_NOT_FOUND);
         }
 
         var u = userRepo.findById(friendId)
-                .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + friendId));
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + friendId));
 
-        int inProgress = 0; // TODO
-        int acquired   = 0; // TODO
-        int tipsCount  = 0; // TODO
-        int newsCount  = 0; // TODO
+        // int inProgress = 0;
+        // int acquired = 0;
+        // int tipsCount = 0;
+        // int newsCount = 0;
 
         return FriendProfileDto.builder()
-                .id(u.getId())
-                .name(u.getName())
-                .profilePicture(u.getProfilePicturePath())
-                .online(userService.checkIfTheUserIsOnline(u.getId()))
-                .personalRate(u.getRating())
-                .credo(u.getUserCredo())
-                .habitsInProgress(inProgress)
-                .habitsAcquired(acquired)
-                .tipsAndTricksCount(tipsCount)
-                .newsCount(newsCount)
-                .city(u.getCity())
-                .build();
+            .id(u.getId())
+            .name(u.getName())
+            .profilePicture(u.getProfilePicturePath())
+            .online(userService.checkIfTheUserIsOnline(u.getId()))
+            .personalRate(u.getRating())
+            .credo(u.getUserCredo())
+            // .habitsInProgress(inProgress)
+            // .habitsAcquired(acquired)
+            // .tipsAndTricksCount(tipsCount)
+            // .newsCount(newsCount)
+            .city(u.getCity())
+            .build();
+    }
+
+    /**
+     * Retrieves a paginated list of pending friend requests sent TO the current
+     * user. The current user is the receiver of these requests. The results are
+     * mapped to include the profile details of the requester.
+     *
+     * @param userId   The ID of the user who is receiving the requests.
+     * @param pageable Pagination settings.
+     * @return {@link PageableDto} of {@link UserFriendCandidateCardDto} containing
+     *         paginated requester data.
+     * @author Oleksandr Braiko
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public PageableDto<UserFriendCandidateCardDto> friendRequests(Long userId, Pageable pageable) {
+        Page<FriendRequest> requestPage = friendshipRequestRepo.findAllPendingRequestsByReceiverId(userId, pageable);
+
+        List<Long> requesterIds = requestPage.getContent().stream()
+            .map(FriendRequest::getRequesterId)
+            .toList();
+
+        if (requesterIds.isEmpty()) {
+            return new PageableDto<>(List.of(), 0L, requestPage.getNumber(), 0);
+        }
+
+        List<User> requesters = userRepo.findAllById(requesterIds);
+        Map<Long, User> requesterMap = requesters.stream()
+            .collect(Collectors.toMap(User::getId, Function.identity()));
+
+        List<UserFriendCandidateCardDto> dtos = requesterIds.stream()
+            .filter(requesterMap::containsKey)
+            .map(requesterId -> {
+                User u = requesterMap.get(requesterId);
+
+                return UserFriendCandidateCardDto.builder()
+                    .id(u.getId())
+                    .name(u.getName())
+                    .profilePicture(u.getProfilePicturePath())
+                    .city(u.getCity())
+                    .personalRate(u.getRating())
+                    .requestSent(false)
+                    .mutualFriends(0L)
+                    .build();
+            })
+            .toList();
+
+        return new PageableDto<>(
+            dtos,
+            requestPage.getTotalElements(),
+            requestPage.getNumber(),
+            requestPage.getTotalPages());
     }
 }

@@ -14,5 +14,4 @@ public class UserFriendCardDto {
     private String city;
     private Double personalRate;
     private Long mutualFriends;
-    private Boolean requestSent;
 }

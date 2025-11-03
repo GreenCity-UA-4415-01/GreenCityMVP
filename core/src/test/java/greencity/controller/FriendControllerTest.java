@@ -7,7 +7,6 @@ import greencity.annotations.CurrentUser;
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.user.UserFriendCandidateCardDto;
-import greencity.dto.user.UserFriendCardDto;
 import greencity.dto.user.UserVO;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.SelfFriendException;
@@ -61,8 +60,8 @@ class FriendControllerTest {
 
     private final PageableDto<UserFriendCandidateCardDto> mockPageableDto = new PageableDto<>(
         List.of(
-                UserFriendCandidateCardDto.builder().id(10L).name("Candidate A").build(),
-                UserFriendCandidateCardDto.builder().id(11L).name("Candidate B").build()),
+            UserFriendCandidateCardDto.builder().id(10L).name("Candidate A").build(),
+            UserFriendCandidateCardDto.builder().id(11L).name("Candidate B").build()),
         2, 10, 0);
 
     /**

@@ -2,7 +2,11 @@ package greencity.dto.user;
 
 import lombok.*;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class FriendShortDto {
     private Long id;
     private String name;

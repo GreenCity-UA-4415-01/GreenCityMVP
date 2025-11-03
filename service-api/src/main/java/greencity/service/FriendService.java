@@ -1,12 +1,8 @@
 package greencity.service;
 
 import greencity.dto.PageableDto;
-import greencity.dto.user.FriendProfileDto;
-import greencity.dto.user.FriendShortDto;
-import greencity.dto.user.UserFriendCandidateCardDto;
-import greencity.dto.user.UserFriendCardDto;
+import greencity.dto.user.*;
 import org.springframework.data.domain.Pageable;
-
 import java.util.List;
 
 /**
@@ -17,8 +13,8 @@ public interface FriendService {
     /**
      * Search users who are NOT yet friends with the current user.
      *
-     * @param me     current user id
-     * @param query  search string (name/username), may be empty
+     * @param me       current user id
+     * @param query    search string (name/username), may be empty
      * @param pageable pagination settings
      * @return paged list of candidate users formatted for friend cards
      */
@@ -89,4 +85,13 @@ public interface FriendService {
      * @return friend profile dto
      */
     FriendProfileDto friendProfile(Long me, Long friendId);
+
+    /**
+     * Paginated list of friend requests for the current user.
+     *
+     * @param userId   current user id
+     * @param pageable pagination settings
+     * @return pageable friend requests
+     */
+    PageableDto<UserFriendCandidateCardDto> friendRequests(Long userId, Pageable pageable);
 }

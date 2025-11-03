@@ -42,9 +42,9 @@ public interface FriendshipRepo extends JpaRepository<Friendship, FriendshipKey>
     @Modifying
     @Transactional
     @Query(value = """
-    DELETE FROM friendships
-    WHERE (user_id = :a AND friend_id = :b)
-       OR (user_id = :b AND friend_id = :a)
-    """, nativeQuery = true)
+        DELETE FROM friendships
+        WHERE (user_id = :a AND friend_id = :b)
+           OR (user_id = :b AND friend_id = :a)
+        """, nativeQuery = true)
     int deleteBothDirections(@Param("a") Long a, @Param("b") Long b);
 }
