@@ -3,6 +3,7 @@ package greencity.service;
 import greencity.dto.PageableDto;
 import greencity.dto.user.FriendProfileDto;
 import greencity.dto.user.FriendShortDto;
+import greencity.dto.user.UserFriendCandidateCardDto;
 import greencity.dto.user.UserFriendCardDto;
 import org.springframework.data.domain.Pageable;
 
@@ -21,7 +22,7 @@ public interface FriendService {
      * @param pageable pagination settings
      * @return paged list of candidate users formatted for friend cards
      */
-    PageableDto<UserFriendCardDto> search(Long me, String query, Pageable pageable);
+    PageableDto<UserFriendCandidateCardDto> search(Long me, String query, Pageable pageable);
 
     /**
      * Send a friend request (me -> friendId).

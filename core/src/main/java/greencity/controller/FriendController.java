@@ -5,6 +5,7 @@ import greencity.annotations.CurrentUser;
 import greencity.constant.HttpStatuses;
 import greencity.dto.PageableDto;
 import greencity.dto.user.FriendProfileDto;
+import greencity.dto.user.UserFriendCandidateCardDto;
 import greencity.dto.user.UserFriendCardDto;
 import greencity.dto.user.UserVO;
 import greencity.service.FriendService;
@@ -12,11 +13,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/friends")
 @RequiredArgsConstructor
@@ -30,11 +33,11 @@ public class FriendController {
     })
     @GetMapping("/not-friends-yet")
     @ApiPageableWithLocale
-    public ResponseEntity<PageableDto<UserFriendCardDto>> findNotFriendsYet(
+    public ResponseEntity<PageableDto<UserFriendCandidateCardDto>> findNotFriendsYet(
         @RequestParam(defaultValue = "") String name,
         Pageable pageable,
         @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
-        PageableDto<UserFriendCardDto> result = friendService.search(currentUser.getId(), name, pageable);
+        PageableDto<UserFriendCandidateCardDto> result = friendService.search(currentUser.getId(), name, pageable);
         return ResponseEntity.ok(result);
     }
 
@@ -110,10 +113,9 @@ public class FriendController {
 
     // === MY ECO FRIENDS (All friends / Top-6 / Profile) ===
 
-
     @ApiPageableWithLocale
     @Operation(summary = "Get paged list of my friends (tab: All friends)")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
@@ -121,13 +123,14 @@ public class FriendController {
     public ResponseEntity<PageableDto<UserFriendCardDto>> myFriends(
             Pageable pageable,
             @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        log.warn(pageable.toString());
         return ResponseEntity.ok(friendService.listFriends(currentUser.getId(), pageable));
     }
 
     // --- My Habits: Top-6 для віджету ---
     @GetMapping("/top6")
     @Operation(summary = "Get up to 6 most relevant friends for My Habits widget")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })
@@ -137,7 +140,7 @@ public class FriendController {
     }
 
     @Operation(summary = "Get friend profile (for friend card/avatar click)")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = HttpStatuses.OK),
             @ApiResponse(responseCode = "401", description = HttpStatuses.UNAUTHORIZED)
     })

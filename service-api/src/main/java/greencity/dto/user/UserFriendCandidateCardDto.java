@@ -7,7 +7,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserFriendCardDto {
+public class UserFriendCandidateCardDto {
     private Long id;
     private String name;
     private String profilePicture;

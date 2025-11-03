@@ -4,6 +4,7 @@ import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.user.FriendProfileDto;
 import greencity.dto.user.FriendShortDto;
+import greencity.dto.user.UserFriendCandidateCardDto;
 import greencity.dto.user.UserFriendCardDto;
 import greencity.entity.Friendship;
 import greencity.entity.User;
@@ -35,7 +36,7 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     @Transactional(readOnly = true)
-    public PageableDto<UserFriendCardDto> search(Long me, String query, Pageable pageable) {
+    public PageableDto<UserFriendCandidateCardDto> search(Long me, String query, Pageable pageable) {
         String q = query == null ? "" : query.trim();
         if (q.length() > 30) {
             q = q.substring(0, 30);
@@ -43,7 +44,7 @@ public class FriendServiceImpl implements FriendService {
 
         Page<User> page = userRepo.searchCandidates(me, q, pageable);
 
-        var cards = page.map(u -> UserFriendCardDto.builder()
+        var cards = page.map(u -> UserFriendCandidateCardDto.builder()
             .id(u.getId())
             .name(u.getName())
             .city(u.getCity())
@@ -83,7 +84,7 @@ public class FriendServiceImpl implements FriendService {
      * @param friendId Target User Id.
      * @author Oleksandr Braiko
      */
-    /*@Override
+    @Override
     @Transactional
     public void unfriendUser(Long userId, Long friendId) {
         validateUsersPair(userId, friendId);
@@ -91,8 +92,8 @@ public class FriendServiceImpl implements FriendService {
             throw new NotFoundException(ErrorMessage.FRIENDSHIP_NOT_FOUND);
         }
         friendshipRepo.deleteByUserIdAndFriendId(userId, friendId);
-    }*/
-    @Override
+    }
+/*    @Override
     @Transactional
     public void unfriendUser(Long userId, Long friendId) {
         validateUsersPair(userId, friendId);
@@ -103,7 +104,7 @@ public class FriendServiceImpl implements FriendService {
             throw new NotFoundException(ErrorMessage.FRIENDSHIP_NOT_FOUND);
         }
         friendshipRepo.deleteBothDirections(userId, friendId);
-    }
+    }*/
 
     /**
      * Helper method to ensure two users are not equal and both exist.
@@ -170,6 +171,10 @@ public class FriendServiceImpl implements FriendService {
         friendshipRequestRepo.deletePending(requesterId, me);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     */
     @Override
     @Transactional(readOnly = true)
     public PageableDto<UserFriendCardDto> listFriends(Long me, Pageable pageable) {
@@ -181,13 +186,17 @@ public class FriendServiceImpl implements FriendService {
                 .city(u.getCity())
                 .personalRate(u.getRating())
                 .mutualFriends(userRepo.countMutualFriends(me, u.getId()))
-                .requestSent(null) // не потрібно у списку друзів
+                .requestSent(null)
                 .build()
         ).getContent();
 
         return new PageableDto<>(cards, page.getTotalElements(), page.getNumber(), page.getTotalPages());
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     */
     @Override
     @Transactional(readOnly = true)
     public List<FriendShortDto> topFriends(Long me) {
@@ -201,6 +210,10 @@ public class FriendServiceImpl implements FriendService {
         ).toList();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     */
     @Override
     @Transactional(readOnly = true)
     public FriendProfileDto friendProfile(Long me, Long friendId) {

@@ -2,6 +2,7 @@ package greencity.service;
 
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
+import greencity.dto.user.UserFriendCandidateCardDto;
 import greencity.dto.user.UserFriendCardDto;
 import greencity.entity.Friendship;
 import greencity.entity.User;
@@ -82,7 +83,7 @@ class FriendServiceImplTest {
         when(friendshipRequestRepo.existsPending(userId, 10L)).thenReturn(true);
         when(friendshipRequestRepo.existsPending(userId, 11L)).thenReturn(false);
 
-        PageableDto<UserFriendCardDto> result = friendService.search(userId, null, pageable);
+        PageableDto<UserFriendCandidateCardDto> result = friendService.search(userId, null, pageable);
 
         assertNotNull(result);
         assertEquals(2, result.getPage().size());
@@ -102,7 +103,7 @@ class FriendServiceImplTest {
         when(userRepo.searchCandidates(userId, truncatedQuery, pageable)).thenReturn(userPage);
         when(friendshipRequestRepo.existsPending(eq(userId), anyLong())).thenReturn(false);
 
-        PageableDto<UserFriendCardDto> result = friendService.search(userId, longQuery, pageable);
+        PageableDto<UserFriendCandidateCardDto> result = friendService.search(userId, longQuery, pageable);
 
         assertNotNull(result);
         verify(userRepo, times(1)).searchCandidates(userId, truncatedQuery, pageable);
