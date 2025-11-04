@@ -183,5 +183,6 @@
     <include file="db/changelog/logs/ch-add-event-status-Obydalo.xml"/>
     <include file="/db/changelog/logs/ch-add-tables-friendships-and-requests-Moroz.xml"/>
     <include file="db/changelog/logs/ch-add-event-status-calculation-function-Obydalo.xml"/>
+    <include file="db/changelog/logs/ch-add-notifications-Obydalo.xml"/>
 </databaseChangeLog>
 

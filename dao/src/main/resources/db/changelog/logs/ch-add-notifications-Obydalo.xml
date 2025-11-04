@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+
+    <changeSet id="ch-add-notifications-Obydalo" author="Obydalo">
+        <comment>Create notifications table with indexes and constraints</comment>
+
+        <createTable tableName="notifications">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="pk_notifications" nullable="false"/>
+            </column>
+            <column name="recipient_user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="actor_usernames" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="object_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="object_id" type="VARCHAR(64)"/>
+            <column name="object_title" type="VARCHAR(255)"/>
+            <column name="occurred_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_read" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="idempotency_key" type="VARCHAR(128)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="notifications" columnNames="idempotency_key"
+                             constraintName="uk_notifications_idempotency_key"/>
+
+        <addForeignKeyConstraint baseTableName="notifications"
+                                 baseColumnNames="recipient_user_id"
+                                 constraintName="fk_notifications_recipient_user"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"
+                                 onDelete="CASCADE"/>
+
+        <createIndex tableName="notifications" indexName="idx_notifications_recipient_created_at">
+            <column name="recipient_user_id"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+
+        <createIndex tableName="notifications" indexName="idx_notifications_recipient_is_read_created_at">
+            <column name="recipient_user_id"/>
+            <column name="is_read"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
+
+
