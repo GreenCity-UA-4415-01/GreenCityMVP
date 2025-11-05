@@ -81,6 +81,10 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             log.debug("Filename (S3 key) is null or empty");
             return false;
         }
+        if (!filename.startsWith(FOLDER)) {
+            log.warn("Refusing to delete S3 key outside '{}': {}", FOLDER, filename);
+            throw new DeleteFileException(ErrorMessage.DELETE_FILE_FAILURE + filename);
+        }
         try {
             awsCloudStorageService.deleteFile(filename);
             log.info("Successfully deleted image from S3: {}", filename);

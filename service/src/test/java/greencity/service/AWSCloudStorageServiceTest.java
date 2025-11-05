@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -14,7 +15,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -42,22 +42,16 @@ class AWSCloudStorageServiceTest {
     @Captor
     private ArgumentCaptor<DeleteObjectRequest> deleteObjectRequestCaptor;
 
-    // Instance of the service under test
+    @InjectMocks
     private AWSCloudStorageService awsCloudStorageService;
 
     @BeforeEach
-    void setUp() throws NoSuchFieldException, IllegalAccessException {
-        // Manually instantiate the service with the mocked S3Client
-        awsCloudStorageService = new AWSCloudStorageService(s3Client);
-
-        // Inject the mock bucketName manually via reflection, as @Value fields are not
-        // processed by Mockito
-        Field bucketNameField = AWSCloudStorageService.class.getDeclaredField("bucketName");
-        bucketNameField.setAccessible(true);
-        bucketNameField.set(awsCloudStorageService, MOCK_BUCKET_NAME);
-        bucketNameField.setAccessible(false);
+    void setUp() {
+        // Use ReflectionTestUtils to inject the private 'bucketName' field.
+        // This is the accepted Spring testing pattern that replaces
+        // Field.setAccessible(true).
+        ReflectionTestUtils.setField(awsCloudStorageService, "bucketName", MOCK_BUCKET_NAME);
     }
-
     // --- uploadFile tests ---
 
     @Test
