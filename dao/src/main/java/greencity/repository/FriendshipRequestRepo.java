@@ -2,6 +2,8 @@ package greencity.repository;
 
 import greencity.entity.FriendRequest;
 import greencity.entity.FriendRequestKey;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -61,8 +63,33 @@ public interface FriendshipRequestRepo extends JpaRepository<FriendRequest, Frie
         value = """
                 SELECT EXISTS(
                     SELECT 1 FROM friendships
-                    WHERE user_id = :me AND friend_id = :friendId
+                    WHERE (user_id = :me AND friend_id = :friendId)
+                       OR (user_id = :friendId AND friend_id = :me)
                 )
             """)
     boolean areAlreadyFriends(@Param("me") Long me, @Param("friendId") Long friendId);
+
+    /**
+     * Retrieves a paginated list of pending friend requests where the current user
+     * is the receiver.
+     *
+     * @param receiverId The ID of the user receiving the requests (the current
+     *                   user).
+     * @param pageable   Pagination information.
+     * @return A page of FriendRequest entities.
+     */
+    @Query(
+        nativeQuery = true,
+        value = """
+                SELECT * FROM friendship_requests
+                WHERE receiver_id = :receiverId
+                AND status = 'PENDING'
+            """,
+        countQuery = """
+                SELECT COUNT(*)
+                FROM friendship_requests
+                WHERE receiver_id = :receiverId
+                AND status = 'PENDING'
+            """)
+    Page<FriendRequest> findAllPendingRequestsByReceiverId(@Param("receiverId") Long receiverId, Pageable pageable);
 }
