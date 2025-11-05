@@ -4,14 +4,12 @@ import lombok.*;
 
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserFriendCardDto {
+@Builder
+public class FriendShortDto {
     private Long id;
     private String name;
     private String profilePicture;
-    private String city;
-    private Double personalRate;
-    private Long mutualFriends;
+    private Boolean online;
 }

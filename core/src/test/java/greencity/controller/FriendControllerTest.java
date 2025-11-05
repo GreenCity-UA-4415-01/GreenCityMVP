@@ -6,7 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import greencity.annotations.CurrentUser;
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
-import greencity.dto.user.UserFriendCardDto;
+import greencity.dto.user.UserFriendCandidateCardDto;
 import greencity.dto.user.UserVO;
 import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.exceptions.SelfFriendException;
@@ -58,10 +58,10 @@ class FriendControllerTest {
     private final Long currentUserId = mockCurrentUser.getId();
     private final Long friendId = 2L;
 
-    private final PageableDto<UserFriendCardDto> mockPageableDto = new PageableDto<>(
+    private final PageableDto<UserFriendCandidateCardDto> mockPageableDto = new PageableDto<>(
         List.of(
-            UserFriendCardDto.builder().id(10L).name("Candidate A").build(),
-            UserFriendCardDto.builder().id(11L).name("Candidate B").build()),
+            UserFriendCandidateCardDto.builder().id(10L).name("Candidate A").build(),
+            UserFriendCandidateCardDto.builder().id(11L).name("Candidate B").build()),
         2, 10, 0);
 
     /**
