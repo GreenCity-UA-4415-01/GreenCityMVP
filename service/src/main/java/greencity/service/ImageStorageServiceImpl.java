@@ -3,7 +3,6 @@ package greencity.service;
 import greencity.constant.ErrorMessage;
 import greencity.exception.exceptions.DeleteFileException;
 import greencity.exception.exceptions.SaveFileException;
-import greencity.exception.exceptions.StoragePathException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +19,7 @@ import java.util.UUID;
 public class ImageStorageServiceImpl implements ImageStorageService {
     private final AWSCloudStorageService awsCloudStorageService;
     private final Path storage;
-    private final String folder = "event-images/";
+    private static final String FOLDER = "event-images/";
 
     public ImageStorageServiceImpl(
         AWSCloudStorageService awsCloudStorageService,
@@ -57,7 +56,7 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         try {
             String ext = getExtension(image.getOriginalFilename());
             String filename =
-                folder + "event-" + eventId + "-" + Instant.now().toEpochMilli() + "-" + UUID.randomUUID() + ext;
+                FOLDER + "event-" + eventId + "-" + Instant.now().toEpochMilli() + "-" + UUID.randomUUID() + ext;
             // Wrap the file with the new filename so S3 stores it with the correct path
             MultipartFile fileWithPath = new MultipartFileImpl(
                 image.getName(),
@@ -79,25 +78,20 @@ public class ImageStorageServiceImpl implements ImageStorageService {
     @Override
     public boolean deleteImage(String filename) {
         if (filename == null || filename.isBlank()) {
-            log.debug("Filename is null or empty");
+            log.debug("Filename (S3 key) is null or empty");
             return false;
         }
-
-        try {
-            Path filePath = this.storage.resolve(filename).normalize();
-
-            if (!filePath.startsWith(this.storage)) {
-                throw new StoragePathException(ErrorMessage.INVALID_STORAGE_PATH);
-            }
-
-            boolean deleted = Files.deleteIfExists(filePath);
-
-            if (!deleted) {
-                log.debug("Warning: File not found or already deleted: {}", filename);
-            }
-            return deleted;
-        } catch (IOException e) {
+        if (!filename.startsWith(FOLDER)) {
+            log.warn("Refusing to delete S3 key outside '{}': {}", FOLDER, filename);
             throw new DeleteFileException(ErrorMessage.DELETE_FILE_FAILURE + filename);
+        }
+        try {
+            awsCloudStorageService.deleteFile(filename);
+            log.info("Successfully deleted image from S3: {}", filename);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to delete file from S3: {}", filename, e);
+            throw new DeleteFileException(ErrorMessage.DELETE_FILE_FAILURE + filename, e);
         }
     }
 
