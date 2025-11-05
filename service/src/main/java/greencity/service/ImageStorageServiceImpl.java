@@ -90,8 +90,8 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             log.info("Successfully deleted image from S3: {}", filename);
             return true;
         } catch (Exception e) {
-            log.error("Failed to delete file from S3: {}", filename);
-            throw new DeleteFileException(ErrorMessage.DELETE_FILE_FAILURE + filename);
+            log.error("Failed to delete file from S3: {}", filename, e);
+            throw new DeleteFileException(ErrorMessage.DELETE_FILE_FAILURE + filename, e);
         }
     }
 

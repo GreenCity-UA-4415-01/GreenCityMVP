@@ -169,4 +169,26 @@ class ImageStorageServiceImplTest {
         assertTrue(exception.getMessage().contains(ErrorMessage.DELETE_FILE_FAILURE + filename));
         verify(awsCloudStorageService, times(1)).deleteFile(filename);
     }
+
+    @Test
+    void deleteImage_shouldThrowDeleteFileException_whenFilenameLacksPrefix() {
+        String filename = "some-other-folder/image.png";
+
+        DeleteFileException exception =
+            assertThrows(DeleteFileException.class, () -> imageStorageService.deleteImage(filename));
+
+        assertTrue(exception.getMessage().contains(ErrorMessage.DELETE_FILE_FAILURE + filename));
+        verify(awsCloudStorageService, never()).deleteFile(any());
+    }
+
+    @Test
+    void deleteImage_shouldThrowDeleteFileException_whenFilenameHasPartialPrefix() {
+        String filename = "event-images_wrong/image.png";
+
+        DeleteFileException exception =
+            assertThrows(DeleteFileException.class, () -> imageStorageService.deleteImage(filename));
+
+        assertTrue(exception.getMessage().contains(ErrorMessage.DELETE_FILE_FAILURE + filename));
+        verify(awsCloudStorageService, never()).deleteFile(any());
+    }
 }
