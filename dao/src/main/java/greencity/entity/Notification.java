@@ -10,9 +10,6 @@ import java.time.OffsetDateTime;
         indexes = {
                 @Index(name = "idx_notifications_recipient_created_at", columnList = "recipient_user_id, created_at DESC"),
                 @Index(name = "idx_notifications_recipient_is_read_created_at", columnList = "recipient_user_id, is_read, created_at DESC")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_notifications_idempotency_key", columnNames = {"idempotency_key"})
         }
 )
 @Getter
@@ -53,9 +50,6 @@ public class Notification {
 
     @Column(name = "created_at", nullable = false)
     private OffsetDateTime createdAt;
-
-    @Column(name = "idempotency_key", nullable = false, length = 128)
-    private String idempotencyKey;
 }
 
 

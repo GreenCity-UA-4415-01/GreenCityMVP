@@ -35,13 +35,7 @@
             <column name="created_at" type="TIMESTAMP WITH TIME ZONE" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
-            <column name="idempotency_key" type="VARCHAR(128)">
-                <constraints nullable="false"/>
-            </column>
         </createTable>
-
-        <addUniqueConstraint tableName="notifications" columnNames="idempotency_key"
-                             constraintName="uk_notifications_idempotency_key"/>
 
         <addForeignKeyConstraint baseTableName="notifications"
                                  baseColumnNames="recipient_user_id"
