@@ -73,5 +73,24 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
     @Transactional
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.recipient.id = :recipientId AND n.isRead = false")
     int markAllAsReadByRecipientId(@Param("recipientId") Long recipientId);
+
+    /**
+     * Checks if a notification with the same characteristics already exists.
+     * Used for idempotency checking to prevent duplicate notifications.
+     *
+     * @param recipientId the ID of the notification recipient
+     * @param actionType  the action type
+     * @param objectType  the object type
+     * @param objectId    the object ID
+     * @return true if a duplicate notification exists, false otherwise
+     */
+    @Query("SELECT COUNT(n) > 0 FROM Notification n WHERE n.recipient.id = :recipientId " +
+            "AND n.actionType = :actionType AND n.objectType = :objectType AND n.objectId = :objectId")
+    boolean existsByRecipientAndActionAndObject(
+            @Param("recipientId") Long recipientId,
+            @Param("actionType") String actionType,
+            @Param("objectType") String objectType,
+            @Param("objectId") String objectId
+    );
 }
 

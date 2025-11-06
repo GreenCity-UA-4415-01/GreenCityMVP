@@ -37,14 +37,40 @@ public final class NotificationRoutingKeys {
     public static final String HABIT_ASSIGNED = "habit.assigned";
     public static final String HABIT_ACQUIRED = "habit.acquired";
 
+    /**
+     * RabbitMQ exchange name for notification events.
+     */
     public static final String NOTIFICATIONS_EXCHANGE = "notifications.events";
 
+    /**
+     * RabbitMQ queue name for notification write operations.
+     */
     public static final String NOTIFICATIONS_WRITE_QUEUE = "notifications.write";
 
+    /**
+     * RabbitMQ dead letter exchange name for notification events.
+     */
+    public static final String NOTIFICATIONS_DLX = NOTIFICATIONS_EXCHANGE + ".dlx";
+
+    /**
+     * RabbitMQ dead letter queue name for failed notification messages.
+     */
+    public static final String NOTIFICATIONS_DLQ = NOTIFICATIONS_WRITE_QUEUE + ".dlq";
+
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private NotificationRoutingKeys() {
         throw new UnsupportedOperationException("Utility class cannot be instantiated");
     }
 
+    /**
+     * Builds a routing key from object type and action type.
+     *
+     * @param objectType the object type (e.g., "news", "comment")
+     * @param actionType the action type (e.g., "like.created", "added")
+     * @return the routing key in format "{objectType}.{actionType}"
+     */
     public static String buildRoutingKey(String objectType, String actionType) {
         return objectType + "." + actionType;
     }
