@@ -7,6 +7,7 @@ import greencity.annotations.CurrentUser;
 import greencity.dto.PageableAdvancedDto;
 import greencity.dto.notification.NotificationDto;
 import greencity.dto.user.UserVO;
+import greencity.exception.exceptions.NotFoundException;
 import greencity.exception.handler.CustomExceptionHandler;
 import greencity.service.NotificationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -280,6 +282,119 @@ class NotificationControllerTest {
                 .build();
 
         return List.of(notification1, notification2);
+    }
+
+    @Test
+    void markAsRead_Success_Returns200() throws Exception {
+        // Given
+        Long notificationId = 1L;
+        NotificationDto updatedNotification = NotificationDto.builder()
+                .id(notificationId)
+                .actorUsernames("john.doe")
+                .action("liked")
+                .objectTitle("Test News")
+                .occurredAt(OffsetDateTime.now().minusHours(2))
+                .isRead(true)
+                .build();
+
+        when(notificationService.markAsRead(eq(notificationId), eq(mockUser.getId())))
+                .thenReturn(updatedNotification);
+
+        // When & Then
+        mockMvc.perform(patch(NOTIFICATIONS_LINK + "/{id}/read", notificationId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(notificationId))
+                .andExpect(jsonPath("$.isRead").value(true))
+                .andExpect(jsonPath("$.actorUsernames").value("john.doe"))
+                .andExpect(jsonPath("$.action").value("liked"));
+
+        verify(notificationService, times(1)).markAsRead(eq(notificationId), eq(mockUser.getId()));
+    }
+
+    @Test
+    void markAsRead_NotificationNotFound_Returns404() throws Exception {
+        // Given
+        Long notificationId = 999L;
+        when(notificationService.markAsRead(eq(notificationId), eq(mockUser.getId())))
+                .thenThrow(new NotFoundException("Notification does not exist by this id: " + notificationId));
+
+        // When & Then
+        mockMvc.perform(patch(NOTIFICATIONS_LINK + "/{id}/read", notificationId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(notificationService, times(1)).markAsRead(eq(notificationId), eq(mockUser.getId()));
+    }
+
+    @Test
+    void markAsRead_NotificationBelongsToDifferentUser_Returns404() throws Exception {
+        // Given
+        Long notificationId = 1L;
+        when(notificationService.markAsRead(eq(notificationId), eq(mockUser.getId())))
+                .thenThrow(new NotFoundException("Notification does not exist by this id: " + notificationId));
+
+        // When & Then
+        mockMvc.perform(patch(NOTIFICATIONS_LINK + "/{id}/read", notificationId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        verify(notificationService, times(1)).markAsRead(eq(notificationId), eq(mockUser.getId()));
+    }
+
+    @Test
+    void markAllAsRead_Success_Returns200() throws Exception {
+        // Given
+        int updatedCount = 5;
+        when(notificationService.markAllAsRead(eq(mockUser.getId())))
+                .thenReturn(updatedCount);
+
+        // When & Then
+        mockMvc.perform(patch(NOTIFICATIONS_LINK + "/read-all")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").value(updatedCount));
+
+        verify(notificationService, times(1)).markAllAsRead(eq(mockUser.getId()));
+    }
+
+    @Test
+    void markAllAsRead_NoUnreadNotifications_Returns0() throws Exception {
+        // Given
+        int updatedCount = 0;
+        when(notificationService.markAllAsRead(eq(mockUser.getId())))
+                .thenReturn(updatedCount);
+
+        // When & Then
+        mockMvc.perform(patch(NOTIFICATIONS_LINK + "/read-all")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").value(0));
+
+        verify(notificationService, times(1)).markAllAsRead(eq(mockUser.getId()));
+    }
+
+    @Test
+    void markAllAsRead_ServiceThrowsException_Returns500() throws Exception {
+        // Given
+        when(notificationService.markAllAsRead(eq(mockUser.getId())))
+                .thenThrow(new RuntimeException("Database error"));
+
+        // When & Then
+        mockMvc.perform(patch(NOTIFICATIONS_LINK + "/read-all")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError());
+
+        verify(notificationService, times(1)).markAllAsRead(eq(mockUser.getId()));
     }
 }
 

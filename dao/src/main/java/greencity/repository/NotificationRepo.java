@@ -4,9 +4,11 @@ import greencity.entity.Notification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Provides an interface to manage {@link Notification} entity.
@@ -45,5 +47,31 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
             @Param("isRead") Boolean isRead,
             Pageable pageable
     );
+
+    /**
+     * Finds a notification by ID and recipient ID.
+     * Used to ensure that users can only access their own notifications.
+     *
+     * @param id          the notification ID
+     * @param recipientId the ID of the notification recipient
+     * @return the notification if found, null otherwise
+     */
+    @Query("SELECT n FROM Notification n WHERE n.id = :id AND n.recipient.id = :recipientId")
+    Notification findByIdAndRecipientId(
+            @Param("id") Long id,
+            @Param("recipientId") Long recipientId
+    );
+
+    /**
+     * Marks all unread notifications as read for a specific recipient.
+     * Uses a bulk update query for efficiency.
+     *
+     * @param recipientId the ID of the notification recipient
+     * @return the number of notifications updated
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE Notification n SET n.isRead = true WHERE n.recipient.id = :recipientId AND n.isRead = false")
+    int markAllAsReadByRecipientId(@Param("recipientId") Long recipientId);
 }
 

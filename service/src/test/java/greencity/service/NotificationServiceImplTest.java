@@ -4,6 +4,7 @@ import greencity.dto.PageableAdvancedDto;
 import greencity.dto.notification.NotificationDto;
 import greencity.entity.Notification;
 import greencity.entity.User;
+import greencity.exception.exceptions.NotFoundException;
 import greencity.mapping.NotificationDtoMapper;
 import greencity.repository.NotificationRepo;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static greencity.constant.ErrorMessage.NOTIFICATION_NOT_FOUND_BY_ID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -396,6 +398,223 @@ class NotificationServiceImplTest {
                 .isRead(false)
                 .createdAt(createdAt)
                 .build();
+    }
+
+    @Test
+    void markAsRead_Success_MarksNotificationAsRead() {
+        // Given
+        Long notificationId = 1L;
+        Long userId = 1L;
+        Notification notification = Notification.builder()
+                .id(notificationId)
+                .recipient(testUser)
+                .actorUsernames("john.doe")
+                .actionType("liked")
+                .objectType("news")
+                .objectId("123")
+                .objectTitle("Test News")
+                .occurredAt(OffsetDateTime.now().minusHours(2))
+                .isRead(false)
+                .createdAt(OffsetDateTime.now().minusHours(2))
+                .build();
+
+        Notification savedNotification = Notification.builder()
+                .id(notificationId)
+                .recipient(testUser)
+                .actorUsernames("john.doe")
+                .actionType("liked")
+                .objectType("news")
+                .objectId("123")
+                .objectTitle("Test News")
+                .occurredAt(OffsetDateTime.now().minusHours(2))
+                .isRead(true)
+                .createdAt(OffsetDateTime.now().minusHours(2))
+                .build();
+
+        NotificationDto expectedDto = NotificationDto.builder()
+                .id(notificationId)
+                .actorUsernames("john.doe")
+                .action("liked")
+                .objectTitle("Test News")
+                .occurredAt(OffsetDateTime.now().minusHours(2))
+                .isRead(true)
+                .build();
+
+        when(notificationRepo.findByIdAndRecipientId(notificationId, userId))
+                .thenReturn(notification);
+        when(notificationRepo.save(any(Notification.class)))
+                .thenReturn(savedNotification);
+        when(notificationDtoMapper.convert(savedNotification))
+                .thenReturn(expectedDto);
+
+        // When
+        NotificationDto result = notificationService.markAsRead(notificationId, userId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(notificationId, result.getId());
+        assertTrue(result.getIsRead());
+        assertEquals("john.doe", result.getActorUsernames());
+        assertEquals("liked", result.getAction());
+
+        verify(notificationRepo, times(1)).findByIdAndRecipientId(notificationId, userId);
+        verify(notificationRepo, times(1)).save(any(Notification.class));
+        verify(notificationDtoMapper, times(1)).convert(savedNotification);
+    }
+
+    @Test
+    void markAsRead_NotificationNotFound_ThrowsNotFoundException() {
+        // Given
+        Long notificationId = 999L;
+        Long userId = 1L;
+
+        when(notificationRepo.findByIdAndRecipientId(notificationId, userId))
+                .thenReturn(null);
+
+        // When & Then
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            notificationService.markAsRead(notificationId, userId);
+        });
+
+        assertEquals(NOTIFICATION_NOT_FOUND_BY_ID + notificationId, exception.getMessage());
+        verify(notificationRepo, times(1)).findByIdAndRecipientId(notificationId, userId);
+        verify(notificationRepo, never()).save(any(Notification.class));
+        verify(notificationDtoMapper, never()).convert(any(Notification.class));
+    }
+
+    @Test
+    void markAsRead_NotificationBelongsToDifferentUser_ThrowsNotFoundException() {
+        // Given
+        Long notificationId = 1L;
+        Long userId = 2L; // Different user
+
+        when(notificationRepo.findByIdAndRecipientId(notificationId, userId))
+                .thenReturn(null);
+
+        // When & Then
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            notificationService.markAsRead(notificationId, userId);
+        });
+
+        assertEquals(NOTIFICATION_NOT_FOUND_BY_ID + notificationId, exception.getMessage());
+        verify(notificationRepo, times(1)).findByIdAndRecipientId(notificationId, userId);
+        verify(notificationRepo, never()).save(any(Notification.class));
+        verify(notificationDtoMapper, never()).convert(any(Notification.class));
+    }
+
+    @Test
+    void markAsRead_AlreadyRead_StillMarksAsRead() {
+        // Given
+        Long notificationId = 1L;
+        Long userId = 1L;
+        Notification notification = Notification.builder()
+                .id(notificationId)
+                .recipient(testUser)
+                .actorUsernames("john.doe")
+                .actionType("liked")
+                .objectType("news")
+                .objectId("123")
+                .objectTitle("Test News")
+                .occurredAt(OffsetDateTime.now().minusHours(2))
+                .isRead(true) // Already read
+                .createdAt(OffsetDateTime.now().minusHours(2))
+                .build();
+
+        Notification savedNotification = Notification.builder()
+                .id(notificationId)
+                .recipient(testUser)
+                .actorUsernames("john.doe")
+                .actionType("liked")
+                .objectType("news")
+                .objectId("123")
+                .objectTitle("Test News")
+                .occurredAt(OffsetDateTime.now().minusHours(2))
+                .isRead(true)
+                .createdAt(OffsetDateTime.now().minusHours(2))
+                .build();
+
+        NotificationDto expectedDto = NotificationDto.builder()
+                .id(notificationId)
+                .actorUsernames("john.doe")
+                .action("liked")
+                .objectTitle("Test News")
+                .occurredAt(OffsetDateTime.now().minusHours(2))
+                .isRead(true)
+                .build();
+
+        when(notificationRepo.findByIdAndRecipientId(notificationId, userId))
+                .thenReturn(notification);
+        when(notificationRepo.save(any(Notification.class)))
+                .thenReturn(savedNotification);
+        when(notificationDtoMapper.convert(savedNotification))
+                .thenReturn(expectedDto);
+
+        // When
+        NotificationDto result = notificationService.markAsRead(notificationId, userId);
+
+        // Then
+        assertNotNull(result);
+        assertTrue(result.getIsRead());
+        verify(notificationRepo, times(1)).findByIdAndRecipientId(notificationId, userId);
+        verify(notificationRepo, times(1)).save(any(Notification.class));
+    }
+
+    @Test
+    void markAllAsRead_Success_ReturnsCount() {
+        // Given
+        Long userId = 1L;
+        int expectedCount = 5;
+
+        when(notificationRepo.markAllAsReadByRecipientId(userId))
+                .thenReturn(expectedCount);
+
+        // When
+        int result = notificationService.markAllAsRead(userId);
+
+        // Then
+        assertEquals(expectedCount, result);
+        verify(notificationRepo, times(1)).markAllAsReadByRecipientId(userId);
+    }
+
+    @Test
+    void markAllAsRead_NoUnreadNotifications_ReturnsZero() {
+        // Given
+        Long userId = 1L;
+        int expectedCount = 0;
+
+        when(notificationRepo.markAllAsReadByRecipientId(userId))
+                .thenReturn(expectedCount);
+
+        // When
+        int result = notificationService.markAllAsRead(userId);
+
+        // Then
+        assertEquals(0, result);
+        verify(notificationRepo, times(1)).markAllAsReadByRecipientId(userId);
+    }
+
+    @Test
+    void markAllAsRead_DifferentUsers_ScopesCorrectly() {
+        // Given
+        Long userId1 = 1L;
+        Long userId2 = 2L;
+        int count1 = 3;
+        int count2 = 7;
+
+        when(notificationRepo.markAllAsReadByRecipientId(userId1))
+                .thenReturn(count1);
+        when(notificationRepo.markAllAsReadByRecipientId(userId2))
+                .thenReturn(count2);
+
+        // When
+        int result1 = notificationService.markAllAsRead(userId1);
+        int result2 = notificationService.markAllAsRead(userId2);
+
+        // Then
+        assertEquals(count1, result1);
+        assertEquals(count2, result2);
+        verify(notificationRepo, times(1)).markAllAsReadByRecipientId(userId1);
+        verify(notificationRepo, times(1)).markAllAsReadByRecipientId(userId2);
     }
 }
 
