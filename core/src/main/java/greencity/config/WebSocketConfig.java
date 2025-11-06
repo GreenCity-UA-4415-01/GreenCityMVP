@@ -1,6 +1,7 @@
 package greencity.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.DefaultContentTypeResolver;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -17,25 +18,42 @@ import java.util.List;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
+        // Simple broker for point-to-point and pub/sub messaging
         config.enableSimpleBroker("/topic");
+
+        // Prefix for STOMP messages mapped to @MessageMapping annotated methods
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/socket")
-            .setAllowedOrigins("*")
+            .setAllowedOriginPatterns("*")
             .withSockJS();
     }
 
+    /**
+     * Configures the message converter for the WebSocket channel, ensuring JSON is
+     * used.
+     */
     @Override
     public boolean configureMessageConverters(List<MessageConverter> messageConverters) {
         DefaultContentTypeResolver resolver = new DefaultContentTypeResolver();
         resolver.setDefaultMimeType(MimeTypeUtils.APPLICATION_JSON);
+
+        // Use a MappingJackson2MessageConverter to handle JSON payloads
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
-        converter.setObjectMapper(new ObjectMapper());
+
+        // FIX: Configure ObjectMapper to support Java 8 Date/Time types like
+        // LocalDateTime
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule()); // <-- This is the core fix
+        converter.setObjectMapper(objectMapper);
+
         converter.setContentTypeResolver(resolver);
         messageConverters.add(converter);
+
+        // Return false to indicate that the default converters should NOT be used.
         return false;
     }
 }

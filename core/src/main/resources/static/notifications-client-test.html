@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Notification Client</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; color: #333; margin: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-bottom: 20px; }
+        #log { border: 1px solid #ccc; padding: 15px; max-height: 400px; overflow-y: auto; background-color: #ecf0f1; border-radius: 8px; }
+        .notification-item { background: #e0f7fa; border-left: 5px solid #00bcd4; padding: 10px; margin-bottom: 10px; border-radius: 5px; opacity: 0; animation: fadeIn 0.5s forwards; }
+        .notification-content { font-weight: bold; }
+        .notification-time { display: block; font-size: 0.8em; color: #7f8c8d; margin-top: 5px; }
+        .control-panel { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+        input[type="text"] { padding: 8px; border: 1px solid #ccc; border-radius: 5px; flex-grow: 1; }
+        button { background-color: #3498db; color: white; padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #2980b9; }
+        .status-connected { color: #27ae60; font-weight: bold; }
+        .status-disconnected { color: #c0392b; font-weight: bold; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>WebSocket Notification Tester</h1>
+    <div class="control-panel">
+        <label for="userIdInput">User ID:</label>
+        <input type="text" id="userIdInput" value="YOUR_USER_ID" placeholder="Enter User ID (Receiver)">
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()" disabled id="disconnectButton">Disconnect</button>
+    </div>
+    <p>Status: <span id="status" class="status-disconnected">Disconnected</span></p>
+
+    <h2>Real-Time Log</h2>
+    <div id="log">
+        <!-- Notifications will appear here -->
+    </div>
+</div>
+
+<script>
+    // --- Configuration ---
+    const WS_URL = 'http://localhost:8080/socket';
+    let stompClient = null;
+    let currentUserId = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        currentUserId = document.getElementById('userIdInput').value;
+        if (currentUserId === 'YOUR_USER_ID' || !currentUserId) {
+            logMessage('Please enter a valid receiver User ID before connecting.', 'error');
+            document.getElementById('userIdInput').focus();
+        }
+    });
+
+    function connect() {
+        const userIdInput = document.getElementById('userIdInput');
+        currentUserId = userIdInput.value.trim();
+
+        if (!currentUserId || currentUserId === 'YOUR_USER_ID') {
+            logMessage('Please enter a valid User ID.', 'error');
+            return;
+        }
+
+        logMessage(`Attempting to connect to WebSocket at ${WS_URL}...`);
+
+        // Use SockJS for compatibility
+        const socket = new SockJS(WS_URL);
+        stompClient = Stomp.over(socket);
+
+        // --- IMPORTANT DEBUGGING STEP ---
+        // Enable STOMP logging to see all frames (CONNECT, SUBSCRIBE, MESSAGE) in the console.
+        stompClient.debug = console.log;
+
+        // Connect to the WebSocket server
+        stompClient.connect({}, function (frame) {
+
+            document.getElementById('status').textContent = 'Connected';
+            document.getElementById('status').className = 'status-connected';
+            document.getElementById('disconnectButton').disabled = false;
+            userIdInput.disabled = true;
+            logMessage('Connected successfully.', 'success');
+
+            // 1. Subscribe to the private user topic
+            const topic = `/topic/user/${currentUserId}/notifications`;
+            stompClient.subscribe(topic, function (message) {
+                // --- DEBUGGING: Message Received Confirmation ---
+                console.log(`[STOMP] Message received on topic ${topic}:`, message);
+                logMessage(`Received message payload: ${message.body}`, 'info');
+
+                // 2. Handle incoming notification message
+                try {
+                    showNotification(JSON.parse(message.body));
+                } catch (e) {
+                    logMessage(`Error parsing message: ${e.message}. Raw body: ${message.body}`, 'error');
+                    console.error('Parsing error:', e);
+                }
+            });
+            logMessage(`Subscribed to private topic: ${topic}`, 'success');
+
+        }, function (error) {
+            logMessage('Connection FAILED. Check if Spring Boot is running on port 8080.', 'error');
+            console.error('STOMP Connection Error:', error);
+
+            document.getElementById('status').textContent = 'Disconnected';
+            document.getElementById('status').className = 'status-disconnected';
+            document.getElementById('disconnectButton').disabled = true;
+            userIdInput.disabled = false;
+        });
+    }
+
+    function disconnect() {
+        if (stompClient !== null) {
+            stompClient.disconnect(function() {
+                logMessage('Disconnected successfully.', 'info');
+                document.getElementById('status').textContent = 'Disconnected';
+                document.getElementById('status').className = 'status-disconnected';
+                document.getElementById('disconnectButton').disabled = true;
+                document.getElementById('userIdInput').disabled = false;
+            });
+        }
+    }
+
+    /**
+     * Displays an incoming notification DTO in the log.
+     * @param {Object} notification - The NotificationDTO received over WebSocket.
+     */
+    function showNotification(notification) {
+        const log = document.getElementById('log');
+        const item = document.createElement('div');
+        item.className = 'notification-item';
+
+        const content = document.createElement('span');
+        content.className = 'notification-content';
+        content.textContent = notification.content;
+
+        const time = document.createElement('span');
+        time.className = 'notification-time';
+
+        let date;
+        if (notification.sentAt) {
+            // --- FIX FOR JAVA LocalDateTime ARRAY FORMAT ---
+            // Java (Year, Month (1-12), Day, Hour, Minute, Second, Nanosecond)
+            // JS Date (Year, Month (0-11), Day, Hour, Minute, Second, Millisecond)
+            const [year, month, day, hour, minute, second, nano] = notification.sentAt;
+
+            // Create the Date object, adjusting for JavaScript's 0-indexed month
+            // We lose the nanoseconds, but milliseconds (nano / 1,000,000) are used
+            date = new Date(year, month - 1, day, hour, minute, second, nano / 1000000);
+
+            // Validate if the resulting date is valid
+            if (isNaN(date.getTime())) {
+                date = null;
+                console.error("Failed to construct valid date from array:", notification.sentAt);
+            }
+        }
+
+        if (date) {
+            time.textContent = 'Received: ' + date.toLocaleTimeString() + ' on ' + date.toLocaleDateString();
+        } else {
+            time.textContent = 'Received: Unknown Time (' + notification.sentAt + ')';
+        }
+
+        item.appendChild(content);
+        item.appendChild(time);
+
+        log.prepend(item);
+        logMessage(`[New] ${notification.content}`);
+    }
+
+    /**
+     * Logs general client status messages.
+     */
+    function logMessage(message, type = 'default') {
+        const log = document.getElementById('log');
+        const item = document.createElement('p');
+
+        item.style.fontSize = '0.9em';
+        item.style.padding = '5px 0';
+        item.style.margin = '0';
+
+        if (type === 'error') item.style.color = '#c0392b';
+        if (type === 'success') item.style.color = '#27ae60';
+
+        item.textContent = `[Client Log - ${new Date().toLocaleTimeString()}] ${message}`;
+
+        log.prepend(item);
+    }
+</script>
+
+</body>
+</html>

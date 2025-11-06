@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
@@ -22,8 +23,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
-import java.util.Arrays;
-import java.util.Collections;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.List;
 import static greencity.constant.AppConstant.*;
 import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
@@ -71,26 +73,43 @@ public class SecurityConfig {
     }
 
     /**
+     * Defines the CORS configuration used by the application. This method fixes the
+     * IllegalArgumentException by using setAllowedOriginPatterns.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // The correct fix: using setAllowedOriginPatterns(List.of("*")) allows
+        // allowCredentials(true) by reflecting the client's origin in the response.
+        configuration.setAllowedOriginPatterns(List.of("*"));
+
+        configuration.setAllowCredentials(true);
+
+        // Configure allowed methods, headers, and exposed headers
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With", "Origin",
+            "Access-Control-Request-Method", "Access-Control-Request-Headers"));
+        configuration.setExposedHeaders(List.of("Content-Type", "X-Total-Count"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // Apply this configuration to all paths
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
+
+    /**
      * Method for configure security.
      *
      * @param http {@link HttpSecurity}
      */
     @Bean
     public SecurityFilterChain applicationSecurity(HttpSecurity http) throws Exception {
-        http.cors(corsCustomizer -> corsCustomizer.configurationSource(request -> {
-            CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
-            config.setAllowedOrigins(Collections.singletonList("http://localhost:4205"));
-            config.setAllowedMethods(
-                Arrays.asList("GET", "POST", "OPTIONS", "DELETE", "PUT", "PATCH"));
-            config.setAllowedHeaders(
-                Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Headers",
-                    "X-Requested-With", "Origin", "Content-Type", "Accept", "Authorization"));
-            config.setAllowCredentials(true);
-            config.setAllowedHeaders(Collections.singletonList("*"));
-            config.setMaxAge(3600L);
-            return config;
-        }))
+        // FIX: The explicit, inline http.cors() customization is removed.
+        // Spring Security will now automatically use the correctly defined
+        // 'corsConfigurationSource' bean for CORS policy.
+        http.cors(Customizer.withDefaults()) // Use the globally defined CorsConfigurationSource bean
             .csrf(AbstractHttpConfigurer::disable) // NOSONAR
             .sessionManagement(session -> session.sessionCreationPolicy(STATELESS))
             .addFilterBefore(
@@ -110,6 +129,12 @@ public class SecurityConfig {
                     "/swagger-ui.html")
                 .permitAll()
                 .requestMatchers("/swagger-resources/**", "/webjars/**", "/swagger-ui/**").permitAll()
+
+                // START OF WEB SOCKET FIX: Allow unauthenticated access to the SockJS/WebSocket
+                // endpoint
+                .requestMatchers("/socket/**").permitAll()
+                // END OF WEB SOCKET FIX
+
                 .requestMatchers("/management/**",
                     "/econews/comments/replies/{parentCommentId}")
                 .hasAnyRole(ADMIN)

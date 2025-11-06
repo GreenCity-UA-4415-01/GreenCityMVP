@@ -1,5 +1,6 @@
 package greencity.service;
 
+import greencity.config.RabbitMQConfig;
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.user.*;
@@ -13,10 +14,12 @@ import greencity.repository.FriendshipRepo;
 import greencity.repository.FriendshipRequestRepo;
 import greencity.repository.UserRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -29,6 +32,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendshipRequestRepo friendshipRequestRepo;
     private final FriendshipRepo friendshipRepo;
     private final UserService userService;
+    private final AmqpTemplate rabbitTemplate;
 
     /**
      * Search for friends candidates.
@@ -80,7 +84,20 @@ public class FriendServiceImpl implements FriendService {
         if (friendshipRequestRepo.existsPending(me, friendId)) {
             throw new FriendExistsException(ErrorMessage.FRIENDSHIP_REQUEST_ALREADY_EXISTS);
         }
+
         friendshipRequestRepo.insertPending(me, friendId);
+
+        User requester = userRepo.findById(me)
+            .orElseThrow(() -> new NotFoundException(ErrorMessage.USER_NOT_FOUND_BY_ID + me));
+
+        Map<String, Object> notificationPayload = new HashMap<>();
+        notificationPayload.put("receiverId", friendId);
+        notificationPayload.put("content", requester.getName() + " sent you a friend request!");
+
+        rabbitTemplate.convertAndSend(
+            RabbitMQConfig.FRIEND_REQUEST_EXCHANGE,
+            RabbitMQConfig.ROUTING_KEY,
+            notificationPayload);
     }
 
     /**

@@ -1,5 +1,6 @@
 package greencity.service;
 
+import greencity.config.RabbitMQConfig;
 import greencity.constant.ErrorMessage;
 import greencity.dto.PageableDto;
 import greencity.dto.user.FriendProfileDto;
@@ -21,11 +22,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -44,6 +47,9 @@ class FriendServiceImplTest {
 
     @Mock
     private UserService userService;
+
+    @Mock
+    private AmqpTemplate rabbitTemplate;
 
     @InjectMocks
     private FriendServiceImpl friendService;
@@ -247,6 +253,7 @@ class FriendServiceImplTest {
 
     @Test
     void sendFriendRequest_Successful() {
+        user.setName("Test Requester"); // Set a name for the requester user
         when(userRepo.findById(userId)).thenReturn(Optional.of(user));
         when(userRepo.findById(friendId)).thenReturn(Optional.of(friend));
         when(friendshipRequestRepo.areAlreadyFriends(userId, friendId)).thenReturn(false);
@@ -255,6 +262,11 @@ class FriendServiceImplTest {
         assertDoesNotThrow(() -> friendService.sendFriendRequest(userId, friendId));
 
         verify(friendshipRequestRepo, times(1)).insertPending(userId, friendId);
+
+        verify(rabbitTemplate, times(1)).convertAndSend(
+            eq(RabbitMQConfig.FRIEND_REQUEST_EXCHANGE),
+            eq(RabbitMQConfig.ROUTING_KEY),
+            any(Map.class));
     }
 
     @Test
