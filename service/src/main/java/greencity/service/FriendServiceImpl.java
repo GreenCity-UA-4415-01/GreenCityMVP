@@ -71,7 +71,7 @@ public class FriendServiceImpl implements FriendService {
      *
      * @param me       current user id (requester)
      * @param friendId target user id (receiver)
-     * @author Misha Moroz
+     * @author Misha Moroz & Oleksandr Braiko
      */
     @Override
     @Transactional
