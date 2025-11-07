@@ -39,9 +39,6 @@ public class RabbitMQConfig {
     // JSON)
     @Bean
     public Jackson2JsonMessageConverter producerJackson2MessageConverter() {
-        // FIX: The default ObjectMapper does not support Java 8 Date/Time
-        // (LocalDateTime).
-        // We must create and configure a custom ObjectMapper with the JavaTimeModule.
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
 

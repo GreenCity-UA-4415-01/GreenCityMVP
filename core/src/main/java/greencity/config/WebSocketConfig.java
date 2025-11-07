@@ -44,10 +44,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // Use a MappingJackson2MessageConverter to handle JSON payloads
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
 
-        // FIX: Configure ObjectMapper to support Java 8 Date/Time types like
-        // LocalDateTime
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule()); // <-- This is the core fix
+        objectMapper.registerModule(new JavaTimeModule());
         converter.setObjectMapper(objectMapper);
 
         converter.setContentTypeResolver(resolver);
