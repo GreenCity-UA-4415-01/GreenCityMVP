@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://greencity.com/schemas/notification-event-schema.json",
+  "title": "Notification Event Message Schema",
+  "description": "JSON schema for validating notification event messages sent via RabbitMQ",
+  "type": "object",
+  "required": [
+    "recipientUserIds",
+    "actorUserIds",
+    "actionType",
+    "objectType",
+    "idempotencyKey"
+  ],
+  "properties": {
+    "recipientUserIds": {
+      "type": "array",
+      "description": "List of user IDs who should receive this notification",
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "actorUserIds": {
+      "type": "array",
+      "description": "List of user IDs who performed the action (actors)",
+      "items": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "actorUsernames": {
+      "type": "array",
+      "description": "List of usernames of the actors. Optional if actorUserIds are provided",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 255
+      },
+      "uniqueItems": true
+    },
+    "actionType": {
+      "type": "string",
+      "description": "Type of action that triggered the notification",
+      "enum": [
+        "like.created",
+        "like.deleted",
+        "comment.added",
+        "comment.deleted",
+        "post.shared",
+        "user.followed",
+        "user.unfollowed",
+        "friend.request.sent",
+        "friend.request.accepted"
+      ],
+      "maxLength": 50
+    },
+    "objectType": {
+      "type": "string",
+      "description": "Type of object the action was performed on",
+      "enum": [
+        "news",
+        "comment",
+        "post",
+        "user",
+        "event",
+        "habit",
+        "friend_request"
+      ],
+      "maxLength": 50
+    },
+    "objectId": {
+      "type": "string",
+      "description": "ID of the object the action was performed on",
+      "maxLength": 64
+    },
+    "objectTitle": {
+      "type": "string",
+      "description": "Title or name of the object the action was performed on",
+      "maxLength": 255
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the action occurred. If not provided, will be set to current time"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "description": "Idempotency key for deduplication. Format: '{actionType}:{objectId}:{recipientUserId}'",
+      "minLength": 1,
+      "maxLength": 255,
+      "pattern": "^[a-zA-Z0-9._:-]+$"
+    },
+    "metadata": {
+      "type": "string",
+      "description": "Optional metadata for future extensibility. Can contain additional context about the notification"
+    }
+  },
+  "additionalProperties": false
+}
+
