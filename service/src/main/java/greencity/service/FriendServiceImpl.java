@@ -59,7 +59,7 @@ public class FriendServiceImpl implements FriendService {
             .city(u.getCity())
             .profilePicture(u.getProfilePicturePath())
             .personalRate(u.getRating())
-            .mutualFriends(0L)
+            .mutualFriends(userRepo.countMutualFriends(me, u.getId()))
             .requestSent(friendshipRequestRepo.existsPending(me, u.getId()))
             .build()).getContent();
 

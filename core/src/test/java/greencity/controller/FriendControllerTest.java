@@ -109,15 +109,50 @@ class FriendControllerTest {
     // --- FIND NOT FRIENDS YET TESTS ---
 
     @Test
-    void findNotFriendsYet_Successful_NoName() throws Exception {
-        when(friendService.search(eq(currentUserId), eq(""), any(Pageable.class)))
-                .thenReturn(mockPageableDto);
+    void findNotFriendsYet_Successful_MinLengthName() throws Exception {
+        String searchName = "A";
+        when(friendService.search(eq(currentUserId), eq(searchName), any(Pageable.class)))
+            .thenReturn(mockPageableDto);
 
         mockMvc.perform(get("/friends/not-friends-yet")
-                        .param("page", "0").param("size", "10"))
-                .andExpect(status().isOk());
+            .param("name", searchName)
+            .param("page", "0").param("size", "10"))
+            .andExpect(status().isOk());
 
-        verify(friendService, times(1)).search(eq(currentUserId), eq(""), any(Pageable.class));
+        verify(friendService, times(1)).search(eq(currentUserId), eq(searchName), any(Pageable.class));
+    }
+
+    @Test
+    void findNotFriendsYet_ThrowsBadRequestException_BlankName() throws Exception {
+        String searchName = " "; // Blank string
+        mockMvc.perform(get("/friends/not-friends-yet")
+            .param("name", searchName)
+            .param("page", "0").param("size", "10"))
+            .andExpect(status().isBadRequest());
+
+        verify(friendService, never()).search(anyLong(), anyString(), any(Pageable.class));
+    }
+
+    @Test
+    void findNotFriendsYet_ThrowsBadRequestException_EmptyName() throws Exception {
+        String searchName = ""; // Empty string
+        mockMvc.perform(get("/friends/not-friends-yet")
+            .param("name", searchName)
+            .param("page", "0").param("size", "10"))
+            .andExpect(status().isBadRequest());
+
+        verify(friendService, never()).search(anyLong(), anyString(), any(Pageable.class));
+    }
+
+    @Test
+    void findNotFriendsYet_ThrowsBadRequestException_NameTooLong() throws Exception {
+        String searchName = "a".repeat(31); // 31 characters, max is 30
+        mockMvc.perform(get("/friends/not-friends-yet")
+            .param("name", searchName)
+            .param("page", "0").param("size", "10"))
+            .andExpect(status().isBadRequest());
+
+        verify(friendService, never()).search(anyLong(), anyString(), any(Pageable.class));
     }
 
     @Test

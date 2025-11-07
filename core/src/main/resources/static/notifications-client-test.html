@@ -91,7 +91,7 @@
             stompClient.subscribe(topic, function (message) {
                 // --- DEBUGGING: Message Received Confirmation ---
                 console.log(`[STOMP] Message received on topic ${topic}:`, message);
-                logMessage(`Received message payload: ${message.body}`, 'info');
+                // logMessage(`Received message payload: ${message.body}`, 'info');
 
                 // 2. Handle incoming notification message
                 try {

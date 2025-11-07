@@ -5,6 +5,7 @@ import greencity.annotations.CurrentUser;
 import greencity.constant.HttpStatuses;
 import greencity.dto.PageableDto;
 import greencity.dto.user.*;
+import greencity.exception.exceptions.BadRequestException;
 import greencity.service.FriendService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -32,9 +33,10 @@ public class FriendController {
     @GetMapping("/not-friends-yet")
     @ApiPageableWithLocale
     public ResponseEntity<PageableDto<UserFriendCandidateCardDto>> findNotFriendsYet(
-        @RequestParam(defaultValue = "") String name,
+        @RequestParam(value = "name", defaultValue = "") String name,
         Pageable pageable,
         @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
+        validateSearchQuery(name);
         PageableDto<UserFriendCandidateCardDto> result = friendService.search(currentUser.getId(), name, pageable);
         return ResponseEntity.ok(result);
     }
@@ -156,5 +158,14 @@ public class FriendController {
         Pageable pageable,
         @Parameter(hidden = true) @CurrentUser UserVO currentUser) {
         return ResponseEntity.ok(friendService.friendRequests(currentUser.getId(), pageable));
+    }
+
+    private void validateSearchQuery(String query) {
+        if (query == null || query.trim().isBlank()) {
+            throw new BadRequestException("Search query must have at least 1 character.");
+        }
+        if (query.length() > 30) {
+            throw new BadRequestException("Search query cannot exceed 30 characters.");
+        }
     }
 }
